@@ -38,6 +38,17 @@ const checkYakuhai = (o, pos) => {
 
 const YAKU =
 {
+    "连七对": {
+        "han": 88, "isFuroMinus": true, "check": (o) => {
+            if (o.currentPattern.length !== 7) return false
+            return o.currentPattern[0] === (Number(o.currentPattern[1][0]) - 1) + o.currentPattern[1][1] &&
+                o.currentPattern[0] === (Number(o.currentPattern[2][0]) - 2) + o.currentPattern[2][1] &&
+                o.currentPattern[0] === (Number(o.currentPattern[3][0]) - 3) + o.currentPattern[3][1] &&
+                o.currentPattern[0] === (Number(o.currentPattern[4][0]) - 4) + o.currentPattern[4][1] &&
+                o.currentPattern[0] === (Number(o.currentPattern[5][0]) - 5) + o.currentPattern[5][1] &&
+                o.currentPattern[0] === (Number(o.currentPattern[6][0]) - 6) + o.currentPattern[6][1]
+        }
+    },
     "绿一色": {
         "han": 88, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
@@ -55,7 +66,7 @@ const YAKU =
     "九莲宝灯": {
         "han": 88, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let i = MPSZ.indexOf(o.agari[1])
@@ -72,7 +83,7 @@ const YAKU =
     "四杠": {
         "han": 88, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -88,7 +99,7 @@ const YAKU =
     "大四喜": {
         "han": 88, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1z', '2z', '3z', '4z']
@@ -103,7 +114,7 @@ const YAKU =
     "大三元": {
         "han": 88, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['5z', '6z', '7z']
@@ -118,7 +129,7 @@ const YAKU =
     "四暗刻": {
         "han": 64, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = 0
@@ -150,7 +161,7 @@ const YAKU =
     "小四喜": {
         "han": 64, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1z', '2z', '3z', '4z']
@@ -167,7 +178,7 @@ const YAKU =
     "小三元": {
         "han": 64, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['5z', '6z', '7z']
@@ -184,7 +195,7 @@ const YAKU =
     "一色双龙会": {
         "han": 64, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -200,15 +211,15 @@ const YAKU =
                 }
             }
             arr = arr.sort((a, b) => MPSZ.indexOf(a[1]) * 9 + Number(a[0]) - MPSZ.indexOf(b[1]) * 9 - Number(b[0]))
-            return arr[0] === arr[1] && arr[0] === (Number(arr[2][0]) - 6).toString()+arr[2][1] &&
-                arr[0] === (Number(arr[3][0]) - 6).toString()+arr[3][1] &&
-                jiang == '5'+arr[0][1]
-            }
+            return arr[0] === arr[1] && arr[0] === (Number(arr[2][0]) - 6).toString() + arr[2][1] &&
+                arr[0] === (Number(arr[3][0]) - 6).toString() + arr[3][1] &&
+                jiang == '5' + arr[0][1]
+        }
     },
     "一色四节高": {
         "han": 48, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -227,7 +238,7 @@ const YAKU =
     "一色四同顺": {
         "han": 48, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -255,7 +266,7 @@ const YAKU =
     "三杠": {
         "han": 32, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -271,7 +282,7 @@ const YAKU =
     "一色四步高": {
         "han": 32, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -293,6 +304,7 @@ const YAKU =
     },
     "清一色": {
         "name": "清一色", "han": 24, "isFuroMinus": true, "check": (o) => {
+            if (YAKU['连七对'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['字一色'].check(o)) return false
@@ -336,7 +348,7 @@ const YAKU =
     "全双刻": {
         "han": 24, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = 0
@@ -345,14 +357,14 @@ const YAKU =
                 if (typeof v === 'string') jiang = v
                 else if ((v.length === 1 || v[0] === v[1]) && v[0][1] !== 'z' && Number(v[0][0]) % 2 === 0)
                     res++
-            return res === 4 &&  jiang[1] !== 'z' && Number(jiang[0]) % 2 === 0
+            return res === 4 && jiang[1] !== 'z' && Number(jiang[0]) % 2 === 0
         }
     },
     "一色三节高": {
         "han": 24, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四节高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -379,7 +391,7 @@ const YAKU =
         "han": 24, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四同顺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -400,6 +412,7 @@ const YAKU =
     },
     "七对": {
         "han": 24, "check": (o) => {
+            if (YAKU['连七对'].check(o)) return false
             return o.currentPattern.length == 7
         }
     },
@@ -456,7 +469,7 @@ const YAKU =
         "han": 16, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -487,7 +500,7 @@ const YAKU =
     "三色双龙会": {
         "han": 16, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -511,7 +524,7 @@ const YAKU =
     "全带五": {
         "han": 16, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let allow = ['5m', '5p', '5s']
@@ -579,7 +592,7 @@ const YAKU =
         "han": 8, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['清一色'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -622,7 +635,7 @@ const YAKU =
     "花龙": {
         "han": 8, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -675,6 +688,7 @@ const YAKU =
     },
     "无番和": {
         "han": 8, "check": (o) => {
+            if (YAKU['连七对'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['绿一色'].check(o)) return false
             if (YAKU['九莲宝灯'].check(o)) return false
@@ -698,7 +712,7 @@ const YAKU =
             if (YAKU['全双刻'].check(o)) return false
             if (YAKU['一色三节高'].check(o)) return false
             if (YAKU['一色三同顺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['三暗刻'].check(o)) return false
             if (YAKU['三同刻'].check(o)) return false
@@ -765,6 +779,7 @@ const YAKU =
     },
     "混一色": {
         "han": 6, "check": (o) => {
+            if (YAKU['连七对'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['绿一色'].check(o)) return false
@@ -829,7 +844,7 @@ const YAKU =
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['一色四节高'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = 0
@@ -843,7 +858,7 @@ const YAKU =
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['小三元'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['5z', '6z', '7z']
@@ -860,7 +875,7 @@ const YAKU =
     "双暗杠": {
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -876,7 +891,7 @@ const YAKU =
     "全求人": {
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             if (o.isTsumo) return false
@@ -890,7 +905,7 @@ const YAKU =
     "明暗杠": {
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -906,7 +921,7 @@ const YAKU =
     "双明杠": {
         "han": 4, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -922,7 +937,7 @@ const YAKU =
     "三色三步高": {
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -951,7 +966,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['九莲宝灯'].check(o)) return false
             if (YAKU['四暗刻'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = 0
@@ -966,7 +981,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let allow = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z', '5z', '6z', '7z']
@@ -988,7 +1003,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['九莲宝灯'].check(o)) return false
             if (YAKU['四暗刻'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['不求人'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1002,7 +1017,7 @@ const YAKU =
     "暗杠": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -1018,7 +1033,7 @@ const YAKU =
     "双暗刻": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = 0
@@ -1032,7 +1047,8 @@ const YAKU =
     "双同刻": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['清幺九'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1052,7 +1068,7 @@ const YAKU =
     "双同刻x2": {
         "han": 4, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -1088,7 +1104,7 @@ const YAKU =
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             if (YAKU['三色双龙会'].check(o)) return false
@@ -1106,7 +1122,7 @@ const YAKU =
         "han": 2, "check": (o) => {
             if (YAKU['大四喜'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             return checkYakuhai(o, o.bakaze)
@@ -1116,7 +1132,7 @@ const YAKU =
         "han": 2, "check": (o) => {
             if (YAKU['大四喜'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             return checkYakuhai(o, o.jikaze)
@@ -1125,7 +1141,7 @@ const YAKU =
     "箭刻": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['5z', '6z', '7z']
@@ -1207,6 +1223,7 @@ const YAKU =
     },
     "无字": {
         "han": 1, "check": (o) => {
+            if (YAKU['连七对'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['九莲宝灯'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
@@ -1259,7 +1276,7 @@ const YAKU =
     "明杠": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let res1 = 0
@@ -1280,7 +1297,7 @@ const YAKU =
             if (YAKU['小四喜'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z']
@@ -1308,7 +1325,7 @@ const YAKU =
             if (YAKU['小四喜'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z']
@@ -1336,7 +1353,7 @@ const YAKU =
             if (YAKU['小四喜'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z']
@@ -1364,7 +1381,7 @@ const YAKU =
             if (YAKU['小四喜'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['混幺九'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let need = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z']
@@ -1390,7 +1407,7 @@ const YAKU =
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['一色四同顺'].check(o)) return false
             if (YAKU['一色三同顺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['一般高x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1418,7 +1435,7 @@ const YAKU =
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['一色四同顺'].check(o)) return false
             if (YAKU['一色三同顺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let arr = []
@@ -1436,7 +1453,7 @@ const YAKU =
     "喜相逢": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['喜相逢x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1463,7 +1480,7 @@ const YAKU =
     "喜相逢x2": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             if (YAKU['三色三同顺'].check(o)) return false
@@ -1486,7 +1503,7 @@ const YAKU =
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['连六x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1515,7 +1532,7 @@ const YAKU =
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['喜相逢x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1539,7 +1556,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['老少副x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1570,7 +1587,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['喜相逢x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1592,7 +1609,7 @@ const YAKU =
     "边张": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
             let O = JSON.parse(JSON.stringify(o.haiArray))
@@ -1623,7 +1640,7 @@ const YAKU =
     "嵌张": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['边张'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
@@ -1650,7 +1667,7 @@ const YAKU =
         "han": 1, "check": (o) => {
             if (YAKU['四杠'].check(o)) return false
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['全求人'].check(o)) return false
             if (YAKU['边张'].check(o)) return false
             if (YAKU['嵌张'].check(o)) return false

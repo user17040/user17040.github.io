@@ -986,6 +986,7 @@ const YAKU =
     "门前清": {
         "han": 2, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
+            if (YAKU['九莲宝灯'].check(o)) return false
             if (YAKU['四暗刻'].check(o)) return false
             if (YAKU['七对'].check(o)) return false
             if (YAKU['不求人'].check(o)) return false

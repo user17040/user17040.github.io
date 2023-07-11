@@ -1,0 +1,29 @@
+<html>
+<meta charset="UTF-8">
+<script src="agari.js"></script>
+<script src="index.js"></script>
+<script src="yaku.js"></script>
+<style>
+  .c {
+    border: none;
+    border-bottom: 2px solid #999;
+    padding: 5px;
+    background-color: transparent;
+  }
+</style>
+<input class='c' id='input' size='64' oninput="calc()"></div><br>
+<span id='output'></span>
+<script>
+  function calc() {
+    document.getElementById("output").innerHTML = ''
+    const riichi = new Riichi(document.getElementById('input').value).calc()
+    const KEYS = Object.keys(riichi.yaku)
+    document.getElementById("output").innerHTML += riichi.text+'<br>'
+    for (let i = 0; i < KEYS.length; i++) {
+      document.getElementById("output").innerHTML += KEYS[i] + '   ' + riichi.yaku[KEYS[i]] + '<br>'
+    }
+  }
+
+</script>
+
+</html>

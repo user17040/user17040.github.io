@@ -32,10 +32,10 @@
         return !arr.includes(0) && sum(arr) == 14
     }
     const check14 = (hai_arr) => {
-        let star=true
+        let star=0
         for(let i=0;i<7;i++){
             if(hai_arr[3][i]>=2) return 0
-            if(hai_arr[3][i]===0) star=false
+            if(hai_arr[3][i]===1) star++
         }
         let res=[false,false,false]
         for(let c=0;c<3;c++){
@@ -50,7 +50,9 @@
             }
             res[t]=true
         }
-        return star?2:1
+        if(star===7) return 2
+        if(star===5) return 3
+        return 1
     }
     const _check = (arr, is_jihai = false) => {
         arr = [...arr]

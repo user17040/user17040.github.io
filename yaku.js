@@ -1208,6 +1208,7 @@ const YAKU =
     "无字": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
+            if (YAKU['九莲宝灯'].check(o)) return false
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['清幺九'].check(o)) return false
             if (YAKU['清一色'].check(o)) return false

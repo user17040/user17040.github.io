@@ -419,7 +419,7 @@ const YAKU =
     },
     "七星不靠": {
         "han": 24, "check": (o) => {
-            return false
+            return agari.check14(o.haiArray) == 2
         }
     },
     "三暗刻": {
@@ -574,7 +574,7 @@ const YAKU =
     },
     "全不靠": {
         "han": 12, "check": (o) => {
-            return false
+            return agari.check14(o.haiArray) === 1
         }
     },
     "推不倒": {

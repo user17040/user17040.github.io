@@ -14,9 +14,9 @@
         let s = 0
         for (let i = 0; i < arr.length; i++) {
             if (arr[i] && arr[i] % 2 != 0) return false
-            s += arr[i]
+            s += 1
         }
-        return s == 14
+        return s == 7
     }
     const find7pattern = (hai_arr) => {
         let arr = [...hai_arr[0], ...hai_arr[1], ...hai_arr[2], ...hai_arr[3]]
@@ -30,6 +30,27 @@
     const check13 = (hai_arr) => {
         let arr = [hai_arr[0][0], hai_arr[0][8], hai_arr[1][0], hai_arr[1][8], hai_arr[2][0], hai_arr[2][8], ...hai_arr[3]]
         return !arr.includes(0) && sum(arr) == 14
+    }
+    const check14 = (hai_arr) => {
+        let star=true
+        for(let i=0;i<7;i++){
+            if(hai_arr[3][i]>=2) return 0
+            if(hai_arr[3][i]===0) star=false
+        }
+        let res=[false,false,false]
+        for(let c=0;c<3;c++){
+            let t=-1
+            for(let i=0;i<9;i++){
+                if(hai_arr[c][i]>1) return 0
+                if(hai_arr[c][i]===1){
+                    if(res[i%3]) return 0
+                    t=i%3
+                    if(i%3!==t) return 0
+                }
+            }
+            res[t]=true
+        }
+        return star?2:1
     }
     const _check = (arr, is_jihai = false) => {
         arr = [...arr]
@@ -79,7 +100,7 @@
         return j === 1 && _check(hai_arr[3], true) && _check(hai_arr[0]) && _check(hai_arr[1]) && _check(hai_arr[2])
     }
     const checkAll = (hai_arr) => {
-        return check7(hai_arr) || check13(hai_arr) || check(hai_arr)
+        return check7(hai_arr) || check13(hai_arr) || check14(hai_arr) || check(hai_arr)
     }
 
     const MPSZ = ['m', 'p', 's', 'z']
@@ -206,6 +227,7 @@
     exports.check = check //一般形
     exports.check7 = check7 //七対子形
     exports.check13 = check13 //国士形
+    exports.check14 = check14 //国士形
     exports.checkAll = checkAll //全形
 
     if (typeof module === 'object' && module && module.exports) {

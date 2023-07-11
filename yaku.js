@@ -41,6 +41,7 @@ const YAKU =
     "连七对": {
         "han": 88, "isFuroMinus": true, "check": (o) => {
             if (o.currentPattern.length !== 7) return false
+            if (o.currentPattern[0][1] === 'z') return false
             return o.currentPattern[0] === (Number(o.currentPattern[1][0]) - 1) + o.currentPattern[1][1] &&
                 o.currentPattern[0] === (Number(o.currentPattern[2][0]) - 2) + o.currentPattern[2][1] &&
                 o.currentPattern[0] === (Number(o.currentPattern[3][0]) - 3) + o.currentPattern[3][1] &&
@@ -888,6 +889,33 @@ const YAKU =
             return res1 === 0 && res2 === 2
         }
     },
+    "三色三步高": {
+        "han": 6, "check": (o) => {
+            if (YAKU['十三幺'].check(o)) return false
+            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
+            if (YAKU['七星不靠'].check(o)) return false
+            if (YAKU['全不靠'].check(o)) return false
+            let arr = []
+            for (let v of o.currentPattern) {
+                if (typeof v === 'string')
+                    continue
+                if (v.length !== 3 || v[0] === v[1])
+                    arr.push('--')
+                else {
+                    arr.push(v[0])
+                }
+            }
+            let res012 = [Number(arr[0][0]), Number(arr[1][0]), Number(arr[2][0])].sort()
+            let res013 = [Number(arr[0][0]), Number(arr[1][0]), Number(arr[3][0])].sort()
+            let res023 = [Number(arr[0][0]), Number(arr[2][0]), Number(arr[3][0])].sort()
+            let res123 = [Number(arr[1][0]), Number(arr[2][0]), Number(arr[3][0])].sort()
+            return (res012[0] === res012[1] - 1 && res012[0] === res012[2] - 2 && (arr[0][1] !== arr[1][1] && arr[0][1] !== arr[2][1] && arr[1][1] !== arr[2][1]))
+                || (res013[0] === res013[1] - 1 && res013[0] === res013[2] - 2 && (arr[0][1] !== arr[1][1] && arr[0][1] !== arr[3][1] && arr[1][1] !== arr[3][1]))
+                || (res023[0] === res023[1] - 1 && res023[0] === res023[2] - 2 && (arr[0][1] !== arr[2][1] && arr[0][1] !== arr[3][1] && arr[2][1] !== arr[3][1]))
+                || (res123[0] === res123[1] - 1 && res123[0] === res123[2] - 2 && (arr[1][1] !== arr[2][1] && arr[1][1] !== arr[3][1] && arr[2][1] !== arr[3][1]))
+
+        }
+    },
     "全求人": {
         "han": 6, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
@@ -903,7 +931,7 @@ const YAKU =
         }
     },
     "明暗杠": {
-        "han": 6, "check": (o) => {
+        "han": 5, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
@@ -932,33 +960,6 @@ const YAKU =
                 else if (typeof v !== 'string' && v.length === 2)
                     res2++
             return res1 === 2 && res2 === 0
-        }
-    },
-    "三色三步高": {
-        "han": 6, "check": (o) => {
-            if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
-            if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o)) return false
-            let arr = []
-            for (let v of o.currentPattern) {
-                if (typeof v === 'string')
-                    continue
-                if (v.length !== 3 || v[0] === v[1])
-                    arr.push('--')
-                else {
-                    arr.push(v[0])
-                }
-            }
-            let res012 = [Number(arr[0][0]), Number(arr[1][0]), Number(arr[2][0])].sort()
-            let res013 = [Number(arr[0][0]), Number(arr[1][0]), Number(arr[3][0])].sort()
-            let res023 = [Number(arr[0][0]), Number(arr[2][0]), Number(arr[3][0])].sort()
-            let res123 = [Number(arr[1][0]), Number(arr[2][0]), Number(arr[3][0])].sort()
-            return (res012[0] === res012[1] - 1 && res012[0] === res012[2] - 2 && (arr[0][1] !== arr[1][1] && arr[0][1] !== arr[2][1] && arr[1][1] !== arr[2][1]))
-                || (res013[0] === res013[1] - 1 && res013[0] === res013[2] - 2 && (arr[0][1] !== arr[1][1] && arr[0][1] !== arr[3][1] && arr[1][1] !== arr[3][1]))
-                || (res023[0] === res023[1] - 1 && res023[0] === res023[2] - 2 && (arr[0][1] !== arr[2][1] && arr[0][1] !== arr[3][1] && arr[2][1] !== arr[3][1]))
-                || (res123[0] === res123[1] - 1 && res123[0] === res123[2] - 2 && (arr[1][1] !== arr[2][1] && arr[1][1] !== arr[3][1] && arr[2][1] !== arr[3][1]))
-
         }
     },
     "不求人": {
@@ -1036,6 +1037,7 @@ const YAKU =
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o)) return false
+            if (YAKU['双暗杠'].check(o)) return false
             let res = 0
             for (let v of o.currentPattern) {
                 if (typeof v !== 'string' && v.length <= 2)

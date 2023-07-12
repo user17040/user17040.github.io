@@ -1238,7 +1238,7 @@ const YAKU =
             if (YAKU['断幺'].check(o)) return false
             if (YAKU['平和'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) ||(YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             if (YAKU['大于五'].check(o)) return false
             if (YAKU['小于五'].check(o)) return false
             if (YAKU['全带五'].check(o)) return false

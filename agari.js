@@ -56,6 +56,143 @@
         if (star === 5) return 3
         return 1
     }
+    const checkzuhe = (hai_arr) => {
+        let hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][0] -= 1
+        hai[0][3] -= 1
+        hai[0][6] -= 1
+        hai[1][1] -= 1
+        hai[1][4] -= 1
+        hai[1][7] -= 1
+        hai[2][2] -= 1
+        hai[2][5] -= 1
+        hai[2][8] -= 1
+        if (check(hai)) return true
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][0] -= 1
+        hai[0][3] -= 1
+        hai[0][6] -= 1
+        hai[1][2] -= 1
+        hai[1][5] -= 1
+        hai[1][8] -= 1
+        hai[2][1] -= 1
+        hai[2][4] -= 1
+        hai[2][7] -= 1
+        if (check(hai)) return true
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][1] -= 1
+        hai[0][4] -= 1
+        hai[0][7] -= 1
+        hai[1][0] -= 1
+        hai[1][3] -= 1
+        hai[1][6] -= 1
+        hai[2][2] -= 1
+        hai[2][5] -= 1
+        hai[2][8] -= 1
+        if (check(hai)) return true
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][1] -= 1
+        hai[0][4] -= 1
+        hai[0][7] -= 1
+        hai[1][2] -= 1
+        hai[1][5] -= 1
+        hai[1][8] -= 1
+        hai[2][0] -= 1
+        hai[2][3] -= 1
+        hai[2][6] -= 1
+        if (check(hai)) return true
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][2] -= 1
+        hai[0][5] -= 1
+        hai[0][8] -= 1
+        hai[1][0] -= 1
+        hai[1][3] -= 1
+        hai[1][6] -= 1
+        hai[2][1] -= 1
+        hai[2][4] -= 1
+        hai[2][7] -= 1
+        if (check(hai)) return true
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][2] -= 1
+        hai[0][5] -= 1
+        hai[0][8] -= 1
+        hai[1][1] -= 1
+        hai[1][4] -= 1
+        hai[1][7] -= 1
+        hai[2][0] -= 1
+        hai[2][3] -= 1
+        hai[2][6] -= 1
+        if (check(hai)) return true
+        return false
+    }
+    const findzuhepattern = (hai_arr) => {
+        let hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][0] -= 1
+        hai[0][3] -= 1
+        hai[0][6] -= 1
+        hai[1][1] -= 1
+        hai[1][4] -= 1
+        hai[1][7] -= 1
+        hai[2][2] -= 1
+        hai[2][5] -= 1
+        hai[2][8] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][0] -= 1
+        hai[0][3] -= 1
+        hai[0][6] -= 1
+        hai[1][2] -= 1
+        hai[1][5] -= 1
+        hai[1][8] -= 1
+        hai[2][1] -= 1
+        hai[2][4] -= 1
+        hai[2][7] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][1] -= 1
+        hai[0][4] -= 1
+        hai[0][7] -= 1
+        hai[1][0] -= 1
+        hai[1][3] -= 1
+        hai[1][6] -= 1
+        hai[2][2] -= 1
+        hai[2][5] -= 1
+        hai[2][8] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][1] -= 1
+        hai[0][4] -= 1
+        hai[0][7] -= 1
+        hai[1][2] -= 1
+        hai[1][5] -= 1
+        hai[1][8] -= 1
+        hai[2][0] -= 1
+        hai[2][3] -= 1
+        hai[2][6] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][2] -= 1
+        hai[0][5] -= 1
+        hai[0][8] -= 1
+        hai[1][0] -= 1
+        hai[1][3] -= 1
+        hai[1][6] -= 1
+        hai[2][1] -= 1
+        hai[2][4] -= 1
+        hai[2][7] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+        hai=JSON.parse(JSON.stringify(hai_arr))
+        hai[0][2] -= 1
+        hai[0][5] -= 1
+        hai[0][8] -= 1
+        hai[1][1] -= 1
+        hai[1][4] -= 1
+        hai[1][7] -= 1
+        hai[2][0] -= 1
+        hai[2][3] -= 1
+        hai[2][6] -= 1
+        if (check(hai)) return findAllAgariPatterns(hai)
+    }
     const _check = (arr, is_jihai = false) => {
         arr = [...arr]
         let s = sum(arr)
@@ -104,7 +241,7 @@
         return j === 1 && _check(hai_arr[3], true) && _check(hai_arr[0]) && _check(hai_arr[1]) && _check(hai_arr[2])
     }
     const checkAll = (hai_arr) => {
-        return check7(hai_arr) || check13(hai_arr) || check14(hai_arr) || check(hai_arr)
+        return check7(hai_arr) || check13(hai_arr) || check14(hai_arr) || check(hai_arr) || checkzuhe(hai_arr)
     }
 
     const MPSZ = ['m', 'p', 's', 'z']
@@ -187,6 +324,9 @@
         if (check7(hai_arr)) {
             res.push(find7pattern(hai_arr))
         }
+        if (checkzuhe(hai_arr)) {
+            res.push(findzuhepattern(hai_arr))
+        }
         if (!check(hai_arr)) {
             return res
         }
@@ -232,6 +372,7 @@
     exports.check7 = check7 //七対子形
     exports.check13 = check13 //国士形
     exports.check14 = check14 //国士形
+    exports.checkzuhe = checkzuhe //国士形
     exports.checkAll = checkAll //全形
 
     if (typeof module === 'object' && module && module.exports) {

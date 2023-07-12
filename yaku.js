@@ -1129,7 +1129,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             return checkYakuhai(o, o.bakaze)
         }
     },
@@ -1139,7 +1139,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             return checkYakuhai(o, o.jikaze)
         }
     },
@@ -1148,7 +1148,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let need = ['5z', '6z', '7z']
             let res = 0
             for (let v of o.currentPattern) {
@@ -1165,7 +1165,7 @@ const YAKU =
             if (YAKU['十三幺'].check(o)) return false
             if (YAKU['一色四同顺'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let res = [...o.haiArray[0], ...o.haiArray[1], ...o.haiArray[2], ...o.haiArray[3]]
             for (let v of o.furo) {
                 if (v.length === 1) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
@@ -1304,7 +1304,7 @@ const YAKU =
             if (YAKU['混幺九'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let need = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z']
             let res = 0
             for (let v of o.currentPattern) {

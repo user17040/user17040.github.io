@@ -972,7 +972,7 @@ const YAKU =
             if (YAKU['四暗刻'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o)) return false
             let res = 0
             for (let v of o.currentPattern)
                 if (typeof v !== 'string' && v.length === 2)
@@ -1010,7 +1010,7 @@ const YAKU =
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
             if (YAKU['不求人'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
+            if (YAKU['全不靠'].check(o)) return false
             let res = 0
             for (let v of o.currentPattern)
                 if (typeof v !== 'string' && v.length === 2)

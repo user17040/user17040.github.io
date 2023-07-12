@@ -13,17 +13,17 @@
         let arr = [...hai_arr[0], ...hai_arr[1], ...hai_arr[2], ...hai_arr[3]]
         let s = 0
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i] && arr[i] % 2 != 0) return false
-            s += 1
+            if (arr[i] % 2 != 0) return false
+            s += arr[i] / 2
         }
         return s == 7
     }
     const find7pattern = (hai_arr) => {
         let arr = [...hai_arr[0], ...hai_arr[1], ...hai_arr[2], ...hai_arr[3]]
-        var res=[]
+        var res = []
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i] && arr[i] == 2) res.push(i%9+1+MPSZ[Math.floor(i/9)])
-            if (arr[i] && arr[i] == 4) {res.push(i%9+1+MPSZ[Math.floor(i/9)]);res.push(i%9+1+MPSZ[Math.floor(i/9)])}
+            if (arr[i] && arr[i] == 2) res.push(i % 9 + 1 + MPSZ[Math.floor(i / 9)])
+            if (arr[i] && arr[i] == 4) { res.push(i % 9 + 1 + MPSZ[Math.floor(i / 9)]); res.push(i % 9 + 1 + MPSZ[Math.floor(i / 9)]) }
         }
         return res
     }
@@ -32,26 +32,28 @@
         return !arr.includes(0) && sum(arr) == 14
     }
     const check14 = (hai_arr) => {
-        let star=0
-        for(let i=0;i<7;i++){
-            if(hai_arr[3][i]>=2) return 0
-            if(hai_arr[3][i]===1) star++
+        let star = 0
+        for (let i = 0; i < 7; i++) {
+            if (hai_arr[3][i] >= 2) return 0
+            if (hai_arr[3][i] === 1) star++
         }
-        let res=[false,false,false]
-        for(let c=0;c<3;c++){
-            let t=-1
-            for(let i=0;i<9;i++){
-                if(hai_arr[c][i]>1) return 0
-                if(hai_arr[c][i]===1){
-                    if(res[i%3]) return 0
-                    t=i%3
-                    if(i%3!==t) return 0
+        let res = [false, false, false]
+        for (let c = 0; c < 3; c++) {
+            let t = -1
+            let a = true
+            for (let i = 0; i < 9; i++) {
+                if (hai_arr[c][i] > 1) return 0
+                if (hai_arr[c][i] === 1) {
+                    if (res[i % 3]) return 0
+                    if (a) t = i % 3
+                    a = false
+                    if (i % 3 !== t) return 0
                 }
             }
-            res[t]=true
+            res[t] = true
         }
-        if(star===7) return 2
-        if(star===5) return 3
+        if (star === 7) return 2
+        if (star === 5) return 3
         return 1
     }
     const _check = (arr, is_jihai = false) => {
@@ -182,7 +184,7 @@
     const findAllAgariPatterns = (hai_arr) => {
         hai_arr = [[...hai_arr[0]], [...hai_arr[1]], [...hai_arr[2]], [...hai_arr[3]]]
         res = []
-        if(check7(hai_arr)){
+        if (check7(hai_arr)) {
             res.push(find7pattern(hai_arr))
         }
         if (!check(hai_arr)) {

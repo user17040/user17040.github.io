@@ -39,7 +39,10 @@ const checkYakuhai = (o, pos) => {
 const YAKU =
 {
     "连七对": {
-        "han": 88, "isFuroMinus": true, "check": (o) => {
+        "han": 88, "check": (o) => {
+            if (YAKU['十三幺'].check(o)) return false
+            if (YAKU['七星不靠'].check(o)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             if (o.currentPattern.length !== 7) return false
             if (o.currentPattern[0][1] === 'z') return false
             return o.currentPattern[0] === (Number(o.currentPattern[1][0]) - 1) + o.currentPattern[1][1] &&
@@ -820,7 +823,7 @@ const YAKU =
             if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let res = [false, false, false, false, false]
             for (let v of o.currentPattern)
-                if (v.length === 2) {
+                if (typeof v == 'string') {
                     if (v[1] == 'm') res[0] = true
                     else if (v[1] == 'p') res[1] = true
                     else if (v[1] == 's') res[2] = true

@@ -1256,10 +1256,6 @@ const YAKU =
     "缺一门": {
         "han": 1, "check": (o) => {
             if (YAKU['十三幺'].check(o)) return false
-            if (YAKU['大三元'].check(o)) return false
-            if (YAKU['小三元'].check(o)) return false
-            if (YAKU['一色四节高'].check(o)) return false
-            if (YAKU['一色四步高'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
             if (YAKU['推不倒'].check(o)) return false

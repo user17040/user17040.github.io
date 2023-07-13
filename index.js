@@ -96,9 +96,9 @@ class Riichi {
         for (let v of arr) {
             if (!v.includes('m') && !v.includes('p') && !v.includes('s') && !v.includes('z') && !v.includes('f') && isNaN(v))
                 this.extra = v
-            else if(!isNaN(v)){
-                this.bakaze=v[0]
-                this.jikaze=v[1]
+            else if (!isNaN(v)) {
+                this.bakaze = v[0]
+                this.jikaze = v[1]
             }
             else if (v[0] === 'f')
                 this.hua = Number(v[1])
@@ -307,7 +307,6 @@ hupaicount = function (arr) {
         for (let ii = 0; ii < 9; ii++) {
             arr[i][ii]++
             if (agari.checkAll(arr)) count++
-            arr = JSON.parse(JSON.stringify(arr))
             arr[i][ii]--
             if (i == 3 && ii == 6) break
         }

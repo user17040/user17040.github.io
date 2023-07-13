@@ -13,6 +13,24 @@
         gs = !gs
         document.getElementById("isGs").innerHTML = gs ? "杠上开花" : "无杠上开花"
     }
+    changeQf = function () {
+        qf==4?qf=1:qf++
+        if(qf==1) document.getElementById("qf").innerHTML =  "圈风：东"
+        else if(qf==2) document.getElementById("qf").innerHTML =  "圈风：南"
+        else if(qf==3) document.getElementById("qf").innerHTML =  "圈风：西"
+        else if(qf==4) document.getElementById("qf").innerHTML =  "圈风：北"
+    }
+    changeMf = function () {
+        mf==4?mf=1:mf++
+        if(mf==1) document.getElementById("mf").innerHTML =  "门风：东"
+        else if(mf==2) document.getElementById("mf").innerHTML =  "门风：南"
+        else if(mf==3) document.getElementById("mf").innerHTML =  "门风：西"
+        else if(mf==4) document.getElementById("mf").innerHTML =  "门风：北"
+    }
+    changehua = function () {
+        hua==8?hua=0:hua++
+        document.getElementById("hua").innerHTML =  "花x"+hua
+    }
     calc = function () {
         document.getElementById("jiang-1").innerHTML = ""
         document.getElementById("jiang-2").innerHTML = ""
@@ -33,18 +51,20 @@
         document.getElementById("mianzi4-3").innerHTML = ""
         document.getElementById("mianzi4-4").innerHTML = ""
         let str = ""
-        str += hai.slice(0, 26)
+        str += hai.slice(0, hai.length - 2)
         if (!zimo) str += "+"
-        str += hai.slice(26, 28)
+        str += hai.slice(hai.length - 2, hai.length)
         if (furocount > 0) {
             str += "+" + furo
         }
+        str+="+"+qf+mf
         if (gs) {
             str += "+"
         }
         if (gs) {
-            str += "g"
+            str += "k"
         }
+        str+="+f"+hua
         let fanstr = ""
         let riichi = new Riichi(str)
         let riicalc = riichi.calc()
@@ -91,15 +111,15 @@
                     mianzicount++
                 }
                 else if (riicalc.pattern[1][i].length == 2) {
-                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     mianzicount++
                 }
                 else if (riicalc.pattern[1][i].length == 4) {
-                    document.getElementById("mianzi" + mianzicount + "-0").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-4").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
                     mianzicount++
                 }
             }
@@ -117,6 +137,9 @@
     let furocount = 0
     let zimo = false
     let gs = false
+    let qf = 1
+    let mf = 1
+    let hua = 0
     let names = {
         '1m': 'character1', '2m': 'character2', '3m': 'character3', '4m': 'character4', '5m': 'character5', '6m': 'character6', '7m': 'character7', '8m': 'character8', '9m': 'character9',
         '1p': 'dot1', '2p': 'dot2', '3p': 'dot3', '4p': 'dot4', '5p': 'dot5', '6p': 'dot6', '7p': 'dot7', '8p': 'dot8', '9p': 'dot9',
@@ -180,7 +203,7 @@
             e = ""
         } else if (e == "吃") {
             if (furocount < 4) {
-                if (Number(a[0]) <= 7) {
+                if (a[1] != "z" && Number(a[0]) <= 7) {
                     furocount++
                     furo += a[0] + (Number(a[0]) + 1) + (Number(a[0]) + 2) + a[1]
                 }
@@ -223,7 +246,7 @@
 <body>
     <div id="root">
         <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex w-90 px-4 justify-between items-center mb-8 mt-12">
+            <div class="flex w-90 px-4 justify-between items-center mb-8 mt-2">
                 <div>
                     <h1 class="text-xl grow font-bold dark:text-white font-bold">国标麻将算番器</h1>
                     <div class="mt-2"><span
@@ -489,21 +512,30 @@
                                 class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/whiteDragon.svg"
                                 alt="White Dragon"></button></div>
                     <button type="button"
-                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="isZimo" onclick="isZimo()">点和</button>
                     <button type="button"
-                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                    class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                    id="qf" onclick="changeQf()">圈风：东</button>
+                    <button type="button"
+                    class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                    id="mf" onclick="changeMf()">门风：东</button>
+                    <button type="button"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="isGs" onclick="isGs()">无杠上开花</button>
                     <button type="button"
-                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        id="hua" onclick="changehua()">花x0</button>
+                    <button type="button"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="submit" onclick="if(hai.length>0){hai=hai.slice(0,hai.length-2);load()}">删除手牌</button>
                     <button type="button"
-                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="submit"
                         onclick="for(let i=furo.length-2;i>=0&&furo[i]!='m'&&furo[i]!='p'&&furo[i]!='s';i--){furo=furo.slice(0,i)};furocount--;load()">删除副露</button>
 
                     <button type="button"
-                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  border border-transparent text-base font-medium rounded  text-indigo-700 bg-indigo-100 dark:text-sky-700 dark:bg-sky-100  hover:ring-2 hover:ring-offset-2 hover:bg-indigo-200 hover:outline-none hover:ring-indigo-500  dark:hover:bg-sky-800 dark:hover:outline-none  dark:hover:ring-sky-800 dark:hover:text-white select-none"
+                        class=" mx-auto mt-2 flex items-center  px-2.5 py-1.5  border border-transparent text-base font-medium rounded  text-indigo-700 bg-indigo-100 dark:text-sky-700 dark:bg-sky-100  hover:ring-2 hover:ring-offset-2 hover:bg-indigo-200 hover:outline-none hover:ring-indigo-500  dark:hover:bg-sky-800 dark:hover:outline-none  dark:hover:ring-sky-800 dark:hover:text-white select-none"
                         id="submit" onclick="calc()">计算</button>
                 </div>
             </div>

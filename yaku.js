@@ -868,9 +868,7 @@ const YAKU =
             let need = ['5z', '6z', '7z']
             let res = 0
             for (let v of o.currentPattern) {
-                if (typeof v === 'string')
-                    continue
-                if (v.length === 1 && need.includes(v[0]))
+                if (typeof v === 'object' && need.includes(v[0]))
                     res++
             }
             return res === 2
@@ -1154,7 +1152,7 @@ const YAKU =
             for (let v of o.currentPattern) {
                 if (typeof v === 'string')
                     continue
-                if (v.length === 1 && need.includes(v[0]))
+                if (need.includes(v[0]))
                     res++
             }
             return res === 1
@@ -1168,7 +1166,7 @@ const YAKU =
             if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let res = [...o.haiArray[0], ...o.haiArray[1], ...o.haiArray[2], ...o.haiArray[3]]
             for (let v of o.furo) {
-                if (v.length === 1) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
+                if (v.length === 1 || (v.length === 3 && v[0] === v[1])) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
                 else if (v.length === 3) {
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 1
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 1
@@ -1238,7 +1236,7 @@ const YAKU =
             if (YAKU['断幺'].check(o)) return false
             if (YAKU['平和'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
-            if (YAKU['全不靠'].check(o) ||(YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
+            if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             if (YAKU['大于五'].check(o)) return false
             if (YAKU['小于五'].check(o)) return false
             if (YAKU['全带五'].check(o)) return false

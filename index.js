@@ -292,6 +292,7 @@ class Riichi {
             if (this.tmpResult.han > maxhan) {
                 maxhan = this.tmpResult.han
                 maxname = this.tmpResult.yaku
+                this.tmpResult.pattern=[v,this.furo]
             }
             this.tmpResult.yaku = maxname
             this.tmpResult.han = maxhan

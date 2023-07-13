@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)https://hkmahjong.net/ -->
+<html lang="en" class="light">
+<script src="agari.js"></script>
+<script src="index.js"></script>
+<script src="yaku.js"></script>
+<script>
+    isZimo = function () {
+        zimo = !zimo
+        document.getElementById("isZimo").innerHTML = zimo ? "自摸" : "点和"
+    }
+    calc = function () {
+        document.getElementById("jiang-1").innerHTML = ""
+        document.getElementById("jiang-2").innerHTML = ""
+        document.getElementById("mianzi1-1").innerHTML = ""
+        document.getElementById("mianzi1-2").innerHTML = ""
+        document.getElementById("mianzi1-3").innerHTML = ""
+        document.getElementById("mianzi1-4").innerHTML = ""
+        document.getElementById("mianzi2-1").innerHTML = ""
+        document.getElementById("mianzi2-2").innerHTML = ""
+        document.getElementById("mianzi2-3").innerHTML = ""
+        document.getElementById("mianzi2-4").innerHTML = ""
+        document.getElementById("mianzi3-1").innerHTML = ""
+        document.getElementById("mianzi3-2").innerHTML = ""
+        document.getElementById("mianzi3-3").innerHTML = ""
+        document.getElementById("mianzi3-4").innerHTML = ""
+        document.getElementById("mianzi4-1").innerHTML = ""
+        document.getElementById("mianzi4-2").innerHTML = ""
+        document.getElementById("mianzi4-3").innerHTML = ""
+        document.getElementById("mianzi4-4").innerHTML = ""
+        let str = ""
+        str += hai.slice(0, 26)
+        if (!zimo) str += "+"
+        str += hai.slice(26, 28)
+        if (furocount > 0) {
+            str += "+" + furo
+        }
+        let fanstr = ""
+        let riichi = new Riichi(str)
+        let riicalc = riichi.calc()
+        let mianzicount = 1
+        if (riicalc.pattern[0].length != 0 && riicalc.pattern[0].length != 7) {
+            for (let i = 0; i < riicalc.pattern[0].length; i++) {
+                if (typeof riicalc.pattern[0][i] == 'string') {
+                    document.getElementById("jiang-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i]] + ".svg' width='50px'>"
+                    document.getElementById("jiang-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i]] + ".svg' width='50px'>"
+                }
+                else if (riicalc.pattern[0][i].length == 1) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    mianzicount++
+                }
+                else if (riicalc.pattern[0][i].length == 3 && riicalc.pattern[0][i][0] == riicalc.pattern[0][i][1]) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-4").innerHTML = "明"
+                    mianzicount++
+                }
+                else if (riicalc.pattern[0][i].length == 3 && riicalc.pattern[0][i][0] != riicalc.pattern[0][i][1]) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][1]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[0][i][2]] + ".svg' width='50px'>"
+                    mianzicount++
+                }
+            }
+            for (let i = 0; i < riicalc.pattern[1].length; i++) {
+                if (riicalc.pattern[1][i].length == 3 && riicalc.pattern[1][i][0] == riicalc.pattern[1][i][1]) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-4").innerHTML = "碰"
+                    mianzicount++
+                }
+                else if (riicalc.pattern[1][i].length == 3 && riicalc.pattern[1][i][0] != riicalc.pattern[1][i][1]) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][1]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][2]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-4").innerHTML = "吃"
+                    mianzicount++
+                }
+                else if (riicalc.pattern[1][i].length == 2) {
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    mianzicount++
+                }
+                else if (riicalc.pattern[1][i].length == 4) {
+                    document.getElementById("mianzi" + mianzicount + "-0").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-1").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-2").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    document.getElementById("mianzi" + mianzicount + "-3").innerHTML = "<img src='./mahjongsvg/" + names[riicalc.pattern[1][i][0]] + ".svg' width='50px'>"
+                    mianzicount++
+                }
+            }
+        }
+        const KEYS = Object.keys(riicalc.yaku)
+        for (let i = 0; i < KEYS.length; i++) {
+            fanstr += KEYS[i] + '   ' + riicalc.yaku[KEYS[i]] + '<br>'
+        }
+        fanstr += '合计 ' + riicalc.han + '番'
+        document.getElementById("result").innerHTML = fanstr
+    }
+    let e = ""
+    let hai = ""
+    let furo = ""
+    let furocount = 0
+    let zimo = false
+    let names = {
+        '1m': 'character1', '2m': 'character2', '3m': 'character3', '4m': 'character4', '5m': 'character5', '6m': 'character6', '7m': 'character7', '8m': 'character8', '9m': 'character9',
+        '1p': 'dot1', '2p': 'dot2', '3p': 'dot3', '4p': 'dot4', '5p': 'dot5', '6p': 'dot6', '7p': 'dot7', '8p': 'dot8', '9p': 'dot9',
+        '1s': 'bamboo1', '2s': 'bamboo2', '3s': 'bamboo3', '4s': 'bamboo4', '5s': 'bamboo5', '6s': 'bamboo6', '7s': 'bamboo7', '8s': 'bamboo8', '9s': 'bamboo9',
+        '1z': 'East', '2z': 'South', '3z': 'West', '4z': 'North', '5z': 'redDragon', '6z': 'greenDragon', '7z': 'whiteDragon'
+    }
+    load = function () {
+        for (let i = 0; i < 28; i += 2) {
+            document.getElementById("hai" + (i / 2 + 1)).innerHTML = ""
+        }
+        for (let i = 0; i < hai.length; i += 2) {
+            document.getElementById("hai" + (i / 2 + 1)).innerHTML = "<img src='./mahjongsvg/" + names[hai[i] + hai[i + 1]] + ".svg'>"
+        }
+        let c = 1
+        let s = ""
+        document.getElementById("furo1-1").innerHTML = ""
+        document.getElementById("furo1-2").innerHTML = ""
+        document.getElementById("furo1-3").innerHTML = ""
+        document.getElementById("furo1-4").innerHTML = ""
+        document.getElementById("furo2-1").innerHTML = ""
+        document.getElementById("furo2-2").innerHTML = ""
+        document.getElementById("furo2-3").innerHTML = ""
+        document.getElementById("furo2-4").innerHTML = ""
+        document.getElementById("furo3-1").innerHTML = ""
+        document.getElementById("furo3-2").innerHTML = ""
+        document.getElementById("furo3-3").innerHTML = ""
+        document.getElementById("furo3-4").innerHTML = ""
+        document.getElementById("furo4-1").innerHTML = ""
+        document.getElementById("furo4-2").innerHTML = ""
+        document.getElementById("furo4-3").innerHTML = ""
+        document.getElementById("furo4-4").innerHTML = ""
+        for (let i = 0; i < furo.length; i++) {
+            s += furo[i]
+            if (furo[i] == 'm' || furo[i] == 'p' || furo[i] == 's' || furo[i] == 'z') {
+                if (s.length == 4) {
+                    document.getElementById("furo" + c + "-1").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[3]] + ".svg'>"
+                    document.getElementById("furo" + c + "-2").innerHTML = "<img src='./mahjongsvg/" + names[s[1] + s[3]] + ".svg'>"
+                    document.getElementById("furo" + c + "-3").innerHTML = "<img src='./mahjongsvg/" + names[s[2] + s[3]] + ".svg'>"
+                }
+                else if (s.length == 5) {
+                    document.getElementById("furo" + c + "-1").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[4]] + ".svg'>"
+                    document.getElementById("furo" + c + "-2").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[4]] + ".svg'>"
+                    document.getElementById("furo" + c + "-3").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[4]] + ".svg'>"
+                    document.getElementById("furo" + c + "-4").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[4]] + ".svg'>"
+                }
+                else if (s.length == 3) {
+                    document.getElementById("furo" + c + "-2").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[2]] + ".svg'>"
+                    document.getElementById("furo" + c + "-3").innerHTML = "<img src='./mahjongsvg/" + names[s[0] + s[2]] + ".svg'>"
+                }
+                c++
+                s = ''
+            }
+        }
+    }
+    add = function (a, b) {
+        if (e == "碰") {
+            if (furocount < 4) {
+                furocount++
+                furo += a[0] + a[0] + a[0] + a[1]
+            }
+            e = ""
+        } else if (e == "吃") {
+            if (furocount < 4) {
+                if (Number(a[0]) <= 7) {
+                    furocount++
+                    furo += a[0] + (Number(a[0]) + 1) + (Number(a[0]) + 2) + a[1]
+                }
+            }
+            e = ""
+        }
+        else if (e == "明杠") {
+            if (furocount < 4) {
+                furocount++
+                furo += a[0] + a[0] + a[0] + a[0] + a[1]
+            }
+            e = ""
+        }
+        else if (e == "暗杠") {
+            if (furocount < 4) {
+                furocount++
+                furo += a[0] + a[0] + a[1]
+            }
+            e = ""
+        }
+        else {
+            if (hai.length < 28) hai += a
+        }
+    }
+</script>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="icon" href="https://hkmahjong.net/favicon.ico">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="hk-mahjong">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://hkmahjong.net/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://hkmahjong.net/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://hkmahjong.net/favicon-16x16.png">
+    <title>国标麻将算番器</title>
+    <link href="./mahjongsvg/main.915e2110.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="root">
+        <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="flex w-90 px-4 justify-between items-center mb-8 mt-12">
+                <div>
+                    <h1 class="text-xl grow font-bold dark:text-white font-bold">国标麻将算番器</h1>
+                    <div class="mt-2"><span
+                            class="border-2 text-rose-500 border-rose-500 dark:bg-white rounded-full text-sm font-medium px-2 py-1">V
+                            1.0.0</span>
+                    </div>
+                </div>
+                </svg>
+            </div>
+        </div>
+        <div class="pb-6">
+            <div class="flex justify-center flex-wrap">
+                <div class="py-2 my-1 flex flex-wrap justify-center">手牌
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai2">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai3">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai4">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai5">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai6">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai7">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai8">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai9">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai10">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai11">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai12">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai13">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="hai14">
+                    </div>
+                </div>
+            </div>
+            <div class="fr">
+                <div class="flex justify-center flex-wrap">
+                    <div class="py-2 my-1 flex flex-wrap justify-center">副露1
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo1-1">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo1-2">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo1-3">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo1-4">
+                        </div>副露2
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo2-1">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo2-2">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo2-3">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo2-4">
+                        </div>副露3
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo3-1">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo3-2">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo3-3">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo3-4">
+                        </div>副露4
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo4-1">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo4-2">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo4-3">
+                        </div>
+                        <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                            id="furo4-4">
+                        </div>
+                    </div>
+                </div>
+                <div id="keyboard">
+                    <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            id="pong" style="width: 50px; height: 50px; color: black;" onclick="e='碰'">碰</button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            id="chow" style="width: 50px; height: 50px; color: black;" onclick="e='吃'">吃</button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            id="kong" style="width: 50px; height: 50px; color: black;"
+                            onclick="e='明杠'">明杠</button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            id="kong" style="width: 50px; height: 50px; color: black;"
+                            onclick="e='暗杠'">暗杠</button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"></button>
+                    </div>
+                    <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character1.svg" alt="Character 1"
+                                onclick="add('1m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character2.svg" alt="Character 2"
+                                onclick="add('2m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character3.svg" alt="Character 3"
+                                onclick="add('3m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character4.svg" alt="Character 4"
+                                onclick="add('4m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character5.svg" alt="Character 5"
+                                onclick="add('5m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character6.svg" alt="Character 6"
+                                onclick="add('6m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character7.svg" alt="Character 7"
+                                onclick="add('7m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character8.svg" alt="Character 8"
+                                onclick="add('8m',e);load()"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/character9.svg" alt="Character 9"
+                                onclick="add('9m',e);load()"></button></div>
+                    <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('1p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot1.svg"
+                                alt="Dot 1"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('2p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot2.svg"
+                                alt="Dot 2"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('3p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot3.svg"
+                                alt="Dot 3"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('4p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot4.svg"
+                                alt="Dot 4"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('5p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot5.svg"
+                                alt="Dot 5"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('6p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot6.svg"
+                                alt="Dot 6"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('7p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot7.svg"
+                                alt="Dot 7"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('8p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot8.svg"
+                                alt="Dot 8"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('9p',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/dot9.svg"
+                                alt="Dot 9"></button></div>
+                    <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('1s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo1.svg"
+                                alt="bamboo 1"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('2s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo2.svg"
+                                alt="bamboo 2"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('3s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo3.svg"
+                                alt="bamboo 3"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('4s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo4.svg"
+                                alt="bamboo 4"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('5s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo5.svg"
+                                alt="bamboo 5"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('6s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo6.svg"
+                                alt="bamboo 6"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('7s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo7.svg"
+                                alt="bamboo 7"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('8s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo8.svg"
+                                alt="bamboo 8"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('9s',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/bamboo9.svg"
+                                alt="bamboo 9"></button></div>
+                    <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('1z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/east.svg"
+                                alt="East"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('2z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/south.svg"
+                                alt="South"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('3z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/west.svg"
+                                alt="West"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('4z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/north.svg"
+                                alt="North"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('5z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/redDragon.svg" alt="Red Dragon"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('6z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/greenDragon.svg" alt="Green Dragon"></button><button
+                            class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
+                            style="width: 40px; height: 58px; color: black;" onclick="add('7z',e);load()"><img
+                                class="p-1 block drop-shadow-tile-light"
+                                src="./mahjongsvg/whiteDragon.svg" alt="White Dragon"></button></div>
+                    <button type="button"
+                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        id="isZimo" onclick="isZimo()">点和</button>
+                    <button type="button"
+                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        id="submit" onclick="if(hai.length>0){hai=hai.slice(0,hai.length-2);load()}">删除手牌</button>
+                    <button type="button"
+                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        id="submit" onclick="for(let i=furo.length-2;i>=0&&furo[i]!='m'&&furo[i]!='p'&&furo[i]!='s';i--){furo=furo.slice(0,i)};furocount--;load()">删除副露</button>
+
+                    <button type="button"
+                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  border border-transparent text-base font-medium rounded  text-indigo-700 bg-indigo-100 dark:text-sky-700 dark:bg-sky-100  hover:ring-2 hover:ring-offset-2 hover:bg-indigo-200 hover:outline-none hover:ring-indigo-500  dark:hover:bg-sky-800 dark:hover:outline-none  dark:hover:ring-sky-800 dark:hover:text-white select-none"
+                        id="submit" onclick="calc()">计算</button>
+                </div>
+            </div>
+            <div class="flex justify-center flex-wrap">
+                <div class="py-2 my-1 flex flex-wrap justify-center">将牌
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="jiang-1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="jiang-2">
+                    </div>面子1
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi1-1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi1-2">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi1-3">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi1-4"></div>
+                    面子2
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi2-1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi2-2">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi2-3">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi2-4"></div>面子3
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi3-1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi3-2">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi3-3">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi3-4"> </div>面子4
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi4-1">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi4-2">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi4-3">
+                    </div>
+                    <div class="md:w-12 sm:w-9 w-6 md:h-16 sm:h-12 h-8 border-solid md:border-2 border flex items-center justify-center sm:mx-0.5 md:text-4xl sm:text-2xl text-xl rounded bg-white"
+                        id="mianzi4-4">
+                    </div>
+                </div>
+                <div id="result">
+
+                </div>
+</body>
+
+</html>

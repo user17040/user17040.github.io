@@ -9,6 +9,10 @@
         zimo = !zimo
         document.getElementById("isZimo").innerHTML = zimo ? "自摸" : "点和"
     }
+    isGs = function () {
+        gs = !gs
+        document.getElementById("isGs").innerHTML = gs ? "杠上开花" : "无杠上开花"
+    }
     calc = function () {
         document.getElementById("jiang-1").innerHTML = ""
         document.getElementById("jiang-2").innerHTML = ""
@@ -34,6 +38,12 @@
         str += hai.slice(26, 28)
         if (furocount > 0) {
             str += "+" + furo
+        }
+        if (gs) {
+            str += "+"
+        }
+        if (gs) {
+            str += "g"
         }
         let fanstr = ""
         let riichi = new Riichi(str)
@@ -106,11 +116,12 @@
     let furo = ""
     let furocount = 0
     let zimo = false
+    let gs = false
     let names = {
         '1m': 'character1', '2m': 'character2', '3m': 'character3', '4m': 'character4', '5m': 'character5', '6m': 'character6', '7m': 'character7', '8m': 'character8', '9m': 'character9',
         '1p': 'dot1', '2p': 'dot2', '3p': 'dot3', '4p': 'dot4', '5p': 'dot5', '6p': 'dot6', '7p': 'dot7', '8p': 'dot8', '9p': 'dot9',
         '1s': 'bamboo1', '2s': 'bamboo2', '3s': 'bamboo3', '4s': 'bamboo4', '5s': 'bamboo5', '6s': 'bamboo6', '7s': 'bamboo7', '8s': 'bamboo8', '9s': 'bamboo9',
-        '1z': 'East', '2z': 'South', '3z': 'West', '4z': 'North', '5z': 'redDragon', '6z': 'greenDragon', '7z': 'whiteDragon'
+        '1z': 'east', '2z': 'south', '3z': 'west', '4z': 'north', '5z': 'redDragon', '6z': 'greenDragon', '7z': 'whiteDragon'
     }
     load = function () {
         for (let i = 0; i < 28; i += 2) {
@@ -340,49 +351,40 @@
                     <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character1.svg" alt="Character 1"
-                                onclick="add('1m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character1.svg"
+                                alt="Character 1" onclick="add('1m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character2.svg" alt="Character 2"
-                                onclick="add('2m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character2.svg"
+                                alt="Character 2" onclick="add('2m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character3.svg" alt="Character 3"
-                                onclick="add('3m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character3.svg"
+                                alt="Character 3" onclick="add('3m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character4.svg" alt="Character 4"
-                                onclick="add('4m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character4.svg"
+                                alt="Character 4" onclick="add('4m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character5.svg" alt="Character 5"
-                                onclick="add('5m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character5.svg"
+                                alt="Character 5" onclick="add('5m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character6.svg" alt="Character 6"
-                                onclick="add('6m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character6.svg"
+                                alt="Character 6" onclick="add('6m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character7.svg" alt="Character 7"
-                                onclick="add('7m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character7.svg"
+                                alt="Character 7" onclick="add('7m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character8.svg" alt="Character 8"
-                                onclick="add('8m',e);load()"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character8.svg"
+                                alt="Character 8" onclick="add('8m',e);load()"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/character9.svg" alt="Character 9"
-                                onclick="add('9m',e);load()"></button></div>
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/character9.svg"
+                                alt="Character 9" onclick="add('9m',e);load()"></button></div>
                     <div class="flex justify-center mb-1 sm:text-3xl text-2xl"><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;" onclick="add('1p',e);load()"><img
@@ -476,25 +478,29 @@
                                 alt="North"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;" onclick="add('5z',e);load()"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/redDragon.svg" alt="Red Dragon"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/redDragon.svg"
+                                alt="Red Dragon"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;" onclick="add('6z',e);load()"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/greenDragon.svg" alt="Green Dragon"></button><button
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/greenDragon.svg"
+                                alt="Green Dragon"></button><button
                             class="flex items-center justify-center rounded mx-0.5 cursor-pointer text-sm select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400"
                             style="width: 40px; height: 58px; color: black;" onclick="add('7z',e);load()"><img
-                                class="p-1 block drop-shadow-tile-light"
-                                src="./mahjongsvg/whiteDragon.svg" alt="White Dragon"></button></div>
+                                class="p-1 block drop-shadow-tile-light" src="./mahjongsvg/whiteDragon.svg"
+                                alt="White Dragon"></button></div>
                     <button type="button"
                         class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="isZimo" onclick="isZimo()">点和</button>
                     <button type="button"
                         class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
+                        id="isGs" onclick="isGs()">无杠上开花</button>
+                    <button type="button"
+                        class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
                         id="submit" onclick="if(hai.length>0){hai=hai.slice(0,hai.length-2);load()}">删除手牌</button>
                     <button type="button"
                         class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  text-black bg-slate-200 hover:bg-slate-300 active:bg-slate-400         border border-transparent text-base font-medium rounded          hover:ring-2 hover:ring-offset-2 hover:outline-none hover:ring-slate-700  select-none"
-                        id="submit" onclick="for(let i=furo.length-2;i>=0&&furo[i]!='m'&&furo[i]!='p'&&furo[i]!='s';i--){furo=furo.slice(0,i)};furocount--;load()">删除副露</button>
+                        id="submit"
+                        onclick="for(let i=furo.length-2;i>=0&&furo[i]!='m'&&furo[i]!='p'&&furo[i]!='s';i--){furo=furo.slice(0,i)};furocount--;load()">删除副露</button>
 
                     <button type="button"
                         class=" mx-auto mt-8 flex items-center  px-2.5 py-1.5  border border-transparent text-base font-medium rounded  text-indigo-700 bg-indigo-100 dark:text-sky-700 dark:bg-sky-100  hover:ring-2 hover:ring-offset-2 hover:bg-indigo-200 hover:outline-none hover:ring-indigo-500  dark:hover:bg-sky-800 dark:hover:outline-none  dark:hover:ring-sky-800 dark:hover:text-white select-none"

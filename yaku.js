@@ -1520,6 +1520,7 @@ const YAKU =
                     arr.push(v[0])
                 }
             }
+            arr = arr.sort((a, b) => MPSZ.indexOf(a[1]) * 9 + Number(a[0]) - MPSZ.indexOf(b[1]) * 9 - Number(b[0]))
             return (arr[0][0] === (Number(arr[1][0]) - 3).toString() && arr[0][1] === arr[1][1])
                 || (arr[0][0] === (Number(arr[2][0]) - 3).toString() && arr[0][1] === arr[2][1])
                 || (arr[0][0] === (Number(arr[3][0]) - 3).toString() && arr[0][1] === arr[3][1])
@@ -1574,6 +1575,7 @@ const YAKU =
                     arr.push(v[0])
                 }
             }
+            arr = arr.sort((a, b) => MPSZ.indexOf(a[1]) * 9 + Number(a[0]) - MPSZ.indexOf(b[1]) * 9 - Number(b[0]))
             return (arr[0][0] === (Number(arr[1][0]) - 6).toString() && arr[0][1] === arr[1][1])
                 || (arr[0][0] === (Number(arr[2][0]) - 6).toString() && arr[0][1] === arr[2][1])
                 || (arr[0][0] === (Number(arr[3][0]) - 6).toString() && arr[0][1] === arr[3][1])
@@ -1589,6 +1591,7 @@ const YAKU =
             if (YAKU['一色双龙会'].check(o)) return false
             if (YAKU['一色四步高'].check(o)) return false
             if (YAKU['七对'].check(o) || YAKU['连七对'].check(o)) return false
+            if (YAKU['一般高x2'].check(o)) return false
             if (YAKU['喜相逢x2'].check(o)) return false
             if (YAKU['七星不靠'].check(o)) return false
             if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
@@ -1603,6 +1606,7 @@ const YAKU =
                     return false
                 arr.push(v[0])
             }
+            arr = arr.sort((a, b) => MPSZ.indexOf(a[1]) * 9 + Number(a[0]) - MPSZ.indexOf(b[1]) * 9 - Number(b[0]))
             return (arr[0][0] + arr[1][0] === (Number(arr[2][0]) - 6).toString() + (Number(arr[3][0]) - 6).toString() && arr[0][1] === arr[2][1] && arr[1][1] === arr[3][1])
                 || (arr[0][0] + arr[2][0] === (Number(arr[1][0]) - 6).toString() + (Number(arr[3][0]) - 6).toString() && arr[0][1] === arr[1][1] && arr[2][1] === arr[3][1])
         }

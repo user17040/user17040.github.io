@@ -1166,7 +1166,8 @@ const YAKU =
             if (YAKU['全不靠'].check(o) || (YAKU['组合龙'].check(o) && o.currentPattern.length === 0)) return false
             let res = [...o.haiArray[0], ...o.haiArray[1], ...o.haiArray[2], ...o.haiArray[3]]
             for (let v of o.furo) {
-                if (v.length === 1 || (v.length === 3 && v[0] === v[1])) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
+                if (typeof a === 'string') res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 2
+                if (v.length === 1 || (v.length === 3 && v[0] === v[1])) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 3
                 else if (v.length === 3) {
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 1
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 1
@@ -1188,7 +1189,8 @@ const YAKU =
             if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
             let res = [...o.haiArray[0], ...o.haiArray[1], ...o.haiArray[2], ...o.haiArray[3]]
             for (let v of o.furo) {
-                if (v.length === 1) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
+                if (typeof a === 'string') res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 2
+                if (v.length === 1 || (v.length === 3 && v[0] === v[1])) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 3
                 else if (v.length === 3) {
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 1
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 1
@@ -1210,7 +1212,8 @@ const YAKU =
             if (YAKU['全不靠'].check(o) || YAKU['组合龙'].check(o)) return false
             let res = [...o.haiArray[0], ...o.haiArray[1], ...o.haiArray[2], ...o.haiArray[3]]
             for (let v of o.furo) {
-                if (v.length === 1) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 3
+                if (typeof a === 'string') res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 2
+                if (v.length === 1 || (v.length === 3 && v[0] === v[1])) res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 3
                 else if (v.length === 3) {
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0]) - 1] += 1
                     res[MPSZ.indexOf(v[0][1]) * 9 + Number(v[0][0])] += 1

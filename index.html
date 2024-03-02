@@ -1,0 +1,11 @@
+<html>
+  <script src="mahjong.js"></script>
+  <input id="userInput">
+  <button onclick="handleInput()">计算</button>
+</html>
+<script>
+  function handleInput() {
+      var userOutput = gethu(eval(document.getElementById("userInput").value),0,[],-1,[]);
+      alert("拆解：" + JSON.stringify(userOutput));
+  }
+  </script>

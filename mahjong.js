@@ -1,0 +1,54 @@
+function gethu(a, quetou, get, min, GET) {
+    a.sort((a, b) => a - b)
+    if (a.length == 0 && quetou == 1) {
+        GET.push(get)
+        return
+    }
+    if (quetou == 0) {
+        for (var i = 0; i < a.length - 1; i++) {
+            if (a[i] == a[i + 1] && a[i] != a[i - 1]) {
+                gethu(a.slice(0, i).concat(a.slice(i + 2, a.length)), quetou + 1, get.concat([[a[i], a[i]]]), 0, GET)
+            }
+        }
+    } else {
+        for (var i = 0; i < a.length; i++) {
+            for (var j = i + 1; j < a.length; j++) {
+                if (a[j] != a[j - 1] || j == i + 1) {
+                    for (var k = j + 1; k < a.length; k++) {
+                        if (a[k] != a[k - 1] || k == j + 1) {
+                            var id = getid([a[i], a[j], a[k]])
+                            if (id >= min) {
+                                if ((a[i] == a[j] - 1 && a[i] == a[k] - 2) || (a[i] == a[j] && a[i] == a[k])) {
+                                    gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, k)).concat(a.slice(k + 1, a.length)), quetou, get.concat([[a[i], a[j], a[k]]]), id, GET)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return uniq(GET)
+}
+function getid(a) {
+    if (a[0] == a[1]) {
+        return a[0]
+    }
+    return a[0] + 97
+}
+function uniq(array) {
+    var temp = []
+    var index = []
+    var l = array.length
+    for (var i = 0; i < l; i++) {
+        for (var j = i + 1; j < l; j++) {
+            if (JSON.stringify(array[i]) === JSON.stringify(array[j])) {
+                i++
+                j = i
+            }
+        }
+        temp.push(array[i])
+        index.push[i]
+    }
+    return temp
+}

@@ -23,10 +23,10 @@ function gethu(a, quetou, wanneng, get, min, GET) {
                         if (a[i] == a[j]) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i]]]), id, GET)
                         }
-                        if (a[i] == a[j] - 1 && a[i+2].includes(pai)) {
+                        if (a[i] == a[j] - 1 && pai.includes(a[i+2])) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i] - 2]]), id, GET)
                         }
-                        if (a[i] == a[j] - 2 && a[i+1].includes(pai)) {
+                        if (a[i] == a[j] - 2 && pai.includes(a[i+1])) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], -a[i] - 1, a[j]]]), id, GET)
                         }
                     }

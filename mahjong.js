@@ -5,8 +5,8 @@ function gethu(a, quetou, wanneng, get, min, GET) {
         return
     }
     if (quetou == 0) {
-        for (var i = 0; i < a.length - 1; i++) {
-            if (a[i] == a[i + 1] && a[i] != a[i - 1]) {
+        for (var i = 0; i < a.length; i++) {
+            if (i + 1 < a.length - 1 && a[i] == a[i + 1] && a[i] != a[i - 1]) {
                 gethu(a.slice(0, i).concat(a.slice(i + 2, a.length)), quetou + 1, wanneng, get.concat([[a[i], a[i]]]), 0, GET)
             }
             if (wanneng > 0 && a[i] != a[i - 1]) {
@@ -23,10 +23,10 @@ function gethu(a, quetou, wanneng, get, min, GET) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i]]]), id, GET)
                         }
                         if (a[i] == a[j] - 1) {
-                            gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i]-2]]), id, GET)
+                            gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i] - 2]]), id, GET)
                         }
                         if (a[i] == a[j] - 2) {
-                            gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], -a[i]-1, a[j]]]), id, GET)
+                            gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], -a[i] - 1, a[j]]]), id, GET)
                         }
                     }
                     for (var k = j + 1; k < a.length; k++) {

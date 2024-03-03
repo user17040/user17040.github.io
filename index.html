@@ -1,12 +1,22 @@
 <html>
-  <script src="mahjong.js"></script>
-  <input id="userInput">
-  <input id="wannengInput">
-  <button onclick="handleInput()">计算</button>
+<script src="mahjong.js"></script>
+<input id="userInput">
+<input id="wannengInput">
+<button onclick="handleInput()">计算</button><br>
+<p id="userOutput"></textarea>
+
 </html>
 <script>
   function handleInput() {
-      var userOutput = gethu(document.getElementById("userInput").value.split(',').map(Number),0,document.getElementById("wannengInput").value,[],-1,[]);
-      alert("拆解：" + JSON.stringify(userOutput));
+    document.getElementById("userOutput").innerHTML = '';
+    if (document.getElementById("userInput").value == '') {
+      var userOutput = gethu([], 0, Number(document.getElementById("wannengInput").value), [], -1, []);
+    } else {
+      var userOutput = gethu(document.getElementById("userInput").value.split(',').map(Number), 0, Number(document.getElementById("wannengInput").value), [], -1, []);
+    }
+    console.log(userOutput.length)
+    for (var i = 0; i < userOutput.length; i++) {
+      document.getElementById("userOutput").innerHTML += JSON.stringify(userOutput[i]) + '<br>';
+    }
   }
-  </script>
+</script>

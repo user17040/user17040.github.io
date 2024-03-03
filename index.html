@@ -1,11 +1,12 @@
 <html>
   <script src="mahjong.js"></script>
   <input id="userInput">
+  <input id="wannengInput">
   <button onclick="handleInput()">计算</button>
 </html>
 <script>
   function handleInput() {
-      var userOutput = gethu(document.getElementById("userInput").value.split(','),0,[],-1,[]);
+      var userOutput = gethu(document.getElementById("userInput").value.split(','),0,document.getElementById("wannengInput").value,[],-1,[]);
       alert("拆解：" + JSON.stringify(userOutput));
   }
   </script>

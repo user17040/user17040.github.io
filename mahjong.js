@@ -1,3 +1,4 @@
+var pai=[1,2,3,4,5,6,7,8,9,21,22,23,24,25,26,27,28,29,41,42,43,44,45,46,47,48,49,61,64,67,70,73,76,79]
 function gethu(a, quetou, wanneng, get, min, GET) {
     a.sort((a, b) => a - b)
     if (a.length == 0 && wanneng == 0 && quetou == 1) {
@@ -22,10 +23,10 @@ function gethu(a, quetou, wanneng, get, min, GET) {
                         if (a[i] == a[j]) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i]]]), id, GET)
                         }
-                        if (a[i] == a[j] - 1) {
+                        if (a[i] == a[j] - 1 && a[i+2].includes(pai)) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], a[j], -a[i] - 2]]), id, GET)
                         }
-                        if (a[i] == a[j] - 2) {
+                        if (a[i] == a[j] - 2 && a[i+1].includes(pai)) {
                             gethu(a.slice(0, i).concat(a.slice(i + 1, j)).concat(a.slice(j + 1, a.length)), quetou, wanneng - 1, get.concat([[a[i], -a[i] - 1, a[j]]]), id, GET)
                         }
                     }

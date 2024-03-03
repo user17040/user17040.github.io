@@ -6,7 +6,7 @@ function gethu(a, quetou, wanneng, get, min, GET) {
     }
     if (quetou == 0) {
         for (var i = 0; i < a.length; i++) {
-            if (i + 1 < a.length - 1 && a[i] == a[i + 1] && a[i] != a[i - 1]) {
+            if (i < a.length - 1 && a[i] == a[i + 1] && a[i] != a[i - 1]) {
                 gethu(a.slice(0, i).concat(a.slice(i + 2, a.length)), quetou + 1, wanneng, get.concat([[a[i], a[i]]]), 0, GET)
             }
             if (wanneng > 0 && a[i] != a[i - 1]) {

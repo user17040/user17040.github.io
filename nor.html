@@ -7,7 +7,7 @@
 </head>
 <body>
     <h2>XOR 计算器</h2>
-    <p>输入多个数字（用逗号隔开）：</p>
+    <p>输入多个数字（用空格隔开）：</p>
     <input type="text" id="inputNumbers" placeholder="例如：1,2,3,4">
     <button onclick="calculateXOR()">计算 XOR</button>
     <p id="result"></p>
@@ -17,7 +17,7 @@
         const inputNumbers = document.getElementById('inputNumbers').value;
 
         // 将输入字符串拆分成数字数组
-        const numbers = inputNumbers.split(',').map(numStr => parseInt(numStr.trim(), 10));
+        const numbers = inputNumbers.split(' ').map(numStr => parseInt(numStr.trim(), 10));
 
         // 执行异或计算
         let result = 0;

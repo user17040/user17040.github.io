@@ -1,21 +1,38 @@
-<html>
-<script src="mahjong.js"></script>
-<input id="userInput">
-<input id="wannengInput">
-<button onclick="handleInput()">计算</button><br>
-<p id="userOutput"></textarea>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多项式计算器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="polynomial.js"></script>
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>多项式计算器</h1>
+        <form id="polynomial-form">
+            <div class="form-group">
+                <label for="pol">多项式:</label>
+                <input type="text" id="pol" name="pol" required>
+            </div>
+            <button type="submit">计算</button>
+        </form>
+        <div id="result">
+            <h2>结果</h2>
+            <p id="result-display"></p>
+        </div>
+    </div>
+    <div class="form-group">
+      <label for="hfd">最高分解次数:</label>
+      <select id="hfd" name="hfd">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+      </select>
+  </div>
+</body>
 </html>
-<script>
-  function handleInput() {
-    document.getElementById("userOutput").innerHTML = '';
-    if (document.getElementById("userInput").value == '') {
-      var userOutput = gethu([], 0, Number(document.getElementById("wannengInput").value), [], -1, []);
-    } else {
-      var userOutput = gethu(document.getElementById("userInput").value.split(',').map(Number), 0, Number(document.getElementById("wannengInput").value), [], -1, []);
-    }
-    for (var i = 0; i < userOutput.length; i++) {
-      document.getElementById("userOutput").innerHTML += JSON.stringify(userOutput[i]) + '<br>';
-    }
-  }
-</script>

@@ -634,19 +634,19 @@ function evaluate(board, color) {
                     color == 1 ? ev += 1000 : ev -= 500;
                 } else if (threeCount > 0) {
                     color == 1 ? ev += 200 : ev -= 100;
-                }else if (getThreeOnOneLine(board, x, y, 1, 0) || getThreeOnOneLine(board, x, y, 0, 1) || getThreeOnOneLine(board, x, y, -1, 1) || getThreeOnOneLine(board, x, y, 1, 1)){                    
+                } else if (getThreeOnOneLine(board, x, y, 1, 0) || getThreeOnOneLine(board, x, y, 0, 1) || getThreeOnOneLine(board, x, y, -1, 1) || getThreeOnOneLine(board, x, y, 1, 1)) {
                     color == 1 ? ev += 50 : ev -= 25;
                 }
                 const twoCount = getATwoOnOneLine(board, x, y, 1, 0) + getATwoOnOneLine(board, x, y, 0, 1) + getATwoOnOneLine(board, x, y, -1, 1) + getATwoOnOneLine(board, x, y, 1, 1);
                 if (twoCount > 0) {
                     color == 1 ? ev += 10 : ev -= 5;
-                }else if(getTwoOnOneLine(board, x, y, 1, 0) || getTwoOnOneLine(board, x, y, 0, 1) || getTwoOnOneLine(board, x, y, -1, 1) || getTwoOnOneLine(board, x, y, 1, 1)){
+                } else if (getTwoOnOneLine(board, x, y, 1, 0) || getTwoOnOneLine(board, x, y, 0, 1) || getTwoOnOneLine(board, x, y, -1, 1) || getTwoOnOneLine(board, x, y, 1, 1)) {
                     color == 1 ? ev += 2 : ev -= 1;
                 }
             }
             else if (board[x][y] == 2) {
                 if (getFive_w(board, x, y)) {
-                    return color == 2 ? 30000 : -30000;
+                    return color == 2 ? 50000 : -50000;
                 }
                 if (getAFourOnOneLine_w(board, x, y, 1, 0) || getAFourOnOneLine_w(board, x, y, 0, 1) || getAFourOnOneLine_w(board, x, y, -1, 1) || getAFourOnOneLine_w(board, x, y, 1, 1)) {
                     if (color == 2) {
@@ -669,13 +669,13 @@ function evaluate(board, color) {
                     color == 2 ? ev += 1000 : ev -= 500;
                 } else if (threeCount > 0) {
                     color == 2 ? ev += 200 : ev -= 100;
-                }else if (getThreeOnOneLine_w(board, x, y, 1, 0) || getThreeOnOneLine_w(board, x, y, 0, 1) || getThreeOnOneLine_w(board, x, y, -1, 1) || getThreeOnOneLine_w(board, x, y, 1, 1)){                    
+                } else if (getThreeOnOneLine_w(board, x, y, 1, 0) || getThreeOnOneLine_w(board, x, y, 0, 1) || getThreeOnOneLine_w(board, x, y, -1, 1) || getThreeOnOneLine_w(board, x, y, 1, 1)) {
                     color == 2 ? ev += 50 : ev -= 25;
                 }
                 const twoCount = getATwoOnOneLine_w(board, x, y, 1, 0) + getATwoOnOneLine_w(board, x, y, 0, 1) + getATwoOnOneLine_w(board, x, y, -1, 1) + getATwoOnOneLine_w(board, x, y, 1, 1);
                 if (twoCount > 0) {
                     color == 2 ? ev += 10 : ev -= 5;
-                }else if(getTwoOnOneLine_w(board, x, y, 1, 0) || getTwoOnOneLine_w(board, x, y, 0, 1) || getTwoOnOneLine_w(board, x, y, -1, 1) || getTwoOnOneLine_w(board, x, y, 1, 1)){
+                } else if (getTwoOnOneLine_w(board, x, y, 1, 0) || getTwoOnOneLine_w(board, x, y, 0, 1) || getTwoOnOneLine_w(board, x, y, -1, 1) || getTwoOnOneLine_w(board, x, y, 1, 1)) {
                     color == 2 ? ev += 2 : ev -= 1;
                 }
             }
@@ -684,10 +684,85 @@ function evaluate(board, color) {
     return Math.min(ev, 40000);
 
 }
+function evaluate_one(board, x, y, color) {
+    let ev = 0;
+    if (color == 1) {
+        if (getFive(board, x, y)) {
+            return 50000;
+        }
+        if (getAFourOnOneLine(board, x, y, 1, 0) || getAFourOnOneLine(board, x, y, 0, 1) || getAFourOnOneLine(board, x, y, -1, 1) || getAFourOnOneLine(board, x, y, 1, 1)) {
+            if (color == 1) {
+                return 45000;
+            }
+            ev -= 2500;
+        } else {
+            const fourCount = getFourOnOneLine(board, x, y, 1, 0) + getFourOnOneLine(board, x, y, 0, 1) + getFourOnOneLine(board, x, y, -1, 1) + getFourOnOneLine(board, x, y, 1, 1);
+            if (color == 1 && fourCount > 0) {
+                return 45000;
+            }
+            if (fourCount > 1) {
+                ev -= 2500;
+            } else if (fourCount > 0) {
+                ev -= 500;
+            }
+        }
+        const threeCount = getAThreeOnOneLine(board, x, y, 1, 0) + getAThreeOnOneLine(board, x, y, 0, 1) + getAThreeOnOneLine(board, x, y, -1, 1) + getAThreeOnOneLine(board, x, y, 1, 1);
+        if (threeCount > 1) {
+            ev += 1000;
+        } else if (threeCount > 0) {
+            ev += 200;
+        } else if (getThreeOnOneLine(board, x, y, 1, 0) || getThreeOnOneLine(board, x, y, 0, 1) || getThreeOnOneLine(board, x, y, -1, 1) || getThreeOnOneLine(board, x, y, 1, 1)) {
+            ev += 50;
+        }
+        const twoCount = getATwoOnOneLine(board, x, y, 1, 0) + getATwoOnOneLine(board, x, y, 0, 1) + getATwoOnOneLine(board, x, y, -1, 1) + getATwoOnOneLine(board, x, y, 1, 1);
+        if (twoCount > 0) {
+            ev += 10;
+        } else if (getTwoOnOneLine(board, x, y, 1, 0) || getTwoOnOneLine(board, x, y, 0, 1) || getTwoOnOneLine(board, x, y, -1, 1) || getTwoOnOneLine(board, x, y, 1, 1)) {
+            ev += 2;
+        }
+    }
+    else if (color == 2) {
+        if (getFive_w(board, x, y)) {
+            return 50000;
+        }
+        if (getAFourOnOneLine_w(board, x, y, 1, 0) || getAFourOnOneLine_w(board, x, y, 0, 1) || getAFourOnOneLine_w(board, x, y, -1, 1) || getAFourOnOneLine_w(board, x, y, 1, 1)) {
+            if (color == 2) {
+                return 45000;
+            }
+            ev -= 2500;
+        } else {
+            const fourCount = getFourOnOneLine_w(board, x, y, 1, 0) + getFourOnOneLine_w(board, x, y, 0, 1) + getFourOnOneLine_w(board, x, y, -1, 1) + getFourOnOneLine_w(board, x, y, 1, 1);
+            if (color == 2 && fourCount > 0) {
+                return 45000;
+            }
+            if (fourCount > 1) {
+                ev -= 2500;
+            } else if (fourCount > 0) {
+                ev -= 500;
+            }
+        }
+        const threeCount = getAThreeOnOneLine_w(board, x, y, 1, 0) + getAThreeOnOneLine_w(board, x, y, 0, 1) + getAThreeOnOneLine_w(board, x, y, -1, 1) + getAThreeOnOneLine_w(board, x, y, 1, 1);
+        if (threeCount > 1) {
+            ev += 1000;
+        } else if (threeCount > 0) {
+            ev += 200;
+        } else if (getThreeOnOneLine_w(board, x, y, 1, 0) || getThreeOnOneLine_w(board, x, y, 0, 1) || getThreeOnOneLine_w(board, x, y, -1, 1) || getThreeOnOneLine_w(board, x, y, 1, 1)) {
+            ev += 50;
+        }
+        const twoCount = getATwoOnOneLine_w(board, x, y, 1, 0) + getATwoOnOneLine_w(board, x, y, 0, 1) + getATwoOnOneLine_w(board, x, y, -1, 1) + getATwoOnOneLine_w(board, x, y, 1, 1);
+        if (twoCount > 0) {
+            ev += 10;
+        } else if (getTwoOnOneLine_w(board, x, y, 1, 0) || getTwoOnOneLine_w(board, x, y, 0, 1) || getTwoOnOneLine_w(board, x, y, -1, 1) || getTwoOnOneLine_w(board, x, y, 1, 1)) {
+            ev += 2;
+        }
+    }
+    return Math.min(ev, 40000);
+
+}
 function has_nei(board, x, y, r) {
     for (let i = -r; i <= r; i++) {
         for (let j = -r; j <= r; j++) {
-            if ((i == 0 && j == 0) || !(x+i >= 0 && x+i <= 14 && y+j >= 0 && y+j <= 14)) {
+            if ((i == 0 && j == 0) || !(x + i >= 0 && x + i <= 14 && y + j >= 0 && y + j <= 14)) {
                 continue;
             }
             if (board[x + i][y + j] != 0) {
@@ -698,16 +773,28 @@ function has_nei(board, x, y, r) {
 }
 function gen_moves(board, color) {
     let moves = [];
+    let temp = [];
     for (let x = 0; x < 15; x++) {
         for (let y = 0; y < 15; y++) {
             if (board[x][y] == 0 && !(color == 1 && judgeBan(board, x, y))) {
                 if (has_nei(board, x, y, 2)) {
-                    moves.push([x, y]);
+                    let ev_1 = evaluate_one(board, x, y, color);
+                    let ev_2 = evaluate_one(board, x, y, 3 - color);
+                    if (ev_1 == 50000) {
+                        return [[x, y, ev_1]];
+                    }
+                    if (ev_2 == 50000) {
+                        temp.push([x, y, ev_1]);
+                    }
+                    moves.push([x, y, ev_1 + ev_2]);
                 }
             }
         }
     }
-    return moves;
+    if (temp.length > 0) {
+        return temp;
+    }
+    return moves.sort((a, b) => b[2] - a[2]);
 }
 function search(board, maxdepth, depth, alpha, beta, color) {
     let ev = evaluate(board, color);

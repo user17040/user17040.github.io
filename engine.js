@@ -514,7 +514,7 @@ function getATwoOnOneLine(board, x, y, dx, dy) {
         }
         if (board[i][j] == 0) {
             let ev = getAThreeOnOneLine(board, i, j, dx, dy);
-            ev_equals_1 += (ev - 1) / 5;
+            ev_equals_1 += (ev - 1) / 3;
         }
         cnt++;
     }
@@ -525,7 +525,7 @@ function getATwoOnOneLine(board, x, y, dx, dy) {
         }
         if (board[i][j] == 0) {
             let ev = getAThreeOnOneLine(board, i, j, dx, dy);
-            ev_equals_1 += (ev - 1) / 5;
+            ev_equals_1 += (ev - 1) / 3;
         }
         cnt++;
     }
@@ -545,7 +545,7 @@ function getATwoOnOneLine_w(board, x, y, dx, dy) {
         }
         if (board[i][j] == 0) {
             let ev = getAThreeOnOneLine(board, i, j, dx, dy);
-            ev_equals_1 += (ev - 1) / 5;
+            ev_equals_1 += (ev - 1) / 3;
         }
         cnt++;
     }
@@ -556,7 +556,7 @@ function getATwoOnOneLine_w(board, x, y, dx, dy) {
         }
         if (board[i][j] == 0) {
             let ev = getAThreeOnOneLine(board, i, j, dx, dy);
-            ev_equals_1 += (ev - 1) / 5;
+            ev_equals_1 += (ev - 1) / 3;
         }
         cnt++;
     }

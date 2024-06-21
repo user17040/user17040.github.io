@@ -101,15 +101,17 @@ let board = function (div, gameinit) {
 			array[!isNaN(n1) ? Number(n1)-1 : n1.charCodeAt(0) - "a".charCodeAt(0) + 9][!isNaN(n2) ? Number(n2)-1 : n2.charCodeAt(0) - 'a'.charCodeAt(0) + 9] = i % 4 == 0 ? 1 : 2;
 		}
 		let time=new Date();
-		let d=0;
+		let d=1;
 		function searchAndUpdate() {
-			let r = search(array, d, d, -Infinity, Infinity, boardobj.currcolor === "black" ? 1 : 2);
+			let c=boardobj.currcolor === "black" ? 1 : 2;
+			let e=evaluate(array,c);
+			let r = search(array, d, d, -Infinity, Infinity, e[0],e[1],c);
 			$("#myTable tr:eq(0)").text("最佳棋步路线：" + convertCoordinates(r.path));
-			$("#myTable tr:eq(1)").text("最佳棋步分数：" + r.ev);
+			$("#myTable tr:eq(1)").text("最佳棋步分数：" + r.ev.toFixed(1));
 			$("#myTable tr:eq(2)").text("搜索深度：" + d);
 			$("#myTable tr:eq(3)").text("搜索时间：" + (new Date() - time));
 
-			if (new Date() - time <= 100) {
+			if (new Date() - time <= 200) {
 				d++;
 				setTimeout(searchAndUpdate, 1); // 递归调用以继续搜索
 			}

@@ -285,7 +285,7 @@ function judgeBan(board, x, y) {
         + getAThreeOnOneLine(board, x, y, -1, 1)
         + getAThreeOnOneLine(board, x, y, 1, 1);
     board[x][y] = 0;
-    return !five && (long || fourCount > 1 || threeCount > 1);
+    return !five && (long || fourCount >= 2 || threeCount >= 2);
 }
 function getAThreeOnOneLine(board, x, y, dx, dy) {
     let beforeBefore = 0;

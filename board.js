@@ -1,156 +1,270 @@
-/**
- * @author xsir317@gmail.com
- * @license http://creativecommons.org/licenses/by-sa/3.0/deed.zh
- */
-let board = function (div, gameinit) {
-	let boardobj = this;
-	this.gameinit = (typeof gameinit == 'string') ? gameinit : div.attr('game');
-	this.currgame = '';
-	this.endgame = '';
-	this.currcolor = 'black';
-	this.currstep = 1;
-	boardobj.Boardview = div;
-	boardobj.Boardview.html('');
-	boardobj.Boardview.mousedown(function (e) {
-		if (e.which == 3) {
-			boardobj.pre();
-			return false;
-		}
-	});
-	this.setCurrGame = function (curr) {
-		console.log("board: " + curr);
-		window.location.hash = '#' + curr;
-		this.currgame = curr;
-	};
-	boardobj.Boardview.bind("contextmenu", function () { return false; });
-	//根据endgame的记录，落下后面一手棋
-	this.next = function () {
-		if (boardobj.endgame != boardobj.currgame) {
-			let nextstep = boardobj.endgame.substr(boardobj.currgame.length, 2);
-			let nextstepcell = boardobj.Boardview.find('.' + nextstep);
-			nextstepcell.removeClass('blank').addClass(boardobj.currcolor).html(boardobj.currstep++);
-			boardobj.currcolor = (boardobj.currcolor == 'black' ? 'white' : 'black');
-			boardobj.setCurrGame(boardobj.currgame + nextstep);
-			return true;
-		}
-		else {
-			return false;
-		}
-	};
-	//前一手
-	this.pre = function () {
-		if (boardobj.currgame != '') {
-			let currstep = boardobj.currgame.substr(boardobj.currgame.length - 2, 2);
-			let currstepcell = boardobj.Boardview.find('.' + currstep);
-			currstepcell.removeClass('black white').addClass('blank').html('');
-			boardobj.currcolor = (boardobj.currcolor == 'black' ? 'white' : 'black');
-			boardobj.setCurrGame(boardobj.currgame.substr(0, boardobj.currgame.length - 2));
-			boardobj.currstep--;
-			return true;
-		}
-		else {
-			return false;
-		}
-	};
-	//回到第一手
-	this.clean = function () {
-		while (boardobj.pre());
-	};
-	//到最后一手
-	this.end = function () {
-		while (boardobj.next());
-	};
+class Gomoku {
+  constructor(size = 15) {
+    this.size = size;
+    this.board = Array.from({ length: size }, () => Array(size).fill(0));
+    this.boardScore = Array.from({ length: size }, () => Array(size).fill(0));
+    this.history = [];
+    this.black_score = 0; // 初始化评估分值
+    this.white_score = 0;
+  }
 
-	//根据gameinit显示整盘棋
-	this.init = function () {
-		boardobj.endgame = boardobj.gameinit;
-		boardobj.setCurrGame('');
-		boardobj.currcolor = 'black';
-		boardobj.currstep = 1;
-		boardobj.Boardview.find('.row div').removeClass('black white').addClass('blank').html('');
-		boardobj.end();
-	};
-	//生成棋盘
-	for (let i = 15; i > 0; i--) {
-		//insert a row
-		let newrow = $(document.createElement("div"));
-		newrow.addClass('row');
-		boardobj.Boardview.append(newrow);
-		for (let j = 1; j <= 15; j++) {
-			//insert a cross point
-			let newcell = $(document.createElement("div"));
-			newcell.addClass(j.toString(16) + i.toString(16));
-			newcell.attr('alt', j.toString(16) + i.toString(16));
-			newcell.addClass('blank');
-			newrow.append(newcell);
-		}
-	}
-	
+  // 放置棋子
+  placePiece(x, y, player) {
+    if (this.board[x][y] === 0) {
+      this.board[x][y] = player;
+      this.history.push({ x, y });
+      this.updateEval(x, y);
+    }
+  }
+
+  // 撤销棋子
+  undoPiece() {
+    const lastMove = this.history.pop();
+    if (lastMove) {
+      this.board[lastMove.x][lastMove.y] = 0;
+      this.updateEval(lastMove.x, lastMove.y);
+    }
+  }
+
+  // 打印棋盘（可选）
+  printBoard() {
+    console.log(this.board.map(row => row.map(cell => (cell === 1 ? '●' : cell === -1 ? '○' : '·')).join(' ')).join('\n'));
+  }
+  countConsecutive(x, y, dx, dy, player) {
+    let count = 1;
+    let rightJumpCount = 0;
+    let leftJumpCount = 0;
+    let rightJump2Count = 0;
+    let leftJump2Count = 0;
+    let rightBlock = 2;//2:没挡，1:跳挡，0:直接挡
+    let leftBlock = 2;
+    let isJump = 0;
+    for (let i = 1; i < 6; i++) {
+      const nx = x + i * dx;
+      const ny = y + i * dy;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[nx][ny] === player) {
+        if (isJump === 2) {
+          rightJump2Count++;
+        }
+        else if (isJump === 1) {
+          rightJumpCount++;
+        } else {
+          count++;
+        }
+      } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
+        if (this.board[nx - dx][ny - dy] === player) {
+          rightBlock = 0;
+        } else {
+          rightBlock = 1;
+        }
+        break;
+      } else {
+        if (isJump === 2) {
+          break;
+        }
+        isJump++;
+      }
+    }
+    isJump = false;
+    for (let i = 1; i < 6; i++) {
+      const nx = x - i * dx;
+      const ny = y - i * dy;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[nx][ny] === player) {
+        if (isJump === 2) {
+          leftJump2Count++;
+        }
+        else if (isJump === 1) {
+          leftJumpCount++;
+        } else {
+          count++;
+        }
+      } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
+        if (this.board[nx + dx][ny + dy] === player) {
+          leftBlock = 0;
+        } else {
+          leftBlock = 1;
+        }
+        break;
+      } else {
+        if (isJump === 2) {
+          break;
+        }
+        isJump++;
+      }
+    }
+    //(1)11111
+    if (count >= 6 && player === 1) return scores.LONG
+    //(1)1111
+    if (count >= 5) return scores.FIVE;
+    if (count === 4) {
+      //0(1)1110
+      if (leftBlock >= 1 && leftJumpCount === 0 && rightBlock >= 1 && rightJumpCount === 0 && player === 1) return scores.FOUR;
+      if (leftBlock >= 1 && rightBlock >= 1 && player !== 1) return scores.FOUR;
+      //2(1)1110
+      if ((leftBlock >= 1 && leftJumpCount === 0) || (rightBlock >= 1 && rightJumpCount === 0) && player === 1) return scores.B_FOUR;
+      if ((leftBlock >= 1 || rightBlock >= 1) && player !== 1) return scores.B_FOUR;
+    }
+    else if (count === 3) {
+      //(1)1101
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && player === 1) return scores.B_FOUR;
+      if ((leftJumpCount >= 1 || rightJumpCount >= 1) && player !== 1) return scores.B_FOUR;
+      //0(1)1100
+      let left = leftBlock - (leftJump2Count >= 1);
+      let right = rightBlock - (rightJump2Count >= 1);
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left >= 1 && right >= 1 && !(left === 1 && right === 1) && player === 1) return scores.THREE + 250;
+      if (rightBlock >= 1 && rightBlock >= 1 && !(rightBlock === 1 && rightBlock === 1) && player !== 1) return scores.THREE = 250;
+      //2(1)1100
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return scores.B_THREE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return scores.B_THREE;
+    }
+    else if (count === 2) {
+      //(1)1011
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
+      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
+      //0(1)1010
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.THREE;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && player !== 1) return scores.THREE;
+      //(1)1001
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && player === 1) return scores.B_THREE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 1 || rightJump2Count >= 1) && player !== 1) return scores.B_THREE;
+      //(1)1011
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
+      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
+      //0(1)1000
+      if (leftBlock + rightBlock >= 3) return scores.TWO + 10;
+
+    }
+    else if (count === 1) {
+      //(1)0111
+      if ((leftJumpCount === 3 || rightJumpCount === 3) && player === 1) return scores.B_FOUR;
+      if ((leftJumpCount >= 3 || rightJumpCount >= 3) && player !== 1) return scores.B_FOUR;
+      //0(1)0110
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.THREE;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && player !== 2) return scores.THREE;
+      //2(1)0110
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.B_THREE;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && player !== 2) return scores.B_THREE;
+      //1100(1)
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 2 || rightJump2Count === 2) && player === 1) return scores.B_THREE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 2 || rightJump2Count >= 2) && player !== 1) return scores.B_THREE;
+      //10(1)01
+      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return scores.B_THREE;
+      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return scores.B_THREE;
+      //(1)0101
+      if (((leftJumpCount === 1 && leftJump2Count === 1) || (rightJumpCount === 1 && rightJump2Count === 1)) && player === 1) return scores.B_THREE;
+      if (((leftJumpCount === 1 && leftJump2Count >= 1) || (rightJumpCount === 1 && rightJump2Count >= 1)) && player !== 1) return scores.B_THREE;
+      //0(1)0100
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return scores.TWO + 5;
+      //0(1)0010
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && leftBlock + rightBlock >= 3) return scores.TWO;
+    }
+    return 0;
+  };
+  evaluatePoint(x, y, player) {
+    let score = 0;
+    for (const { dx, dy } of directions) {
+      const consecutive = this.countConsecutive(x, y, dx, dy, player);
+      score += consecutive;
+    }
+    return score;
+  };
+
+  checkBan(x, y, player) {
+    if (player !== 1) return false;
+    let score = 0;
+    let long = 0;
+    let five = 0;
+    let four = 0;
+    let three = 0;
+    for (const { dx, dy } of directions) {
+      const consecutive = this.countConsecutive(x, y, dx, dy, player);
+      if (consecutive === scores.LONG) long++;
+      else if (consecutive === scores.FIVE) five++;
+      else if (consecutive === scores.FOUR || score === scores.B_FOUR) four++;
+      else if (consecutive === scores.THREE || consecutive === scores.THREE + 250) three++;
+    }
+    return five === 0 && (long >= 1 || four >= 2 || three >= 2);
+  };
+  evaluateBoard(player) {
+
+    let score = 0;
 
 
-	this.solve_f = function () {
-		let rows = 15;
-		let cols = 15;
-		let array = Array.from({ length: rows }, () => Array(cols).fill(0));
-		
-		// 解析字符串并填入数组
-		for (let i = 0; i < boardobj.currgame.length; i += 2) {
-			let n1 = boardobj.currgame[i];
-			let n2 = boardobj.currgame[i + 1];
-			// 填入数组
-			array[!isNaN(n1) ? Number(n1)-1 : n1.charCodeAt(0) - "a".charCodeAt(0) + 9][!isNaN(n2) ? Number(n2)-1 : n2.charCodeAt(0) - 'a'.charCodeAt(0) + 9] = i % 4 == 0 ? 1 : 2;
-		}
-		let time=new Date();
-		let d=1;
-		function searchAndUpdate() {
-			let c=boardobj.currcolor === "black" ? 1 : 2;
-			let e=evaluate(array,c);
-			let r = search(array, d, d, -Infinity, Infinity, e[0],e[1],c);
-			$("#myTable tr:eq(0)").text("最佳棋步路线：" + convertCoordinates(r.path));
-			$("#myTable tr:eq(1)").text("最佳棋步分数：" + r.ev.toFixed(1));
-			$("#myTable tr:eq(2)").text("搜索深度：" + d);
-			$("#myTable tr:eq(3)").text("搜索时间：" + (new Date() - time));
+    for (let x = 0; x < this.size; x++) {
+      for (let y = 0; y < this.size; y++) {
+        score += this.boardScore[x][y];
+      }
+    }
+    return score * player;
+  }
+  updateEval(x, y) {
+    for (const { dx, dy } of directions) {
+      for (let i = -5; i < 6; i++) {
+        const nx = x + i * dx;
+        const ny = y + i * dy;
+        if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size)) continue;
+        const color = this.board[nx][ny];
+        if (color === 0) {
+          this.boardScore[nx][ny] = 0;
+        } else {
+          this.boardScore[nx][ny] = this.evaluatePoint(nx, ny, color) * color;
+        }
+      }
+    }
+  }
 
-			if (new Date() - time <= 200) {
-				d++;
-				setTimeout(searchAndUpdate, 1); // 递归调用以继续搜索
-			}
-		}
-		setTimeout(searchAndUpdate, 1);
-		
+  genMove(player) {
+    let score;
+    let moves = [];
+    let temp = [];
+    for (let x = 0; x < this.size; x++) {
+      for (let y = 0; y < this.size; y++) {
+        if (this.board[x][y] === 0 && !this.checkBan(x, y, player)) {
+          let s1 = this.evaluatePoint(x, y, player); let s2 = this.evaluatePoint(x, y, -player);
+          if (s1 >= scores.FIVE) return [{ x, y, score: 2 * s1 + s2 }];
+          if (s2 >= scores.FIVE) temp.push({ x, y, score: 2 * s1 + s2 });
+          score = 2 * s1 + s2;
+          if (score > 0) {
+            moves.push({ x, y, score });
+          }
+        }
+      }
+    }
+    if (temp.length > 0) return temp;
+    return moves.sort((a, b) => b.score - a.score);
+  }
+
+  negamax(maxdepth, depth, player, alpha, beta) {
+    let score = this.evaluateBoard(player);
+    if (score >= 1000000) {
+      return { score: 1000000 - maxdepth + depth, path: [] };
+    }
+    if (score <= -1000000) {
+      return { score: -1000000 + maxdepth - depth, path: [] };
+    }
+    if (depth === 0) {
+      return { score, path: [] };
+    }
+    let moves = this.genMove(player);
+    let maxScore = -Infinity;
+    let bestPath = [];
+    for (let { x, y } of moves) {
+      this.placePiece(x, y, player);
+      let result = this.negamax(maxdepth, depth - 1, -player, -beta, -alpha);
+      let score = -result.score;
+      this.undoPiece();
+      if (score > maxScore) {
+        maxScore = score;
+        bestPath = [{ x, y }, ...result.path];
+      }
+      if (score > alpha) {
+        alpha = score;
+      }
+      if (alpha >= beta) {
+        break;
+      }
+    }
+    return { score: maxScore, path: bestPath };
+  }
 }
-		
 
-
-
-	//生成控制按钮
-	let controlbar = $(document.createElement("div"));
-	controlbar.addClass('controlbar');
-	boardobj.Boardview.after(controlbar);
-	let nextbtn = $(document.createElement("input"));
-	let pre = $(document.createElement("input"));
-	let end = $(document.createElement("input"));
-	let init = $(document.createElement("input"));
-	let first = $(document.createElement("input"));
-	let solve = $(document.createElement("input"));
-	first.attr('type', 'button').val('|<<第一手').click(boardobj.clean).appendTo(controlbar);
-	pre.attr('type', 'button').val('<前一手').click(boardobj.pre).appendTo(controlbar);
-	nextbtn.attr('type', 'button').val('后一手>').click(boardobj.next).appendTo(controlbar);
-	end.attr('type', 'button').val('最后>>|').click(boardobj.end).appendTo(controlbar);
-	init.attr('type', 'button').val('恢复').click(boardobj.init).appendTo(controlbar);
-	solve.attr('type', 'button').val('计算').click(boardobj.solve_f).appendTo(controlbar);
-	boardobj.Boardview.find('.row div').click(function () {
-		console.log("position: " + $(this).attr('alt'));
-		//落子
-		if (!$(this).hasClass('blank')) {
-			return false;
-		}
-		$(this).removeClass('blank').addClass(boardobj.currcolor).html(boardobj.currstep++);
-		boardobj.currcolor = (boardobj.currcolor == 'black' ? 'white' : 'black');
-		boardobj.setCurrGame(boardobj.currgame + $(this).attr('alt'));
-		boardobj.endgame = boardobj.currgame;
-		return true;
-	});
-	//恢复棋盘。
-	this.init();
-};

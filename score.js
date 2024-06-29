@@ -1,11 +1,14 @@
 const scores = {
     LONG: -1,
     FIVE: 1000000,
-    FOUR: 20000,
-    B_FOUR: 3000,
-    THREE: 500,
-    B_THREE: 100,
-    TWO: 20,
+    D_B_FOUR: 12000,
+    FOUR: 40000,
+    B_FOUR: 6000,
+    THREE: 1000,
+    B_THREE: 200,
+    TWO: 40,
+    B_TWO: 10,
+    ONE: 1
 }
 const directions = [
     { dx: 1, dy: 0 },  // 横向

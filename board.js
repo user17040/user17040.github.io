@@ -1,29 +1,100 @@
+
+class Zobrist {
+  constructor(size) {
+    this.size = size;
+    this.zobristTable = this.initializeZobristTable(size);
+    this.hash = BigInt(0);
+  }
+
+  initializeZobristTable(size) {
+    let table = [];
+    for (let i = 0; i < size; i++) {
+      table[i] = [];
+      for (let j = 0; j < size; j++) {
+        table[i][j] = {
+          "1": BigInt(this.randomBitString(64)), // black
+          "-1": BigInt(this.randomBitString(64))  // white
+        };
+      }
+    }
+    return table;
+  }
+
+  randomBitString(length) {
+    let str = "0b";
+    for (let i = 0; i < length; i++) {
+      str += Math.round(Math.random()).toString();
+    }
+    return str;
+  }
+
+  togglePiece(x, y, role) {
+    this.hash ^= this.zobristTable[x][y][role];
+  }
+
+  getHash() {
+    return this.hash;
+  }
+}
+
+class Cache {
+  constructor(capacity = scores.FIVE) {
+    this.capacity = capacity;
+    this.cache = [];
+    this.map = new Map();
+  }
+
+  // 获取一个键的值
+  get(key) {
+    if (this.map.has(key)) {
+      return this.map.get(key);
+    }
+    return null;
+  }
+
+  // 设置或插入一个值
+  put(key, value) {
+    if (this.cache.length >= this.capacity) {
+      const oldestKey = this.cache.shift();  // 移除最老的键
+      this.map.delete(oldestKey);  // 从map中也删除它
+    }
+
+    if (!this.map.has(key)) {
+      this.cache.push(key);  // 将新键添加到cache数组
+    }
+    this.map.set(key, value);  // 更新或设置键值
+  }
+
+  // 检查缓存中是否存在某个键
+  has(key) {
+    if (!config.enableCache) return false;
+    return this.map.has(key);
+  }
+}
 class Gomoku {
   constructor(size = 15) {
     this.size = size;
     this.board = Array.from({ length: size }, () => Array(size).fill(0));
     this.boardScore = Array.from({ length: size }, () => Array(size).fill(0));
-    this.history = [];
     this.black_score = 0; // 初始化评估分值
     this.white_score = 0;
+    this.zobrist = new Zobrist(this.size);
+    this.cache = new Cache();
+    this.p = 2;
   }
 
   // 放置棋子
   placePiece(x, y, player) {
-    if (this.board[x][y] === 0) {
-      this.board[x][y] = player;
-      this.history.push({ x, y });
-      this.updateEval(x, y);
-    }
+    this.board[x][y] = player;
+    this.updateEval(x, y);
+    this.zobrist.togglePiece(x, y, player);
   }
 
   // 撤销棋子
-  undoPiece() {
-    const lastMove = this.history.pop();
-    if (lastMove) {
-      this.board[lastMove.x][lastMove.y] = 0;
-      this.updateEval(lastMove.x, lastMove.y);
-    }
+  undoPiece(x, y, player) {
+    this.board[x][y] = 0;
+    this.updateEval(x, y);
+    this.zobrist.togglePiece(x, y, player);
   }
 
   // 打印棋盘（可选）
@@ -52,10 +123,13 @@ class Gomoku {
           count++;
         }
       } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
-        if (this.board[nx - dx][ny - dy] === player) {
-          rightBlock = 0;
-        } else {
+        if (isJump === 1 && rightJumpCount === 0) {
           rightBlock = 1;
+        } else if (isJump === 2 && rightJump2Count === 0) {
+          rightBlock = 2;
+        }
+        else {
+          rightBlock = 0;
         }
         break;
       } else {
@@ -79,10 +153,13 @@ class Gomoku {
           count++;
         }
       } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
-        if (this.board[nx + dx][ny + dy] === player) {
-          leftBlock = 0;
-        } else {
+        if (isJump === 1 && leftJumpCount === 0) {
           leftBlock = 1;
+        } else if (isJump === 2 && leftJump2Count === 0) {
+          leftBlock = 2;
+        }
+        else {
+          leftBlock = 0;
         }
         break;
       } else {
@@ -106,24 +183,31 @@ class Gomoku {
     }
     else if (count === 3) {
       //(1)1101
+      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return scores.D_B_FOUR;
+      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return scores.D_B_FOUR;
       if ((leftJumpCount === 1 || rightJumpCount === 1) && player === 1) return scores.B_FOUR;
       if ((leftJumpCount >= 1 || rightJumpCount >= 1) && player !== 1) return scores.B_FOUR;
       //0(1)1100
       let left = leftBlock - (leftJump2Count >= 1);
       let right = rightBlock - (rightJump2Count >= 1);
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left >= 1 && right >= 1 && !(left === 1 && right === 1) && player === 1) return scores.THREE + 250;
-      if (rightBlock >= 1 && rightBlock >= 1 && !(rightBlock === 1 && rightBlock === 1) && player !== 1) return scores.THREE = 250;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right > 2 && player === 1) return scores.THREE + 500;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock > 2 && player !== 1) return scores.THREE + 500;
       //2(1)1100
       if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return scores.B_THREE;
       if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return scores.B_THREE;
     }
     else if (count === 2) {
       //(1)1011
+      if (leftJumpCount === 2 && rightJumpCount === 2 && player === 1) return scores.D_B_FOUR;
+      if (leftJumpCount >= 2 && rightJumpCount >= 2 && player !== 1) return scores.D_B_FOUR;
       if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
       if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
       //0(1)1010
       if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.THREE;
       if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && player !== 1) return scores.THREE;
+      //2(1)1010
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.B_THREE;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && player !== 1) return scores.B_THREE;
       //(1)1001
       if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && player === 1) return scores.B_THREE;
       if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 1 || rightJump2Count >= 1) && player !== 1) return scores.B_THREE;
@@ -131,11 +215,14 @@ class Gomoku {
       if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
       if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
       //0(1)1000
-      if (leftBlock + rightBlock >= 3) return scores.TWO + 10;
-
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return scores.TWO + 20;
+      //2(1)1000
+      if ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2)) return scores.B_TWO;
     }
     else if (count === 1) {
       //(1)0111
+      if (leftJumpCount === 3 && rightJumpCount === 3 && player === 1) return scores.D_B_FOUR;
+      if (leftJumpCount >= 3 && rightJumpCount >= 3 && player !== 1) return scores.D_B_FOUR;
       if ((leftJumpCount === 3 || rightJumpCount === 3) && player === 1) return scores.B_FOUR;
       if ((leftJumpCount >= 3 || rightJumpCount >= 3) && player !== 1) return scores.B_FOUR;
       //0(1)0110
@@ -154,48 +241,122 @@ class Gomoku {
       if (((leftJumpCount === 1 && leftJump2Count === 1) || (rightJumpCount === 1 && rightJump2Count === 1)) && player === 1) return scores.B_THREE;
       if (((leftJumpCount === 1 && leftJump2Count >= 1) || (rightJumpCount === 1 && rightJump2Count >= 1)) && player !== 1) return scores.B_THREE;
       //0(1)0100
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return scores.TWO + 5;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return scores.TWO + 10;
+      //2(1)0100
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return scores.B_TWO;
       //0(1)0010
       if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && leftBlock + rightBlock >= 3) return scores.TWO;
+      //2(1)0010
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return scores.B_TWO;
+      //0(1)0000
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return scores.ONE;
     }
     return 0;
   };
-  evaluatePoint(x, y, player) {
-    let score = 0;
-    for (const { dx, dy } of directions) {
-      const consecutive = this.countConsecutive(x, y, dx, dy, player);
-      score += consecutive;
-    }
-    return score;
-  };
-
-  checkBan(x, y, player) {
-    if (player !== 1) return false;
+  evaluatePoint(x, y, player, check = false) {
     let score = 0;
     let long = 0;
     let five = 0;
     let four = 0;
+    let b_four = 0;
     let three = 0;
     for (const { dx, dy } of directions) {
       const consecutive = this.countConsecutive(x, y, dx, dy, player);
       if (consecutive === scores.LONG) long++;
       else if (consecutive === scores.FIVE) five++;
-      else if (consecutive === scores.FOUR || score === scores.B_FOUR) four++;
-      else if (consecutive === scores.THREE || consecutive === scores.THREE + 250) three++;
+      else if (consecutive === scores.FOUR) four++;
+      else if (consecutive === scores.D_B_FOUR) b_four += 2;
+      else if (consecutive === scores.B_FOUR) b_four++;
+      else if (consecutive === scores.THREE || consecutive === scores.THREE + 500) three++;
+      score += consecutive;
     }
-    return five === 0 && (long >= 1 || four >= 2 || three >= 2);
+    if (check) {
+      if (player === 1 && five === 0 && (long >= 1 || b_four + four >= 2 || three >= 2)) return -1;
+      if (five >= 1) return scores.FIVE;
+      if (four >= 1 || b_four >= 2) return scores.FOUR;
+    }
+    return score;
   };
   evaluateBoard(player) {
-
-    let score = 0;
-
-
+    let bscore = 0;
+    let wscore = 0;
+    let b5 = 0;
+    let w5 = 0;
+    let b4 = 0;
+    let w4 = 0;
+    let b44 = 0;
+    let w44 = 0;
+    let b43 = 0;
+    let w43 = 0;
+    let bb4 = 0;
+    let wb4 = 0;
+    let b33 = 0;
+    let w33 = 0;
+    let b3 = 0;
+    let w3 = 0;
     for (let x = 0; x < this.size; x++) {
       for (let y = 0; y < this.size; y++) {
-        score += this.boardScore[x][y];
+        if (this.boardScore[x][y] >= scores.FIVE) b5++;
+        else if (this.boardScore[x][y] >= scores.FOUR) b4++;
+        else if (this.boardScore[x][y] >= scores.B_FOUR * 2) b44++;
+        else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE) b43++;
+        else if (this.boardScore[x][y] >= scores.B_FOUR) bb4++;
+        else if (this.boardScore[x][y] >= scores.THREE * 2) b33++;
+        else if (this.boardScore[x][y] >= scores.THREE) b3++;
+        if (this.boardScore[x][y] <= -scores.FIVE) w5++;
+        else if (this.boardScore[x][y] <= -scores.FOUR) w4++;
+        else if (this.boardScore[x][y] <= -scores.B_FOUR * 2) w44++;
+        else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE) w43++;
+        else if (this.boardScore[x][y] <= -scores.B_FOUR) wb4++;
+        else if (this.boardScore[x][y] <= -scores.THREE * 2) w33++;
+        else if (this.boardScore[x][y] <= -scores.THREE) w3++;
+        this.boardScore[x][y] >= 0 ? bscore += this.boardScore[x][y] : wscore -= this.boardScore[x][y];
       }
     }
-    return score * player;
+    if (player === 1) {
+      if (b5 > 0) {
+        return scores.FIVE;
+      }
+      else if (w5 > 0) {
+        return - scores.FIVE;
+      }
+      else if (w5 === 0 && (b4 + bb4 > 0 || b44 > 0)) {
+        return scores.FIVE - 250;
+      }
+      else if (b4 + b44 + b43 + bb4 === 0 && w4 > 0) {
+        return -scores.FIVE + 500;
+      }
+      else if (w4 + w44 + w43 + wb4 === 0 && b3 > 0) {
+        return scores.FIVE - 750;
+      }
+      else if (b4 + b44 + b43 + bb4 === 0 && (w43 > 0 || (b3 + b33 === 0 && w33 > 0))) {
+        return -scores.FIVE + 1000;
+      }
+    }
+    else if (player === -1) {
+      if (w5 > 0) {
+        return scores.FIVE;
+      }
+      else if (b5 > 0) {
+        return - scores.FIVE;
+      }
+      else if (b5 === 0 && (w4 + wb4 > 0 || w44 > 0)) {
+        return scores.FIVE - 250;
+      }
+      else if (b4 + b44 + b43 + bb4 === 0 && w4 > 0) {
+        return -scores.FIVE + 500;
+      }
+      else if (w4 + w44 + w43 + wb4 === 0 && b4 > 0) {
+        return -scores.FIVE + 500;
+      }
+      else if (b4 + b44 + b43 + bb4 === 0 && w3 > 0) {
+        return scores.FIVE - 750;
+      }
+      else if (w4 + w44 + w43 + wb4 === 0 && (b43 > 0 || (w3 + w33 === 0 && b33 > 0))) {
+        return -scores.FIVE + 1000;
+      }
+    }
+    return player === 1 ? this.p * bscore - wscore : this.p * wscore - bscore;
   }
   updateEval(x, y) {
     for (const { dx, dy } of directions) {
@@ -213,49 +374,110 @@ class Gomoku {
     }
   }
 
-  genMove(player) {
+  genMove(player, only) {
     let score;
     let moves = [];
     let temp = [];
+    let temp2 = [];
+    let temp3 = [];
+    let temp4 = [];
+    let temp5 = [];
+    let temp6 = [];
+    let opponent4 = false;
     for (let x = 0; x < this.size; x++) {
       for (let y = 0; y < this.size; y++) {
-        if (this.board[x][y] === 0 && !this.checkBan(x, y, player)) {
-          let s1 = this.evaluatePoint(x, y, player); let s2 = this.evaluatePoint(x, y, -player);
-          if (s1 >= scores.FIVE) return [{ x, y, score: 2 * s1 + s2 }];
-          if (s2 >= scores.FIVE) temp.push({ x, y, score: 2 * s1 + s2 });
+        if (this.board[x][y] === 0) {
+          let s1 = this.evaluatePoint(x, y, player, true); let s2 = this.evaluatePoint(x, y, -player, true);
+          if (s1 === -1) continue;
           score = 2 * s1 + s2;
-          if (score > 0) {
-            moves.push({ x, y, score });
+          if (s1 >= scores.FIVE) {
+            return [{ x, y, score }];
+          }
+          else if (s1 >= scores.B_FOUR * 2) {
+            temp2.push({ x, y, score });
+          }
+          else if (s1 >= scores.B_FOUR + scores.THREE) {
+            temp3.push({ x, y, score });
+          }
+          else if (s1 >= scores.B_FOUR) {
+            temp4.push({ x, y, score });
+          }
+          else if (s1 >= scores.THREE * 2) {
+            temp5.push({ x, y, score });
+          }
+          if (s2 >= scores.FIVE) {
+            temp.push({ x, y, score });
+          }
+          else if (s2 >= scores.B_FOUR) {
+            temp6.push({ x, y, score })
+            if (s2 >= scores.FOUR) {
+              opponent4 = true;
+            }
+          }
+          if (only === 0) {
+            if (s1 >= scores.B_TWO || s2 >= scores.B_TWO) {
+              moves.push({ x, y, score });
+            }
+          }
+          else if (only > 0) {
+            if (s1 >= only) {
+              moves.push({ x, y, score });
+            }
+          }
+          else if (only < 0) {
+            if (only === -scores.B_FOUR) {
+              if (s1 >= scores.FIVE || s2 >= scores.FIVE) {
+                moves.push({ x, y, score });
+              }
+            }
+            else if (only === -scores.THREE) {
+              if (s1 >= scores.B_FOUR || s2 >= scores.B_FOUR) {
+                moves.push({ x, y, score });
+              }
+            }
           }
         }
       }
     }
-    if (temp.length > 0) return temp;
+    if (temp.length > 0) return [temp[0]];//挡冲四
+    if (temp2.length > 0) return [temp2[0]];//走活四
+    if (temp3.length > 0) return [temp3[0]];//走四三
+    if (opponent4 && only <= 0) return [...temp4, ...temp6].sort((a, b) => b.score - a.score);//挡活三
+    if (temp6.length === 0 && temp5.length > 0) return [temp5[0]];//走三三
     return moves.sort((a, b) => b.score - a.score);
   }
 
-  negamax(maxdepth, depth, player, alpha, beta) {
+  negamax(depth, cdepth, player, path, alpha, beta) {
+    const hash = this.zobrist.getHash();
+    const prev = this.cache.get(hash);
+    if (prev && prev.player === player && prev.only === 0 && prev.depth >= depth - cdepth) {
+      return { score: prev.score, path: [...path, ...prev.path] }
+    }
     let score = this.evaluateBoard(player);
-    if (score >= 1000000) {
-      return { score: 1000000 - maxdepth + depth, path: [] };
+    if (score >= scores.FIVE) {
+      return { score: scores.FIVE, path: [...path] };
     }
-    if (score <= -1000000) {
-      return { score: -1000000 + maxdepth - depth, path: [] };
+    if (score <= -scores.FIVE) {
+      return { score: -scores.FIVE, path: [...path] };
     }
-    if (depth === 0) {
-      return { score, path: [] };
+    if (cdepth >= depth) {
+      let qresult = this.quiescence(15, 0, player, [], scores.THREE, alpha, beta);
+      return { score: qresult.score, path: [...path, ...qresult.path] };
     }
-    let moves = this.genMove(player);
+    let moves = this.genMove(player, 0);
+    if (moves.length === 0) {
+      return { score: 0, path: [...path] };
+    }
     let maxScore = -Infinity;
-    let bestPath = [];
+    let bestPath = [...path];
     for (let { x, y } of moves) {
       this.placePiece(x, y, player);
-      let result = this.negamax(maxdepth, depth - 1, -player, -beta, -alpha);
+      let result = this.negamax(depth, cdepth + 1, -player, [...path, { x, y }], -beta, -alpha);
       let score = -result.score;
-      this.undoPiece();
+      this.undoPiece(x, y, player);
       if (score > maxScore) {
         maxScore = score;
-        bestPath = [{ x, y }, ...result.path];
+        bestPath = result.path;
       }
       if (score > alpha) {
         alpha = score;
@@ -264,7 +486,89 @@ class Gomoku {
         break;
       }
     }
+    if (!prev || prev.depth < depth - cdepth) {
+      this.cache.put(hash, {
+        depth: depth - cdepth,
+        path: bestPath.slice(cdepth),
+        score: maxScore,
+        player,
+        only: 0
+      })
+    }
     return { score: maxScore, path: bestPath };
   }
+  quiescence(depth, cdepth, player, path, only, alpha, beta) {
+    const hash = this.zobrist.getHash();
+    const prev = this.cache.get(hash);
+    if (prev && prev.player === player && prev.only === only && prev.depth >= depth - cdepth) {
+      return { score: prev.score, path: [...path, ...prev.path] }
+    }
+    let score = this.evaluateBoard(player);
+    if (score >= scores.FIVE) {
+      return { score: scores.FIVE, path: [...path] };
+    }
+    if (score <= -scores.FIVE) {
+      return { score: -scores.FIVE, path: [...path] };
+    }
+    if (score >= beta) {
+      return { score: beta, path: [...path] };
+    }
+    if (score > alpha) {
+      alpha = score;
+    }
+    if (cdepth >= depth) {
+      return { score, path: [...path] };
+    }
+    let moves = this.genMove(player, only);
+    if (moves.length === 0) {
+      return { score, path: [...path] };
+    }
+    let maxScore = -Infinity;
+    let bestPath = [...path];
+    for (let { x, y } of moves) {
+      this.placePiece(x, y, player);
+      let result = this.quiescence(depth, cdepth + 1, -player, [...path, { x, y }], -only, -beta, -alpha);
+      let score = -result.score;
+      this.undoPiece(x, y, player);
+      if (score > maxScore) {
+        maxScore = score;
+        bestPath = result.path;
+      }
+      if (score > alpha) {
+        alpha = score;
+      }
+      if (alpha >= beta) {
+        break;
+      }
+    }
+    if (!prev || prev.depth < depth - cdepth) {
+      this.cache.put(hash, {
+        depth: depth - cdepth,
+        path: bestPath.slice(cdepth),
+        score: maxScore,
+        player,
+        only
+      })
+    }
+    return { score: maxScore, path: bestPath };
+  }
+  deeping(player, maxtime) {
+    let d = new Date();
+    let res;
+    for (let depth = 1; ; depth++) {
+      res = this.negamax(depth, 0, player, [], -Infinity, Infinity);
+      res.depth = depth; res.time = new Date() - d;
+      console.log('深度：' + depth + '|分数：' + res.score + '|路径：' + path_t(res.path) + '|时间：' + res.time)
+      if (new Date() - d > maxtime || res.score >= scores.FIVE - 1500 || res.score <= -scores.FIVE + 1500) {
+        return res;
+      }
+    }
+  }
 }
-
+function path_t(array) {
+  let str = ''
+  for (let i of array) {
+    str += String.fromCharCode(i.x + 65) + (i.y + 1) + ' ';
+  }
+  return str;
+}

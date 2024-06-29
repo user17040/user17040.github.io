@@ -96,9 +96,11 @@ let board = function (div, gameinit) {
 			}
 			game.placePiece(a, b, i % 4 == 0 ? 1 : -1);
 		}
-		let res = game.negamax(6,6, boardobj.currgame.length % 4 == 0 ? 1 : -1, -Infinity, Infinity);
+		let res = game.deeping(boardobj.currgame.length % 4 == 0 ? 1 : -1, 2000);
 		$("#myTable tr:eq(0)").text(`局面评分: ${res.score}`);
 		$("#myTable tr:eq(1)").text(`最佳路线: ${path_t(res.path)}`);
+		$("#myTable tr:eq(2)").text(`搜索深度: ${res.depth}`);
+		$("#myTable tr:eq(3)").text(`花费时间: ${res.time}`);
 	}
 	let controlbar = $(document.createElement("div"));
 	controlbar.addClass('controlbar');
@@ -128,10 +130,3 @@ let board = function (div, gameinit) {
 	});
 	this.init();
 };
-function path_t(array) {
-	let str = ''
-	for (let i of array) {
-		str += String.fromCharCode(i.x + 65) + (i.y + 1) + ' ';
-	}
-	return str;
-}

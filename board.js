@@ -75,7 +75,7 @@ class Gomoku {
   constructor(size = 15) {
     this.size = size;
     this.board = Array.from({ length: size }, () => Array(size).fill(0));
-    this.boardScore = Array.from({ length: size }, () => Array(size).fill(0));
+    this.boardScore = Array.from({ length: size }, () => Array.from({ length: size }, () => [0, 0]));;
     this.black_score = 0; // 初始化评估分值
     this.white_score = 0;
     this.zobrist = new Zobrist(this.size);
@@ -296,21 +296,23 @@ class Gomoku {
     let w3 = 0;
     for (let x = 0; x < this.size; x++) {
       for (let y = 0; y < this.size; y++) {
-        if (this.boardScore[x][y] >= scores.FIVE) b5++;
-        else if (this.boardScore[x][y] >= scores.FOUR) b4++;
-        else if (this.boardScore[x][y] >= scores.B_FOUR * 2) b44++;
-        else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE) b43++;
-        else if (this.boardScore[x][y] >= scores.B_FOUR) bb4++;
-        else if (this.boardScore[x][y] >= scores.THREE * 2) b33++;
-        else if (this.boardScore[x][y] >= scores.THREE) b3++;
-        if (this.boardScore[x][y] <= -scores.FIVE) w5++;
-        else if (this.boardScore[x][y] <= -scores.FOUR) w4++;
-        else if (this.boardScore[x][y] <= -scores.B_FOUR * 2) w44++;
-        else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE) w43++;
-        else if (this.boardScore[x][y] <= -scores.B_FOUR) wb4++;
-        else if (this.boardScore[x][y] <= -scores.THREE * 2) w33++;
-        else if (this.boardScore[x][y] <= -scores.THREE) w3++;
-        this.boardScore[x][y] >= 0 ? bscore += this.boardScore[x][y] : wscore -= this.boardScore[x][y];
+        if (this.board[x][y] !== 0) {
+          if (this.boardScore[x][y] >= scores.FIVE) b5++;
+          else if (this.boardScore[x][y] >= scores.FOUR) b4++;
+          else if (this.boardScore[x][y] >= scores.B_FOUR * 2) b44++;
+          else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE) b43++;
+          else if (this.boardScore[x][y] >= scores.B_FOUR) bb4++;
+          else if (this.boardScore[x][y] >= scores.THREE * 2) b33++;
+          else if (this.boardScore[x][y] >= scores.THREE) b3++;
+          if (this.boardScore[x][y] <= -scores.FIVE) w5++;
+          else if (this.boardScore[x][y] <= -scores.FOUR) w4++;
+          else if (this.boardScore[x][y] <= -scores.B_FOUR * 2) w44++;
+          else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE) w43++;
+          else if (this.boardScore[x][y] <= -scores.B_FOUR) wb4++;
+          else if (this.boardScore[x][y] <= -scores.THREE * 2) w33++;
+          else if (this.boardScore[x][y] <= -scores.THREE) w3++;
+          this.boardScore[x][y] >= 0 ? bscore += this.boardScore[x][y] : wscore -= this.boardScore[x][y];
+        }
       }
     }
     if (player === 1) {
@@ -366,7 +368,7 @@ class Gomoku {
         if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size)) continue;
         const color = this.board[nx][ny];
         if (color === 0) {
-          this.boardScore[nx][ny] = 0;
+          this.boardScore[nx][ny] = [this.evaluatePoint(nx, ny, 1, true), this.evaluatePoint(nx, ny, -1, true)];
         } else {
           this.boardScore[nx][ny] = this.evaluatePoint(nx, ny, color) * color;
         }
@@ -387,7 +389,12 @@ class Gomoku {
     for (let x = 0; x < this.size; x++) {
       for (let y = 0; y < this.size; y++) {
         if (this.board[x][y] === 0) {
-          let s1 = this.evaluatePoint(x, y, player, true); let s2 = this.evaluatePoint(x, y, -player, true);
+          let s1, s2;
+          if (player === 1) {
+            s1 = this.boardScore[x][y][0]; s2 = this.boardScore[x][y][1];
+          } else {
+            s1 = this.boardScore[x][y][1]; s2 = this.boardScore[x][y][0];
+          }
           if (s1 === -1) continue;
           score = 2 * s1 + s2;
           if (s1 >= scores.FIVE) {

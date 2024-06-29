@@ -462,14 +462,14 @@ class Gomoku {
     }
     let score = this.evaluateBoard(player);
     if (score >= scores.FIVE) {
-      return { score: scores.FIVE, path: [...path] };
+      return { score: score - path.length, path: [...path] };
     }
     if (score <= -scores.FIVE) {
-      return { score: -scores.FIVE, path: [...path] };
+      return { score: score + path.length, path: [...path] };
     }
     if (cdepth >= depth) {
-      let qresult = this.quiescence(15, 0, player, [], scores.THREE, alpha, beta);
-      return { score: qresult.score, path: [...path, ...qresult.path] };
+      let qresult = this.quiescence(15, 0, player, [...path], scores.B_FOUR, alpha, beta);
+      return { score: qresult.score, path: [...qresult.path] };
     }
     let moves = this.genMove(player, 0);
     if (moves.length === 0) {
@@ -512,10 +512,10 @@ class Gomoku {
     }
     let score = this.evaluateBoard(player);
     if (score >= scores.FIVE) {
-      return { score: scores.FIVE, path: [...path] };
+      return { score: score - path.length, path: [...path] };
     }
     if (score <= -scores.FIVE) {
-      return { score: -scores.FIVE, path: [...path] };
+      return { score: score + path.length, path: [...path] };
     }
     if (score >= beta) {
       return { score: beta, path: [...path] };
@@ -566,7 +566,7 @@ class Gomoku {
       res = this.negamax(depth, 0, player, [], -Infinity, Infinity);
       res.depth = depth; res.time = new Date() - d;
       console.log('深度：' + depth + '|分数：' + res.score + '|路径：' + path_t(res.path) + '|时间：' + res.time)
-      if (new Date() - d > maxtime || res.score >= scores.FIVE - 1500 || res.score <= -scores.FIVE + 1500) {
+      if (new Date() - d > maxtime) {
         return res;
       }
     }

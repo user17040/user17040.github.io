@@ -81,11 +81,13 @@ class Gomoku {
     this.zobrist = new Zobrist(this.size);
     this.cache = new Cache();
     this.p = 2;
+    this.steps = [];
   }
 
   // 放置棋子
   placePiece(x, y, player) {
     this.board[x][y] = player;
+    this.steps.push([x, y]);
     this.updateEval(x, y);
     this.zobrist.togglePiece(x, y, player);
   }
@@ -93,6 +95,7 @@ class Gomoku {
   // 撤销棋子
   undoPiece(x, y, player) {
     this.board[x][y] = 0;
+    this.steps.pop();
     this.updateEval(x, y);
     this.zobrist.togglePiece(x, y, player);
   }
@@ -398,49 +401,32 @@ class Gomoku {
           if (s1 === -1) continue;
           score = 2 * s1 + s2;
           if (s1 >= scores.FIVE) {
-            return [{ x, y, score }];
+            return [{ x, y, s1, s2, score }];
           }
           else if (s1 >= scores.B_FOUR * 2) {
-            temp2.push({ x, y, score });
+            temp2.push({ x, y, s1, s2, score });
           }
           else if (s1 >= scores.B_FOUR + scores.THREE) {
-            temp3.push({ x, y, score });
+            temp3.push({ x, y, s1, s2, score });
           }
           else if (s1 >= scores.B_FOUR) {
-            temp4.push({ x, y, score });
+            temp4.push({ x, y, s1, s2, score });
           }
           else if (s1 >= scores.THREE * 2) {
-            temp5.push({ x, y, score });
+            temp5.push({ x, y, s1, s2, score });
           }
           if (s2 >= scores.FIVE) {
-            temp.push({ x, y, score });
+            temp.push({ x, y, s1, s2, score });
           }
           else if (s2 >= scores.B_FOUR) {
-            temp6.push({ x, y, score })
+            temp6.push({ x, y, s1, s2, score })
             if (s2 >= scores.FOUR) {
               opponent4 = true;
             }
           }
           if (only === 0) {
             if (s1 >= scores.B_TWO || s2 >= scores.B_TWO) {
-              moves.push({ x, y, score });
-            }
-          }
-          else if (only > 0) {
-            if (s1 >= only) {
-              moves.push({ x, y, score });
-            }
-          }
-          else if (only < 0) {
-            if (only === -scores.B_FOUR) {
-              if (s1 >= scores.FIVE || s2 >= scores.FIVE) {
-                moves.push({ x, y, score });
-              }
-            }
-            else if (only === -scores.THREE) {
-              if (s1 >= scores.B_FOUR || s2 >= scores.B_FOUR) {
-                moves.push({ x, y, score });
-              }
+              moves.push({ x, y, s1, s2, score });
             }
           }
         }
@@ -457,8 +443,10 @@ class Gomoku {
   negamax(depth, cdepth, player, path, alpha, beta) {
     const hash = this.zobrist.getHash();
     const prev = this.cache.get(hash);
-    if (prev && prev.player === player && prev.only === 0 && prev.depth >= depth - cdepth) {
-      return { score: prev.score, path: [...path, ...prev.path] }
+    if (prev && prev.player === player && prev.depth >= depth - cdepth) {
+      if (prev.flag === 0 && prev.score <= alpha) return { score: prev.score, path: [...path, ...prev.path] }
+      if (prev.flag === 1 && prev.score >= beta) return { score: prev.score, path: [...path, ...prev.path] }
+      if (prev.flag === 2) return { score: prev.score, path: [...path, ...prev.path] }
     }
     let score = this.evaluateBoard(player);
     if (score >= scores.FIVE) {
@@ -468,28 +456,41 @@ class Gomoku {
       return { score: score + path.length, path: [...path] };
     }
     if (cdepth >= depth) {
-      let qresult = this.quiescence(15, 0, player, [...path], scores.B_FOUR, alpha, beta);
-      return { score: qresult.score, path: [...qresult.path] };
+      return { score, path: [...path] };
+    }
+    let result = this.negamax(depth - 2, cdepth + 1, -player, [...path], -beta, -beta + 1);
+    if (-result.score >= beta) {
+      return { score: beta, path: [...path] };
     }
     let moves = this.genMove(player, 0);
     if (moves.length === 0) {
       return { score: 0, path: [...path] };
     }
-    let maxScore = -Infinity;
+    let maxScore = -scores.FIVE - 250;
     let bestPath = [...path];
-    for (let { x, y } of moves) {
-      this.placePiece(x, y, player);
-      let result = this.negamax(depth, cdepth + 1, -player, [...path, { x, y }], -beta, -alpha);
+    let flag = 0;
+    for (let move of moves) {
+      this.placePiece(move.x, move.y, player);
+      if (maxScore > -scores.FIVE - 250) {
+        result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -alpha - 1, -alpha);
+        if (-result.score > alpha && -result.score < beta) {
+          result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -beta, -alpha);
+        }
+      } else {
+        result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -beta, -alpha);
+      }
       let score = -result.score;
-      this.undoPiece(x, y, player);
+      this.undoPiece(move.x, move.y, player);
       if (score > maxScore) {
         maxScore = score;
         bestPath = result.path;
       }
       if (score > alpha) {
+        flag = 2;
         alpha = score;
       }
       if (alpha >= beta) {
+        flag = 1;
         break;
       }
     }
@@ -499,73 +500,62 @@ class Gomoku {
         path: bestPath.slice(cdepth),
         score: maxScore,
         player,
-        only: 0
+        flag
       })
     }
     return { score: maxScore, path: bestPath };
   }
-  quiescence(depth, cdepth, player, path, only, alpha, beta) {
-    const hash = this.zobrist.getHash();
-    const prev = this.cache.get(hash);
-    if (prev && prev.player === player && prev.only === only && prev.depth >= depth - cdepth) {
-      return { score: prev.score, path: [...path, ...prev.path] }
-    }
-    let score = this.evaluateBoard(player);
-    if (score >= scores.FIVE) {
-      return { score: score - path.length, path: [...path] };
-    }
-    if (score <= -scores.FIVE) {
-      return { score: score + path.length, path: [...path] };
-    }
-    if (score >= beta) {
-      return { score: beta, path: [...path] };
-    }
-    if (score > alpha) {
-      alpha = score;
-    }
-    if (cdepth >= depth) {
-      return { score, path: [...path] };
-    }
-    let moves = this.genMove(player, only);
-    if (moves.length === 0) {
-      return { score, path: [...path] };
-    }
-    let maxScore = -Infinity;
-    let bestPath = [...path];
-    for (let { x, y } of moves) {
-      this.placePiece(x, y, player);
-      let result = this.quiescence(depth, cdepth + 1, -player, [...path, { x, y }], -only, -beta, -alpha);
-      let score = -result.score;
-      this.undoPiece(x, y, player);
-      if (score > maxScore) {
-        maxScore = score;
-        bestPath = result.path;
+  match(rotate) {
+    let s;
+    if(rotate===0) s=this.steps;
+    else if(rotate===1) s=rotate90(this.steps,this.size);
+    else if(rotate===2) s=rotate180(this.steps,this.size);
+    else if(rotate===3) s=rotate270(this.steps,this.size);
+    let b = s.filter((element, index) => index % 2 === 0)
+    b.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+    let w = s.filter((element, index) => index % 2 === 1)
+    w.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+    let r;
+    for (let book of books) {
+      if (book.length - 1 != s.length) continue;
+      if(rotate===0) r=book[s.length]
+      else if(rotate===1) r = rotate90([book[s.length]],this.size)[0];
+      else if(rotate===2) r = rotate180([book[s.length]],this.size)[0];
+      else if(rotate===3) r = rotate270([book[s.length]],this.size)[0];
+      let nbook = book.slice(0, s.length);
+      nbook.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+      let bookb = nbook.filter((element, index) => index % 2 === 0);
+      let bookw = nbook.filter((element, index) => index % 2 === 1);
+      let flag = true
+      for (let i = 0; i < bookb.length; i++) {
+        if (bookb[i][0] != b[i][0] || bookb[i][1] != b[i][1]) {
+          flag = false;
+          break;
+        }
+        if (i < bookw.length && (bookw[i][0] != w[i][0] || bookw[i][1] != w[i][1])) {
+          flag = false;
+          break;
+        }
       }
-      if (score > alpha) {
-        alpha = score;
-      }
-      if (alpha >= beta) {
-        break;
-      }
+      if (flag) return { x: r[0], y: r[1] };
     }
-    if (!prev || prev.depth < depth - cdepth) {
-      this.cache.put(hash, {
-        depth: depth - cdepth,
-        path: bestPath.slice(cdepth),
-        score: maxScore,
-        player,
-        only
-      })
-    }
-    return { score: maxScore, path: bestPath };
+    return false;
   }
   deeping(player, maxtime) {
     let d = new Date();
-    let res;
+    let res = {};
+    for(let i=0;i<4;i++){
+      let bookres = this.match(i);
+      if (bookres) {
+        res.path = [bookres]; res.score = '查谱'; res.depth = 0; res.time = new Date() - d;
+        console.log('查谱|路径：' + path_t(res.path))
+        return res
+      }
+    }
     for (let depth = 1; ; depth++) {
-      res = this.negamax(depth, 0, player, [], -Infinity, Infinity);
+      res = this.negamax(depth, 0, player, [], -scores.FIVE - 250, scores.FIVE + 250);
       res.depth = depth; res.time = new Date() - d;
-      console.log('深度：' + depth + '|分数：' + res.score + '|路径：' + path_t(res.path) + '|时间：' + res.time)
+      console.log('计算|深度：' + depth + '|分数：' + res.score + '|路径：' + path_t(res.path) + '|时间：' + res.time)
       if (new Date() - d > maxtime) {
         return res;
       }
@@ -578,4 +568,7 @@ function path_t(array) {
     str += String.fromCharCode(i.x + 65) + (i.y + 1) + ' ';
   }
   return str;
+}
+function path_t2(i) {
+  return (i.x + 1).toString(16) + (i.y + 1).toString(16);
 }

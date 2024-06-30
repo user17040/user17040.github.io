@@ -148,18 +148,10 @@
     <!-- Your existing scripts -->
     <script src="./jquery.min.js"></script>
     <script src="./score.js" type="text/javascript"></script>
+    <script src="./book.js" type="text/javascript"></script>
     <script src="./board2.js" type="text/javascript"></script>
     <script src="./board.js" type="text/javascript"></script>
-    <!-- 引入 VConsole 的 CDN 版本 -->
-    <script src="https://cdn.jsdelivr.net/npm/vconsole@3.3.0/dist/vconsole.min.js"></script>
-
     <script type="text/javascript">
-        // 初始化 VConsole
-        var vConsole = new VConsole();
-        // 根据 URL 参数激活 VConsole
-        if (/debug=true/.test(window.location.search)) {
-            var vConsole = new VConsole();
-        }
         // Your existing JavaScript code
         $(document).ready(function () {
             let board_object = $('#active_board');

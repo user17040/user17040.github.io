@@ -101,6 +101,8 @@ let board = function (div, gameinit) {
 		$("#myTable tr:eq(1)").text(`最佳路线: ${path_t(res.path)}`);
 		$("#myTable tr:eq(2)").text(`搜索深度: ${res.depth}`);
 		$("#myTable tr:eq(3)").text(`花费时间: ${res.time}`);
+		boardobj.endgame+=path_t2(res.path[0]);
+		boardobj.next();
 	}
 	let controlbar = $(document.createElement("div"));
 	controlbar.addClass('controlbar');

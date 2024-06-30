@@ -521,7 +521,7 @@ class Gomoku {
       if(rotate===0) r=book[s.length]
       else if(rotate===1) r = rotate270([book[s.length]],this.size)[0];
       else if(rotate===2) r = rotate180([book[s.length]],this.size)[0];
-      else if(rotate===3) r = rotate180([book[s.length]],this.size)[0];
+      else if(rotate===3) r = rotate90([book[s.length]],this.size)[0];
       let nbook = book.slice(0, s.length);
       nbook.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
       let bookb = nbook.filter((element, index) => index % 2 === 0);

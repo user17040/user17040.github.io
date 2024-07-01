@@ -193,8 +193,10 @@ class Gomoku {
       //0(1)1100
       let left = leftBlock - (leftJump2Count >= 1);
       let right = rightBlock - (rightJump2Count >= 1);
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right > 2 && player === 1) return scores.THREE + 500;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock > 2 && player !== 1) return scores.THREE + 500;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 4 && player === 1) return scores.THREE + 500;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 4 && player !== 1) return scores.THREE + 500;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 3 && player === 1) return scores.THREE + 250;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 3 && player !== 1) return scores.THREE + 250;
       //2(1)1100
       if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return scores.B_THREE;
       if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return scores.B_THREE;
@@ -270,11 +272,11 @@ class Gomoku {
       else if (consecutive === scores.FOUR) four++;
       else if (consecutive === scores.D_B_FOUR) b_four += 2;
       else if (consecutive === scores.B_FOUR) b_four++;
-      else if (consecutive === scores.THREE || consecutive === scores.THREE + 500) three++;
+      else if (consecutive === scores.THREE || consecutive === scores.THREE + 250 || consecutive === scores.THREE + 500) three++;
       score += consecutive;
     }
     if (check) {
-      if (player === 1 && five === 0 && (long >= 1 || b_four + four >= 2 || three >= 2)) return -1;
+      if (player === 1 && five === 0 && (long >= 1 || b_four + four >= 2 || three >= 2)) return score + 0.5;
       if (five >= 1) return scores.FIVE;
       if (four >= 1 || b_four >= 2) return scores.FOUR;
     }
@@ -303,14 +305,14 @@ class Gomoku {
           if (this.boardScore[x][y] >= scores.FIVE) b5++;
           else if (this.boardScore[x][y] >= scores.FOUR) b4++;
           else if (this.boardScore[x][y] >= scores.B_FOUR * 2) b44++;
-          else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE) b43++;
+          else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE && this.isReverse(x, y, player)) b43++;
           else if (this.boardScore[x][y] >= scores.B_FOUR) bb4++;
           else if (this.boardScore[x][y] >= scores.THREE * 2) b33++;
           else if (this.boardScore[x][y] >= scores.THREE) b3++;
           if (this.boardScore[x][y] <= -scores.FIVE) w5++;
           else if (this.boardScore[x][y] <= -scores.FOUR) w4++;
           else if (this.boardScore[x][y] <= -scores.B_FOUR * 2) w44++;
-          else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE) w43++;
+          else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE && this.isReverse(x, y, player)) w43++;
           else if (this.boardScore[x][y] <= -scores.B_FOUR) wb4++;
           else if (this.boardScore[x][y] <= -scores.THREE * 2) w33++;
           else if (this.boardScore[x][y] <= -scores.THREE) w3++;
@@ -378,7 +380,21 @@ class Gomoku {
       }
     }
   }
+  isReverse(x, y, player) {
+    for (const { dx, dy } of directions) {
+      for (let i = -4; i < 5; i++) {
+        const nx = x + i * dx;
+        const ny = y + i * dy;
+        if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size)) continue;
+        if (this.board[nx][ny] === 0) {
+          if (player === 1 && this.boardScore[nx][ny][0] >= scores.FIVE && this.boardScore[nx][ny][1] >= scores.FOUR) return true;
+          if (player === -1 && this.boardScore[nx][ny][1] >= scores.FIVE && this.boardScore[nx][ny][0] >= scores.FOUR) return true;
 
+        }
+      }
+    }
+    return false;
+  }
   genMove(player, only) {
     let score;
     let moves = [];
@@ -398,7 +414,7 @@ class Gomoku {
           } else {
             s1 = this.boardScore[x][y][1]; s2 = this.boardScore[x][y][0];
           }
-          if (s1 === -1) continue;
+          if (s1 % 1 !== 0) continue;
           score = 2 * s1 + s2;
           if (s1 >= scores.FIVE) {
             return [{ x, y, s1, s2, score }];
@@ -407,7 +423,9 @@ class Gomoku {
             temp2.push({ x, y, s1, s2, score });
           }
           else if (s1 >= scores.B_FOUR + scores.THREE) {
-            temp3.push({ x, y, s1, s2, score });
+            this.placePiece(x, y, player);
+            if (!this.isReverse(x, y, player)) temp3.push({ x, y, s1, s2, score });
+            this.undoPiece(x, y, player);
           }
           else if (s1 >= scores.B_FOUR) {
             temp4.push({ x, y, s1, s2, score });
@@ -507,10 +525,14 @@ class Gomoku {
   }
   match(rotate) {
     let s;
-    if(rotate===0) s=this.steps;
-    else if(rotate===1) s=rotate90(this.steps,this.size);
-    else if(rotate===2) s=rotate180(this.steps,this.size);
-    else if(rotate===3) s=rotate270(this.steps,this.size);
+    if (rotate === 0) s = this.steps;
+    else if (rotate === 1) s = rotate90(this.steps, this.size);
+    else if (rotate === 2) s = rotate180(this.steps, this.size);
+    else if (rotate === 3) s = rotate270(this.steps, this.size);
+    else if (rotate === 4) s = flipHorizontal(this.steps, this.size);
+    else if (rotate === 5) s = flipHorizontal(rotate90(this.steps, this.size), this.size);
+    else if (rotate === 6) s = flipHorizontal(rotate180(this.steps, this.size), this.size);
+    else if (rotate === 7) s = flipHorizontal(rotate270(this.steps, this.size), this.size);
     let b = s.filter((element, index) => index % 2 === 0)
     b.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
     let w = s.filter((element, index) => index % 2 === 1)
@@ -518,14 +540,19 @@ class Gomoku {
     let r;
     for (let book of books) {
       if (book.length - 1 != s.length) continue;
-      if(rotate===0) r=book[s.length]
-      else if(rotate===1) r = rotate270([book[s.length]],this.size)[0];
-      else if(rotate===2) r = rotate180([book[s.length]],this.size)[0];
-      else if(rotate===3) r = rotate90([book[s.length]],this.size)[0];
+      if (rotate === 0) r = book[s.length]
+      else if (rotate === 1) r = rotate270([book[s.length]], this.size)[0];
+      else if (rotate === 2) r = rotate180([book[s.length]], this.size)[0];
+      else if (rotate === 3) r = rotate90([book[s.length]], this.size)[0];
+      else if (rotate === 4) r = flipHorizontal([book[s.length]], this.size)[0];
+      else if (rotate === 5) r = flipHorizontal(rotate270([book[s.length]], this.size), this.size)[0];
+      else if (rotate === 6) r = flipHorizontal(rotate180([book[s.length]], this.size), this.size)[0];
+      else if (rotate === 7) r = flipHorizontal(rotate90([book[s.length]], this.size), this.size)[0];
       let nbook = book.slice(0, s.length);
-      nbook.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
       let bookb = nbook.filter((element, index) => index % 2 === 0);
+      bookb.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
       let bookw = nbook.filter((element, index) => index % 2 === 1);
+      bookw.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
       let flag = true
       for (let i = 0; i < bookb.length; i++) {
         if (bookb[i][0] != b[i][0] || bookb[i][1] != b[i][1]) {
@@ -544,7 +571,7 @@ class Gomoku {
   deeping(player, maxtime) {
     let d = new Date();
     let res = {};
-    for(let i=0;i<4;i++){
+    for (let i = 0; i < 8; i++) {
       let bookres = this.match(i);
       if (bookres) {
         res.path = [bookres]; res.score = '查谱'; res.depth = 0; res.time = new Date() - d;

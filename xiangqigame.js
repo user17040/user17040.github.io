@@ -137,7 +137,7 @@ class XiangqiGame {
         return false;
     }
     quiescence(depth, alpha, beta, path) {
-        if (beta <= -9000) {
+        if (beta <= -10000 + path.length) {
             return { score: -10000 + path.length, path: [...path] };
         }
         let ev = this.currentTurn === 'r' ? this.eval : -this.eval;

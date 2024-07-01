@@ -116,7 +116,7 @@ class Gomoku {
     for (let i = 1; i < 6; i++) {
       const nx = x + i * dx;
       const ny = y + i * dy;
-      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[nx][ny] === player) {
+      if (this.isIn(nx, ny) && this.board[nx][ny] === player) {
         if (isJump === 2) {
           rightJump2Count++;
         }
@@ -125,7 +125,7 @@ class Gomoku {
         } else {
           count++;
         }
-      } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
+      } else if (!(this.isIn(nx, ny)) || this.board[nx][ny] === -player) {
         if (isJump === 1 && rightJumpCount === 0) {
           rightBlock = 1;
         } else if (isJump === 2 && rightJump2Count === 0) {
@@ -146,7 +146,7 @@ class Gomoku {
     for (let i = 1; i < 6; i++) {
       const nx = x - i * dx;
       const ny = y - i * dy;
-      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[nx][ny] === player) {
+      if (this.isIn(nx, ny) && this.board[nx][ny] === player) {
         if (isJump === 2) {
           leftJump2Count++;
         }
@@ -155,7 +155,7 @@ class Gomoku {
         } else {
           count++;
         }
-      } else if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) || this.board[nx][ny] === -player) {
+      } else if (!(this.isIn(nx, ny)) || this.board[nx][ny] === -player) {
         if (isJump === 1 && leftJumpCount === 0) {
           leftBlock = 1;
         } else if (isJump === 2 && leftJump2Count === 0) {
@@ -173,91 +173,93 @@ class Gomoku {
       }
     }
     //(1)11111
-    if (count >= 6 && player === 1) return scores.LONG
+    if (count >= 6 && player === 1) return 6
     //(1)1111
-    if (count >= 5) return scores.FIVE;
+    if (count >= 5) return 5;
     if (count === 4) {
       //0(1)1110
-      if (leftBlock >= 1 && leftJumpCount === 0 && rightBlock >= 1 && rightJumpCount === 0 && player === 1) return scores.FOUR;
-      if (leftBlock >= 1 && rightBlock >= 1 && player !== 1) return scores.FOUR;
+      if (leftBlock >= 1 && leftJumpCount === 0 && rightBlock >= 1 && rightJumpCount === 0 && player === 1) return 4;
+      if (leftBlock >= 1 && rightBlock >= 1 && player !== 1) return 4;
       //2(1)1110
-      if ((leftBlock >= 1 && leftJumpCount === 0) || (rightBlock >= 1 && rightJumpCount === 0) && player === 1) return scores.B_FOUR;
-      if ((leftBlock >= 1 || rightBlock >= 1) && player !== 1) return scores.B_FOUR;
+      if ((leftBlock >= 1 && leftJumpCount === 0) || (rightBlock >= 1 && rightJumpCount === 0) && player === 1) return 40;
+      if ((leftBlock >= 1 || rightBlock >= 1) && player !== 1) return 40;
     }
     else if (count === 3) {
       //(1)1101
-      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return scores.D_B_FOUR;
-      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return scores.D_B_FOUR;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && player === 1) return scores.B_FOUR;
-      if ((leftJumpCount >= 1 || rightJumpCount >= 1) && player !== 1) return scores.B_FOUR;
+      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return 4312;
+      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return 4312;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && player === 1) return 431;
+      if ((leftJumpCount >= 1 || rightJumpCount >= 1) && player !== 1) return 431;
       //0(1)1100
       let left = leftBlock - (leftJump2Count >= 1);
       let right = rightBlock - (rightJump2Count >= 1);
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 4 && player === 1) return scores.THREE + 500;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 4 && player !== 1) return scores.THREE + 500;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 3 && player === 1) return scores.THREE + 250;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 3 && player !== 1) return scores.THREE + 250;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 4 && player === 1) return 3;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 4 && player !== 1) return 3;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 3 && player === 1) return 30;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 3 && player !== 1) return 30;
       //2(1)1100
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return scores.B_THREE;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return scores.B_THREE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return 300;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return 300;
     }
     else if (count === 2) {
       //(1)1011
-      if (leftJumpCount === 2 && rightJumpCount === 2 && player === 1) return scores.D_B_FOUR;
-      if (leftJumpCount >= 2 && rightJumpCount >= 2 && player !== 1) return scores.D_B_FOUR;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
-      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
+      if (leftJumpCount === 2 && rightJumpCount === 2 && player === 1) return 4222;
+      if (leftJumpCount >= 2 && rightJumpCount >= 2 && player !== 1) return 4222;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return 422;
+      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return 422;
       //0(1)1010
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.THREE;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && player !== 1) return scores.THREE;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 321;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && player !== 1) return 321;
       //2(1)1010
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.B_THREE;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && player !== 1) return scores.B_THREE;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 3210;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && player !== 1) return 3210;
       //(1)1001
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && player === 1) return scores.B_THREE;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 1 || rightJump2Count >= 1) && player !== 1) return scores.B_THREE;
-      //(1)1011
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return scores.B_FOUR;
-      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return scores.B_FOUR;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && player === 1) return 3021;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 1 || rightJump2Count >= 1) && player !== 1) return 3021;
       //0(1)1000
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return scores.TWO + 20;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return 2;
       //2(1)1000
-      if ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2)) return scores.B_TWO;
+      if ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2)) return 20;
     }
     else if (count === 1) {
       //(1)0111
-      if (leftJumpCount === 3 && rightJumpCount === 3 && player === 1) return scores.D_B_FOUR;
-      if (leftJumpCount >= 3 && rightJumpCount >= 3 && player !== 1) return scores.D_B_FOUR;
-      if ((leftJumpCount === 3 || rightJumpCount === 3) && player === 1) return scores.B_FOUR;
-      if ((leftJumpCount >= 3 || rightJumpCount >= 3) && player !== 1) return scores.B_FOUR;
+      if (leftJumpCount === 3 && rightJumpCount === 3 && player === 1) return 4132;
+      if (leftJumpCount >= 3 && rightJumpCount >= 3 && player !== 1) return 4132;
+      if (leftJumpCount === 3 && player === 1) return 413;
+      if (rightJumpCount === 3 && player === 1) return 413;
+      if (leftJumpCount >= 3 && player === 2) return 413;
+      if (rightJumpCount >= 3 && player === 2) return 413;
       //0(1)0110
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.THREE;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && player !== 2) return scores.THREE;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 312;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && player !== 2) return 312;
       //2(1)0110
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return scores.B_THREE;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && player !== 2) return scores.B_THREE;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 3120;
+      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && player !== 2) return 3120;
       //1100(1)
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 2 || rightJump2Count === 2) && player === 1) return scores.B_THREE;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 2 || rightJump2Count >= 2) && player !== 1) return scores.B_THREE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 2 || rightJump2Count === 2) && player === 1) return 3012;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 2 || rightJump2Count >= 2) && player !== 1) return 3012;
       //10(1)01
-      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return scores.B_THREE;
-      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return scores.B_THREE;
+      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return 30111
+      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return 30111;
       //(1)0101
-      if (((leftJumpCount === 1 && leftJump2Count === 1) || (rightJumpCount === 1 && rightJump2Count === 1)) && player === 1) return scores.B_THREE;
-      if (((leftJumpCount === 1 && leftJump2Count >= 1) || (rightJumpCount === 1 && rightJump2Count >= 1)) && player !== 1) return scores.B_THREE;
+      if (((leftJumpCount === 1 && leftJump2Count === 1) || (rightJumpCount === 1 && rightJump2Count === 1)) && player === 1) return 31110;
+      if (((leftJumpCount === 1 && leftJump2Count >= 1) || (rightJumpCount === 1 && rightJump2Count >= 1)) && player !== 1) return 31110;
       //0(1)0100
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return scores.TWO + 10;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return 21;
       //2(1)0100
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return scores.B_TWO;
+      if ((leftJumpCount === 1 || rightJumpCount === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return 210;
       //0(1)0010
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && leftBlock + rightBlock >= 3) return scores.TWO;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && leftBlock + rightBlock >= 3) return 211;
       //2(1)0010
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return scores.B_TWO;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return 2110;
       //0(1)0000
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return scores.ONE;
+      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return 1;
     }
     return 0;
   };
+  isIn(x, y) {
+    return x >= 0 && x < this.size && y >= 0 && y < this.size;
+  }
   evaluatePoint(x, y, player, check = false) {
     let score = 0;
     let long = 0;
@@ -265,22 +267,41 @@ class Gomoku {
     let four = 0;
     let b_four = 0;
     let three = 0;
+    let disthree = false;
     for (const { dx, dy } of directions) {
       const consecutive = this.countConsecutive(x, y, dx, dy, player);
-      if (consecutive === scores.LONG) long++;
-      else if (consecutive === scores.FIVE) five++;
-      else if (consecutive === scores.FOUR) four++;
-      else if (consecutive === scores.D_B_FOUR) b_four += 2;
-      else if (consecutive === scores.B_FOUR) b_four++;
-      else if (consecutive === scores.THREE || consecutive === scores.THREE + 250 || consecutive === scores.THREE + 500) three++;
-      score += consecutive;
+      const map_consecutive = map[consecutive];
+      if (map_consecutive === scores.LONG) long++;
+      else if (map_consecutive === scores.FIVE) five++;
+      else if (map_consecutive === scores.FOUR) four++;
+      else if (map_consecutive === scores.D_B_FOUR) b_four += 2;
+      else if (map_consecutive === scores.B_FOUR) b_four++;
+      else if (map_consecutive === scores.THREE || map_consecutive === scores.THREE + 250 || map_consecutive === scores.THREE + 500) three++;
+      if (check) {
+        if (this.board[x][y] === 0 && map_consecutive === scores.B_FOUR) {
+          if (this.isIn(x + dx, y + dy) && this.board[x + dx][y + dy] === 0) {
+            if (this.countConsecutive(x + dx * 2, y + dy * 2, dx, dy, player) === 30) disthree = true;
+          }
+          else if (this.isIn(x + dx, y + dy) && this.board[x + dx][y + dy] === player) {
+            if (map[this.countConsecutive(x + dx, y + dy, dx, dy, player)] >= scores.THREE) disthree = true;
+          }
+          if (this.isIn(x - dx, y - dy) && this.board[x - dx][y - dy] === 0) {
+            if (this.countConsecutive(x - dx * 2, y - dy * 2, dx, dy, player) === 30) disthree = true;
+          }
+          else if (this.isIn(x - dx, y - dy) && this.board[x - dx][y - dy] === player) {
+            if (map[this.countConsecutive(x - dx, y - dy, dx, dy, player)] >= scores.THREE) disthree = true;
+          }
+        }
+      }
+      score += map_consecutive;
     }
     if (check) {
       if (player === 1 && five === 0 && (long >= 1 || b_four + four >= 2 || three >= 2)) return score + 0.5;
       if (five >= 1) return scores.FIVE;
       if (four >= 1 || b_four >= 2) return scores.FOUR;
     }
-    return score;
+    if (!check) return score
+    return disthree ? score : score + NOT_DISTHREE;
   };
   evaluateBoard(player) {
     let bscore = 0;
@@ -370,7 +391,7 @@ class Gomoku {
       for (let i = -5; i < 6; i++) {
         const nx = x + i * dx;
         const ny = y + i * dy;
-        if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size)) continue;
+        if (!(this.isIn(nx, ny))) continue;
         const color = this.board[nx][ny];
         if (color === 0) {
           this.boardScore[nx][ny] = [this.evaluatePoint(nx, ny, 1, true), this.evaluatePoint(nx, ny, -1, true)];
@@ -385,7 +406,7 @@ class Gomoku {
       for (let i = -4; i < 5; i++) {
         const nx = x + i * dx;
         const ny = y + i * dy;
-        if (!(nx >= 0 && nx < this.size && ny >= 0 && ny < this.size)) continue;
+        if (!(this.isIn(nx, ny))) continue;
         if (this.board[nx][ny] === 0) {
           if (player === 1 && this.boardScore[nx][ny][0] >= scores.FIVE && this.boardScore[nx][ny][1] >= scores.FOUR) return true;
           if (player === -1 && this.boardScore[nx][ny][1] >= scores.FIVE && this.boardScore[nx][ny][0] >= scores.FOUR) return true;
@@ -395,7 +416,7 @@ class Gomoku {
     }
     return false;
   }
-  genMove(player, only) {
+  genMove(player) {
     let score;
     let moves = [];
     let temp = [];
@@ -404,7 +425,6 @@ class Gomoku {
     let temp4 = [];
     let temp5 = [];
     let temp6 = [];
-    let opponent4 = false;
     for (let x = 0; x < this.size; x++) {
       for (let y = 0; y < this.size; y++) {
         if (this.board[x][y] === 0) {
@@ -414,7 +434,7 @@ class Gomoku {
           } else {
             s1 = this.boardScore[x][y][1]; s2 = this.boardScore[x][y][0];
           }
-          if (s1 % 1 !== 0) continue;
+          if (s1 % 1 === 0.5) continue;
           score = 2 * s1 + s2;
           if (s1 >= scores.FIVE) {
             return [{ x, y, s1, s2, score }];
@@ -437,15 +457,10 @@ class Gomoku {
             temp.push({ x, y, s1, s2, score });
           }
           else if (s2 >= scores.B_FOUR) {
-            temp6.push({ x, y, s1, s2, score })
-            if (s2 >= scores.FOUR) {
-              opponent4 = true;
-            }
+            if (s2 % 1 != NOT_DISTHREE) temp6.push({ x, y, s1, s2, score })
           }
-          if (only === 0) {
-            if (s1 >= scores.B_TWO || s2 >= scores.B_TWO) {
-              moves.push({ x, y, s1, s2, score });
-            }
+          if (s1 >= scores.B_TWO || s2 >= scores.B_TWO) {
+            moves.push({ x, y, s1, s2, score });
           }
         }
       }
@@ -453,7 +468,7 @@ class Gomoku {
     if (temp.length > 0) return [temp[0]];//挡冲四
     if (temp2.length > 0) return [temp2[0]];//走活四
     if (temp3.length > 0) return [temp3[0]];//走四三
-    if (opponent4 && only <= 0) return [...temp4, ...temp6].sort((a, b) => b.score - a.score);//挡活三
+    if (temp6.length > 0) return [...temp4, ...temp6].sort((a, b) => b.score - a.score);//挡活三
     if (temp6.length === 0 && temp5.length > 0) return [temp5[0]];//走三三
     return moves.sort((a, b) => b.score - a.score);
   }
@@ -480,7 +495,7 @@ class Gomoku {
     if (-result.score >= beta) {
       return { score: beta, path: [...path] };
     }
-    let moves = this.genMove(player, 0);
+    let moves = this.genMove(player);
     if (moves.length === 0) {
       return { score: 0, path: [...path] };
     }

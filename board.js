@@ -1,616 +1,214 @@
-
-class Zobrist {
-  constructor(size) {
+class Board {
+  constructor(size = 15, firstRole = 1) {
     this.size = size;
-    this.zobristTable = this.initializeZobristTable(size);
-    this.hash = BigInt(0);
-  }
-
-  initializeZobristTable(size) {
-    let table = [];
-    for (let i = 0; i < size; i++) {
-      table[i] = [];
-      for (let j = 0; j < size; j++) {
-        table[i][j] = {
-          "1": BigInt(this.randomBitString(64)), // black
-          "-1": BigInt(this.randomBitString(64))  // white
-        };
-      }
-    }
-    return table;
-  }
-
-  randomBitString(length) {
-    let str = "0b";
-    for (let i = 0; i < length; i++) {
-      str += Math.round(Math.random()).toString();
-    }
-    return str;
-  }
-
-  togglePiece(x, y, role) {
-    this.hash ^= this.zobristTable[x][y][role];
-  }
-
-  getHash() {
-    return this.hash;
-  }
-}
-
-class Cache {
-  constructor(capacity = scores.FIVE) {
-    this.capacity = capacity;
-    this.cache = [];
-    this.map = new Map();
-  }
-
-  // 获取一个键的值
-  get(key) {
-    if (this.map.has(key)) {
-      return this.map.get(key);
-    }
-    return null;
-  }
-
-  // 设置或插入一个值
-  put(key, value) {
-    if (this.cache.length >= this.capacity) {
-      const oldestKey = this.cache.shift();  // 移除最老的键
-      this.map.delete(oldestKey);  // 从map中也删除它
-    }
-
-    if (!this.map.has(key)) {
-      this.cache.push(key);  // 将新键添加到cache数组
-    }
-    this.map.set(key, value);  // 更新或设置键值
-  }
-
-  // 检查缓存中是否存在某个键
-  has(key) {
-    if (!config.enableCache) return false;
-    return this.map.has(key);
-  }
-}
-class Gomoku {
-  constructor(size = 15) {
-    this.size = size;
-    this.board = Array.from({ length: size }, () => Array(size).fill(0));
-    this.boardScore = Array.from({ length: size }, () => Array.from({ length: size }, () => [0, 0]));;
-    this.black_score = 0; // 初始化评估分值
-    this.white_score = 0;
+    this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
+    this.firstRole = firstRole;  // 1 for black, -1 for white
+    this.role = firstRole;  // 1 for black, -1 for white
+    this.history = [];
     this.zobrist = new Zobrist(this.size);
-    this.cache = new Cache();
-    this.p = 2;
-    this.steps = [];
+    this.winnerCache = new Cache();
+    this.gameoverCache = new Cache();
+    this.evaluateCache = new Cache();
+    this.valuableMovesCache = new Cache();
+    this.evaluateTime = 0;
+    this.evaluator = new Evaluate(this.size);
   }
 
-  // 放置棋子
-  placePiece(x, y, player) {
-    this.board[x][y] = player;
-    this.steps.push([x, y]);
-    this.updateEval(x, y);
-    this.zobrist.togglePiece(x, y, player);
-  }
-
-  // 撤销棋子
-  undoPiece(x, y, player) {
-    this.board[x][y] = 0;
-    this.steps.pop();
-    this.updateEval(x, y);
-    this.zobrist.togglePiece(x, y, player);
-  }
-
-  // 打印棋盘（可选）
-  printBoard() {
-    console.log(this.board.map(row => row.map(cell => (cell === 1 ? '●' : cell === -1 ? '○' : '·')).join(' ')).join('\n'));
-  }
-  countConsecutive(x, y, dx, dy, player) {
-    let count = 1;
-    let rightJumpCount = 0;
-    let leftJumpCount = 0;
-    let rightJump2Count = 0;
-    let leftJump2Count = 0;
-    let rightBlock = 2;//2:没挡，1:跳挡，0:直接挡
-    let leftBlock = 2;
-    let isJump = 0;
-    for (let i = 1; i < 6; i++) {
-      const nx = x + i * dx;
-      const ny = y + i * dy;
-      if (this.isIn(nx, ny) && this.board[nx][ny] === player) {
-        if (isJump === 2) {
-          rightJump2Count++;
+  isGameOver() {
+    const hash = this.hash();
+    if (this.gameoverCache.get(hash)) {
+      return this.gameoverCache.get(hash);
+    }
+    if (this.getWinner() !== 0) {
+      this.gameoverCache.put(hash, true);
+      return true;  // Someone has won
+    }
+    // Game is over when there is no empty space on the board or someone has won
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (this.board[i][j] === 0) {
+          this.gameoverCache.put(hash, false);
+          return false;
         }
-        else if (isJump === 1) {
-          rightJumpCount++;
-        } else {
-          count++;
-        }
-      } else if (!(this.isIn(nx, ny)) || this.board[nx][ny] === -player) {
-        if (isJump === 1 && rightJumpCount === 0) {
-          rightBlock = 1;
-        } else if (isJump === 2 && rightJump2Count === 0) {
-          rightBlock = 2;
-        }
-        else {
-          rightBlock = 0;
-        }
-        break;
-      } else {
-        if (isJump === 2) {
-          break;
-        }
-        isJump++;
       }
     }
-    isJump = false;
-    for (let i = 1; i < 6; i++) {
-      const nx = x - i * dx;
-      const ny = y - i * dy;
-      if (this.isIn(nx, ny) && this.board[nx][ny] === player) {
-        if (isJump === 2) {
-          leftJump2Count++;
+    this.gameoverCache.put(hash, true);
+    return true;
+  }
+
+  getWinner() {
+    const hash = this.hash();
+    if (this.winnerCache.get(hash)) {
+      return this.winnerCache.get(hash);
+    }
+    let directions = [[1, 0], [0, 1], [1, 1], [1, -1]];  // Horizontal, Vertical, Diagonal
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (this.board[i][j] === 0) continue;
+        for (let direction of directions) {
+          let count = 0;
+          while (
+            i + direction[0] * count >= 0 &&
+            i + direction[0] * count < this.size &&
+            j + direction[1] * count >= 0 &&
+            j + direction[1] * count < this.size &&
+            this.board[i + direction[0] * count][j + direction[1] * count] === this.board[i][j]
+          ) {
+            count++;
+          }
+          if (count >= 5) {
+            this.winnerCache.put(hash, this.board[i][j]);
+            return this.board[i][j];
+          }
         }
-        else if (isJump === 1) {
-          leftJumpCount++;
-        } else {
-          count++;
-        }
-      } else if (!(this.isIn(nx, ny)) || this.board[nx][ny] === -player) {
-        if (isJump === 1 && leftJumpCount === 0) {
-          leftBlock = 1;
-        } else if (isJump === 2 && leftJump2Count === 0) {
-          leftBlock = 2;
-        }
-        else {
-          leftBlock = 0;
-        }
-        break;
-      } else {
-        if (isJump === 2) {
-          break;
-        }
-        isJump++;
       }
     }
-    //(1)11111
-    if (count >= 6 && player === 1) return 6
-    //(1)1111
-    if (count >= 5) return 5;
-    if (count === 4) {
-      //0(1)1110
-      if (leftBlock >= 1 && leftJumpCount === 0 && rightBlock >= 1 && rightJumpCount === 0 && player === 1) return 4;
-      if (leftBlock >= 1 && rightBlock >= 1 && player !== 1) return 4;
-      //2(1)1110
-      if ((leftBlock >= 1 && leftJumpCount === 0) || (rightBlock >= 1 && rightJumpCount === 0) && player === 1) return 40;
-      if ((leftBlock >= 1 || rightBlock >= 1) && player !== 1) return 40;
-    }
-    else if (count === 3) {
-      //(1)1101
-      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return 4312;
-      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return 4312;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && player === 1) return 431;
-      if ((leftJumpCount >= 1 || rightJumpCount >= 1) && player !== 1) return 431;
-      //0(1)1100
-      let left = leftBlock - (leftJump2Count >= 1);
-      let right = rightBlock - (rightJump2Count >= 1);
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 4 && player === 1) return 3;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 4 && player !== 1) return 3;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 3 && player === 1) return 30;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 3 && player !== 1) return 30;
-      //2(1)1100
-      if (leftJumpCount === 0 && rightJumpCount === 0 && left + right === 2 && player === 1) return 300;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftBlock + rightBlock === 2 && player !== 1) return 300;
-    }
-    else if (count === 2) {
-      //(1)1011
-      if (leftJumpCount === 2 && rightJumpCount === 2 && player === 1) return 4222;
-      if (leftJumpCount >= 2 && rightJumpCount >= 2 && player !== 1) return 4222;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && player === 1) return 422;
-      if ((leftJumpCount >= 2 || rightJumpCount >= 2) && player !== 1) return 422;
-      //0(1)1010
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 321;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && player !== 1) return 321;
-      //2(1)1010
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 3210;
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && player !== 1) return 3210;
-      //(1)1001
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && player === 1) return 3021;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 1 || rightJump2Count >= 1) && player !== 1) return 3021;
-      //0(1)1000
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return 2;
-      //2(1)1000
-      if ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2)) return 20;
-    }
-    else if (count === 1) {
-      //(1)0111
-      if (leftJumpCount === 3 && rightJumpCount === 3 && player === 1) return 4132;
-      if (leftJumpCount >= 3 && rightJumpCount >= 3 && player !== 1) return 4132;
-      if (leftJumpCount === 3 && player === 1) return 413;
-      if (rightJumpCount === 3 && player === 1) return 413;
-      if (leftJumpCount >= 3 && player === 2) return 413;
-      if (rightJumpCount >= 3 && player === 2) return 413;
-      //0(1)0110
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 312;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && player !== 2) return 312;
-      //2(1)0110
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && player === 1) return 3120;
-      if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && player !== 2) return 3120;
-      //1100(1)
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 2 || rightJump2Count === 2) && player === 1) return 3012;
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 2 || rightJump2Count >= 2) && player !== 1) return 3012;
-      //10(1)01
-      if (leftJumpCount === 1 && rightJumpCount === 1 && player === 1) return 30111
-      if (leftJumpCount >= 1 && rightJumpCount >= 1 && player !== 1) return 30111;
-      //(1)0101
-      if (((leftJumpCount === 1 && leftJump2Count === 1) || (rightJumpCount === 1 && rightJump2Count === 1)) && player === 1) return 31110;
-      if (((leftJumpCount === 1 && leftJump2Count >= 1) || (rightJumpCount === 1 && rightJump2Count >= 1)) && player !== 1) return 31110;
-      //0(1)0100
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock + rightBlock >= 3) return 21;
-      //2(1)0100
-      if ((leftJumpCount === 1 || rightJumpCount === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return 210;
-      //0(1)0010
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && leftBlock + rightBlock >= 3) return 211;
-      //2(1)0010
-      if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && ((leftBlock === 2 && rightBlock === 0) || (leftBlock === 0 && rightBlock === 2))) return 2110;
-      //0(1)0000
-      if (leftJumpCount === 0 && rightJumpCount === 0 && leftJump2Count === 0 && rightJump2Count === 0 && leftBlock + rightBlock >= 3) return 1;
-    }
+    this.winnerCache.put(hash, 0);
     return 0;
-  };
-  isIn(x, y) {
-    return x >= 0 && x < this.size && y >= 0 && y < this.size;
   }
-  evaluatePoint(x, y, player, check = false) {
-    let score = 0;
-    let long = 0;
-    let five = 0;
-    let four = 0;
-    let b_four = 0;
-    let three = 0;
-    let disthree = false;
-    for (const { dx, dy } of directions) {
-      const consecutive = this.countConsecutive(x, y, dx, dy, player);
-      const map_consecutive = map[consecutive];
-      if (map_consecutive === scores.LONG) long++;
-      else if (map_consecutive === scores.FIVE) five++;
-      else if (map_consecutive === scores.FOUR) four++;
-      else if (map_consecutive === scores.D_B_FOUR) b_four += 2;
-      else if (map_consecutive === scores.B_FOUR) b_four++;
-      else if (map_consecutive === scores.THREE || map_consecutive === scores.THREE + 250 || map_consecutive === scores.THREE + 500) three++;
-      if (check) {
-        if (this.board[x][y] === 0 && map_consecutive === scores.B_FOUR) {
-          if (this.isIn(x + dx, y + dy) && this.board[x + dx][y + dy] === 0) {
-            if (this.countConsecutive(x + dx * 2, y + dy * 2, dx, dy, player) === 30) disthree = true;
-          }
-          else if (this.isIn(x + dx, y + dy) && this.board[x + dx][y + dy] === player) {
-            if (map[this.countConsecutive(x + dx, y + dy, dx, dy, player)] >= scores.THREE) disthree = true;
-          }
-          if (this.isIn(x - dx, y - dy) && this.board[x - dx][y - dy] === 0) {
-            if (this.countConsecutive(x - dx * 2, y - dy * 2, dx, dy, player) === 30) disthree = true;
-          }
-          else if (this.isIn(x - dx, y - dy) && this.board[x - dx][y - dy] === player) {
-            if (map[this.countConsecutive(x - dx, y - dy, dx, dy, player)] >= scores.THREE) disthree = true;
-          }
-        }
-      }
-      score += map_consecutive;
-    }
-    if (check) {
-      if (player === 1 && five === 0 && (long >= 1 || b_four + four >= 2 || three >= 2)) return score + 0.5;
-      if (five >= 1) return scores.FIVE;
-      if (four >= 1 || b_four >= 2) return scores.FOUR;
-    }
-    if (!check) return score
-    return disthree ? score : score + NOT_DISTHREE;
-  };
-  evaluateBoard(player) {
-    let bscore = 0;
-    let wscore = 0;
-    let b5 = 0;
-    let w5 = 0;
-    let b4 = 0;
-    let w4 = 0;
-    let b44 = 0;
-    let w44 = 0;
-    let b43 = 0;
-    let w43 = 0;
-    let bb4 = 0;
-    let wb4 = 0;
-    let b33 = 0;
-    let w33 = 0;
-    let b3 = 0;
-    let w3 = 0;
-    for (let x = 0; x < this.size; x++) {
-      for (let y = 0; y < this.size; y++) {
-        if (this.board[x][y] !== 0) {
-          if (this.boardScore[x][y] >= scores.FIVE) b5++;
-          else if (this.boardScore[x][y] >= scores.FOUR) b4++;
-          else if (this.boardScore[x][y] >= scores.B_FOUR * 2) b44++;
-          else if (this.boardScore[x][y] >= scores.B_FOUR + scores.THREE && this.isReverse(x, y, player)) b43++;
-          else if (this.boardScore[x][y] >= scores.B_FOUR) bb4++;
-          else if (this.boardScore[x][y] >= scores.THREE * 2) b33++;
-          else if (this.boardScore[x][y] >= scores.THREE) b3++;
-          if (this.boardScore[x][y] <= -scores.FIVE) w5++;
-          else if (this.boardScore[x][y] <= -scores.FOUR) w4++;
-          else if (this.boardScore[x][y] <= -scores.B_FOUR * 2) w44++;
-          else if (this.boardScore[x][y] <= -scores.B_FOUR - scores.THREE && this.isReverse(x, y, player)) w43++;
-          else if (this.boardScore[x][y] <= -scores.B_FOUR) wb4++;
-          else if (this.boardScore[x][y] <= -scores.THREE * 2) w33++;
-          else if (this.boardScore[x][y] <= -scores.THREE) w3++;
-          this.boardScore[x][y] >= 0 ? bscore += this.boardScore[x][y] : wscore -= this.boardScore[x][y];
-        }
-      }
-    }
-    if (player === 1) {
-      if (b5 > 0) {
-        return scores.FIVE;
-      }
-      else if (w5 > 0) {
-        return - scores.FIVE;
-      }
-      else if (w5 === 0 && (b4 + bb4 > 0 || b44 > 0)) {
-        return scores.FIVE - 250;
-      }
-      else if (b4 + b44 + b43 + bb4 === 0 && w4 > 0) {
-        return -scores.FIVE + 500;
-      }
-      else if (w4 + w44 + w43 + wb4 === 0 && b3 > 0) {
-        return scores.FIVE - 750;
-      }
-      else if (b4 + b44 + b43 + bb4 === 0 && (w43 > 0 || (b3 + b33 === 0 && w33 > 0))) {
-        return -scores.FIVE + 1000;
-      }
-    }
-    else if (player === -1) {
-      if (w5 > 0) {
-        return scores.FIVE;
-      }
-      else if (b5 > 0) {
-        return - scores.FIVE;
-      }
-      else if (b5 === 0 && (w4 + wb4 > 0 || w44 > 0)) {
-        return scores.FIVE - 250;
-      }
-      else if (b4 + b44 + b43 + bb4 === 0 && w4 > 0) {
-        return -scores.FIVE + 500;
-      }
-      else if (w4 + w44 + w43 + wb4 === 0 && b4 > 0) {
-        return -scores.FIVE + 500;
-      }
-      else if (b4 + b44 + b43 + bb4 === 0 && w3 > 0) {
-        return scores.FIVE - 750;
-      }
-      else if (w4 + w44 + w43 + wb4 === 0 && (b43 > 0 || (w3 + w33 === 0 && b33 > 0))) {
-        return -scores.FIVE + 1000;
-      }
-    }
-    return player === 1 ? this.p * bscore - wscore : this.p * wscore - bscore;
-  }
-  updateEval(x, y) {
-    for (const { dx, dy } of directions) {
-      for (let i = -5; i < 6; i++) {
-        const nx = x + i * dx;
-        const ny = y + i * dy;
-        if (!(this.isIn(nx, ny))) continue;
-        const color = this.board[nx][ny];
-        if (color === 0) {
-          this.boardScore[nx][ny] = [this.evaluatePoint(nx, ny, 1, true), this.evaluatePoint(nx, ny, -1, true)];
-        } else {
-          this.boardScore[nx][ny] = this.evaluatePoint(nx, ny, color) * color;
-        }
-      }
-    }
-  }
-  isReverse(x, y, player) {
-    for (const { dx, dy } of directions) {
-      for (let i = -4; i < 5; i++) {
-        const nx = x + i * dx;
-        const ny = y + i * dy;
-        if (!(this.isIn(nx, ny))) continue;
-        if (this.board[nx][ny] === 0) {
-          if (player === 1 && this.boardScore[nx][ny][0] >= scores.FIVE && this.boardScore[nx][ny][1] >= scores.FOUR) return true;
-          if (player === -1 && this.boardScore[nx][ny][1] >= scores.FIVE && this.boardScore[nx][ny][0] >= scores.FOUR) return true;
 
-        }
-      }
-    }
-    return false;
-  }
-  genMove(player) {
-    let score;
+
+  getValidMoves() {
     let moves = [];
-    let temp = [];
-    let temp2 = [];
-    let temp3 = [];
-    let temp4 = [];
-    let temp5 = [];
-    let temp6 = [];
-    for (let x = 0; x < this.size; x++) {
-      for (let y = 0; y < this.size; y++) {
-        if (this.board[x][y] === 0) {
-          let s1, s2;
-          if (player === 1) {
-            s1 = this.boardScore[x][y][0]; s2 = this.boardScore[x][y][1];
-          } else {
-            s1 = this.boardScore[x][y][1]; s2 = this.boardScore[x][y][0];
-          }
-          if (s1 % 1 === 0.5) continue;
-          score = 2 * s1 + s2;
-          if (s1 >= scores.FIVE) {
-            return [{ x, y, s1, s2, score }];
-          }
-          else if (s1 >= scores.B_FOUR * 2) {
-            temp2.push({ x, y, s1, s2, score });
-          }
-          else if (s1 >= scores.B_FOUR + scores.THREE) {
-            this.placePiece(x, y, player);
-            if (!this.isReverse(x, y, player)) temp3.push({ x, y, s1, s2, score });
-            this.undoPiece(x, y, player);
-          }
-          else if (s1 >= scores.B_FOUR) {
-            temp4.push({ x, y, s1, s2, score });
-          }
-          else if (s1 >= scores.THREE * 2) {
-            temp5.push({ x, y, s1, s2, score });
-          }
-          if (s2 >= scores.FIVE) {
-            temp.push({ x, y, s1, s2, score });
-          }
-          else if (s2 >= scores.B_FOUR) {
-            if (s2 % 1 != NOT_DISTHREE) temp6.push({ x, y, s1, s2, score })
-          }
-          if (s1 >= scores.B_TWO || s2 >= scores.B_TWO) {
-            moves.push({ x, y, s1, s2, score });
-          }
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (this.board[i][j] === 0) {
+          moves.push([i, j]);
         }
       }
     }
-    if (temp.length > 0) return [temp[0]];//挡冲四
-    if (temp2.length > 0) return [temp2[0]];//走活四
-    if (temp3.length > 0) return [temp3[0]];//走四三
-    if (temp6.length > 0) return [...temp4, ...temp6].sort((a, b) => b.score - a.score);//挡活三
-    if (temp6.length === 0 && temp5.length > 0) return [temp5[0]];//走三三
-    return moves.sort((a, b) => b.score - a.score);
+    return moves;
   }
 
-  negamax(depth, cdepth, player, path, alpha, beta) {
-    const hash = this.zobrist.getHash();
-    const prev = this.cache.get(hash);
-    if (prev && prev.player === player && prev.depth >= depth - cdepth) {
-      if (prev.flag === 0 && prev.score <= alpha) return { score: prev.score, path: [...path, ...prev.path] }
-      if (prev.flag === 1 && prev.score >= beta) return { score: prev.score, path: [...path, ...prev.path] }
-      if (prev.flag === 2) return { score: prev.score, path: [...path, ...prev.path] }
+  put(i, j, role) {
+    if (role === undefined) {
+      role = this.role;
     }
-    let score = this.evaluateBoard(player);
-    if (score >= scores.FIVE) {
-      return { score: score - path.length, path: [...path] };
+    if (isNaN(i) || isNaN(j)) {
+      console.log("Invalid move Not Number!", i, j);
+      return false;
     }
-    if (score <= -scores.FIVE) {
-      return { score: score + path.length, path: [...path] };
+    if (this.board[i][j] !== 0) {
+      console.log("Invalid move!", i, j);
+      return false;
     }
-    if (cdepth >= depth) {
-      return { score, path: [...path] };
-    }
-    let result = this.negamax(depth - 2, cdepth + 1, -player, [...path], -beta, -beta + 1);
-    if (-result.score >= beta) {
-      return { score: beta, path: [...path] };
-    }
-    let moves = this.genMove(player);
-    if (moves.length === 0) {
-      return { score: 0, path: [...path] };
-    }
-    let maxScore = -scores.FIVE - 250;
-    let bestPath = [...path];
-    let flag = 0;
-    for (let move of moves) {
-      this.placePiece(move.x, move.y, player);
-      if (maxScore > -scores.FIVE - 250) {
-        result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -alpha - 1, -alpha);
-        if (-result.score > alpha && -result.score < beta) {
-          result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -beta, -alpha);
-        }
-      } else {
-        result = this.negamax(depth, move.s1 >= scores.THREE ? cdepth : cdepth + 1, -player, [...path, { x: move.x, y: move.y }], -beta, -alpha);
-      }
-      let score = -result.score;
-      this.undoPiece(move.x, move.y, player);
-      if (score > maxScore) {
-        maxScore = score;
-        bestPath = result.path;
-      }
-      if (score > alpha) {
-        flag = 2;
-        alpha = score;
-      }
-      if (alpha >= beta) {
-        flag = 1;
-        break;
-      }
-    }
-    if (!prev || prev.depth < depth - cdepth) {
-      this.cache.put(hash, {
-        depth: depth - cdepth,
-        path: bestPath.slice(cdepth),
-        score: maxScore,
-        player,
-        flag
-      })
-    }
-    return { score: maxScore, path: bestPath };
+    this.board[i][j] = role;
+    this.history.push({ i, j, role });
+    this.zobrist.togglePiece(i, j, role);
+    this.evaluator.move(i, j, role);
+    this.role *= -1;  // Switch role
+    return true;
   }
-  match(rotate) {
-    let s;
-    if (rotate === 0) s = this.steps;
-    else if (rotate === 1) s = rotate90(this.steps, this.size);
-    else if (rotate === 2) s = rotate180(this.steps, this.size);
-    else if (rotate === 3) s = rotate270(this.steps, this.size);
-    else if (rotate === 4) s = flipHorizontal(this.steps, this.size);
-    else if (rotate === 5) s = flipHorizontal(rotate90(this.steps, this.size), this.size);
-    else if (rotate === 6) s = flipHorizontal(rotate180(this.steps, this.size), this.size);
-    else if (rotate === 7) s = flipHorizontal(rotate270(this.steps, this.size), this.size);
-    let b = s.filter((element, index) => index % 2 === 0)
-    b.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-    let w = s.filter((element, index) => index % 2 === 1)
-    w.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-    let r;
-    for (let book of books) {
-      if (book.length - 1 != s.length) continue;
-      if (rotate === 0) r = book[s.length]
-      else if (rotate === 1) r = rotate270([book[s.length]], this.size)[0];
-      else if (rotate === 2) r = rotate180([book[s.length]], this.size)[0];
-      else if (rotate === 3) r = rotate90([book[s.length]], this.size)[0];
-      else if (rotate === 4) r = flipHorizontal([book[s.length]], this.size)[0];
-      else if (rotate === 5) r = flipHorizontal(rotate270([book[s.length]], this.size), this.size)[0];
-      else if (rotate === 6) r = flipHorizontal(rotate180([book[s.length]], this.size), this.size)[0];
-      else if (rotate === 7) r = flipHorizontal(rotate90([book[s.length]], this.size), this.size)[0];
-      let nbook = book.slice(0, s.length);
-      let bookb = nbook.filter((element, index) => index % 2 === 0);
-      bookb.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-      let bookw = nbook.filter((element, index) => index % 2 === 1);
-      bookw.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-      let flag = true
-      for (let i = 0; i < bookb.length; i++) {
-        if (bookb[i][0] != b[i][0] || bookb[i][1] != b[i][1]) {
-          flag = false;
-          break;
+
+  undo() {
+    if (this.history.length === 0) {
+      console.log("No moves to undo!");
+      return false;
+    }
+
+    let lastMove = this.history.pop();
+    this.board[lastMove.i][lastMove.j] = 0;  // Remove the piece from the board
+    this.role = lastMove.role;  // Switch back to the previous player
+    this.zobrist.togglePiece(lastMove.i, lastMove.j, lastMove.role);
+    this.evaluator.undo(lastMove.i, lastMove.j);
+    return true;
+  }
+
+  position2coordinate(position) {
+    const row = Math.floor(position / this.size)
+    const col = position % this.size
+    return [row, col]
+  }
+
+  coordinate2position(coordinate) {
+    return coordinate[0] * this.size + coordinate[1]
+  }
+
+  getValuableMoves(role) {
+    const hash = this.hash();
+    const prev = this.valuableMovesCache.get(hash);
+    if (prev) {
+      if (prev.role === role) {
+        return prev.moves;
+      }
+    }
+    const moves = this.evaluator.getMoves(role);
+    this.valuableMovesCache.put(hash, {
+      role,
+      moves
+    });
+    return moves;
+  }
+
+  // 显示棋盘，可以传入一个位置列表显示成问号，用来辅助调试
+  display(extraPoints = []) {
+    const extraPosition = extraPoints.map((point) => this.coordinate2position(point));
+    let result = '';
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        const position = this.coordinate2position([i, j]);
+        if (extraPosition.includes(position)) {
+          result += '? ';
+          continue;
         }
-        if (i < bookw.length && (bookw[i][0] != w[i][0] || bookw[i][1] != w[i][1])) {
-          flag = false;
-          break;
+        switch (this.board[i][j]) {
+          case 1:
+            result += 'O ';
+            break;
+          case -1:
+            result += 'X ';
+            break;
+          default:
+            result += '- ';
+            break;
         }
       }
-      if (flag) return { x: r[0], y: r[1] };
+      result += '\n';  // New line at the end of each row
     }
-    return false;
+    return result;
   }
-  deeping(player, maxtime) {
-    let d = new Date();
-    let res = {};
-    for (let i = 0; i < 8; i++) {
-      let bookres = this.match(i);
-      if (bookres) {
-        res.path = [bookres]; res.score = '查谱'; res.depth = 0; res.time = new Date() - d;
-        console.log('查谱|路径：' + path_t(res.path))
-        return res
+
+  hash() {
+    return this.zobrist.getHash();
+  }
+
+  //evaluate(role) {
+  //  const start = + new Date();
+  //  const hash = this.hash();
+  //  const prev = this.evaluateCache.get(hash);
+  //  if (prev) {
+  //    if (prev.role === role) {
+  //      return prev.value;
+  //    }
+  //  }
+  //  const value = evaluate(this.board, role);
+  //  this.evaluateTime += +new Date - start;
+  //  this.evaluateCache.put(hash, { role, value });
+  //  return value;
+  //}
+
+  evaluate(role) {
+    const hash = this.hash();
+    const prev = this.evaluateCache.get(hash);
+    if (prev) {
+      if (prev.role === role) {
+        return prev.score;
       }
     }
-    for (let depth = 1; ; depth++) {
-      res = this.negamax(depth, 0, player, [], -scores.FIVE - 250, scores.FIVE + 250);
-      res.depth = depth; res.time = new Date() - d;
-      console.log('计算|深度：' + depth + '|分数：' + res.score + '|路径：' + path_t(res.path) + '|时间：' + res.time)
-      if (new Date() - d > maxtime) {
-        return res;
-      }
+    const score = this.evaluator.evaluate(role);
+    this.evaluateCache.put(hash, { role, score });
+    return score;
+  }
+  reverse() {
+    const newBoard = new Board(this.size, -this.firstRole);
+    for (let i = 0; i < this.history.length; i++) {
+      const { i: x, j: y, role } = this.history[i];
+      newBoard.put(x, y, -role);
     }
+    return newBoard;
+  }
+  toString() {
+    return this.board.map(row => row.join('')).join('');
   }
 }
-function path_t(array) {
-  let str = ''
-  for (let i of array) {
-    str += String.fromCharCode(i.x + 65) + (i.y + 1) + ' ';
-  }
-  return str;
-}
-function path_t2(i) {
-  return (i.x + 1).toString(16) + (i.y + 1).toString(16);
-}
+

@@ -236,10 +236,10 @@ class Evaluate {
           if (t >= FIVE / 5) return -FIVE * role;
           else if (t >= BLOCK_FOUR / 4 * 2) w4++;
           else if (t >= BLOCK_FOUR / 4 + THREE / 3) {
-            if (shapes[this.shapeCache[-1][0][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 0, -1)) b43++;
-            if (shapes[this.shapeCache[-1][1][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 1, -1)) b43++;
-            if (shapes[this.shapeCache[-1][2][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 2, -1)) b43++;
-            if (shapes[this.shapeCache[-1][3][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 3, -1)) b43++;
+            if (shapes[this.shapeCache[-1][0][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 0, -1)) w43++;
+            if (shapes[this.shapeCache[-1][1][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 1, -1)) w43++;
+            if (shapes[this.shapeCache[-1][2][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 2, -1)) w43++;
+            if (shapes[this.shapeCache[-1][3][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 3, -1)) w43++;
           }
           else if (t >= BLOCK_FOUR / 4) wb4++;
           else if (t >= THREE / 3) w3++;

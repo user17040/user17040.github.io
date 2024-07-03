@@ -37,7 +37,7 @@ const countShape = (board, x, y, offsetX, offsetY, role) => {
       isJump++;
     }
   }
-  isJump = false;
+  isJump = 0;
   for (let i = 1; i < 6; i++) {
     const nx = x - i * offsetX + 1;
     const ny = y - i * offsetY + 1;
@@ -130,10 +130,13 @@ const getShapeFast = (board, x, y, offsetX, offsetY, role) => {
     if ((leftJumpCount === 2 || rightJumpCount === 2) && role === 1) return 422;
     if ((leftJumpCount >= 2 || rightJumpCount >= 2) && role !== 1) return 422;
     //0(1)1010
-    if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && role === 1) return 321;
+    let left = leftBlock >= 1 && (leftJumpCount === 1 ? leftJump2Count === 0 : rightJumpCount === 0);
+    let right = rightBlock >= 1 && (rightJumpCount === 1 ? rightJump2Count === 0 : leftJumpCount === 0);
+    let all = !(leftJumpCount === 1 && rightJumpCount === 1);
+    if ((leftJumpCount === 1 || rightJumpCount === 1) && left && right && all && role === 1) return 321;
     if ((leftJumpCount === 1 || rightJumpCount === 1) && leftBlock >= 1 && rightBlock >= 1 && role !== 1) return 321;
     //2(1)1010
-    if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && role === 1) return 3210;
+    if ((leftJumpCount === 1 || rightJumpCount === 1) && (left || right || all) && role === 1) return 3210;
     if ((leftJumpCount === 1 || rightJumpCount === 1) && (leftBlock >= 1 || rightBlock >= 1) && role !== 1) return 3210;
     //(1)1001
     if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 1 || rightJump2Count === 1) && role === 1) return 3021;
@@ -150,11 +153,14 @@ const getShapeFast = (board, x, y, offsetX, offsetY, role) => {
     if ((leftJumpCount === 3 || rightJumpCount === 3) && role === 1) return 413;
     if ((leftJumpCount >= 3 || rightJumpCount >= 3) && role !== 1) return 413;
     //0(1)0110
-    if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && !(leftJump2Count >= 1 && rightJump2Count >= 1) && role === 1) return 312;
-    if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && role !== 2) return 312;
+    let left = leftBlock >= 1 && (leftJumpCount === 2 ? leftJump2Count === 0 : rightJumpCount === 0);
+    let right = rightBlock >= 1 && (rightJumpCount === 2 ? rightJump2Count === 0 : leftJumpCount === 0);
+    let all = !(leftJumpCount === 2 && rightJumpCount === 2);
+    if ((leftJumpCount === 2 || rightJumpCount === 2) && left && right && all && role === 1) return 312;
+    if ((leftJumpCount === 2 || rightJumpCount === 2) && leftBlock >= 1 && rightBlock >= 1 && role !== 1) return 312;
     //2(1)0110
-    if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && !(leftJump2Count >= 1 && rightJump2Count >= 1) && role === 1) return 3120;
-    if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && role !== 2) return 3120;
+    if ((leftJumpCount === 2 || rightJumpCount === 2) && (left || right || all) && role === 1) return 3120;
+    if ((leftJumpCount === 2 || rightJumpCount === 2) && (leftBlock >= 1 || rightBlock >= 1) && role !== 1) return 3120;
     //1100(1)
     if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count === 2 || rightJump2Count === 2) && role === 1) return 3012;
     if (leftJumpCount === 0 && rightJumpCount === 0 && (leftJump2Count >= 2 || rightJump2Count >= 2) && role !== 1) return 3012;

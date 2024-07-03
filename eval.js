@@ -154,10 +154,10 @@ class Evaluate {
               reachEdge = true;
               break;
             } else if (this.board[nx][ny] === -role) { // 达到对方棋子，则转换角色
-              this.updateSinglePoint(nx - 1, ny - 1, -role, [sign * ox, sign * oy]);  // -1 to adjust back from wall
+              this.updateSinglePoint(nx - 1, ny - 1, -role, [ox, oy]);  // -1 to adjust back from wall
               continue;
             } else if (this.board[nx][ny] === 0) {
-              this.updateSinglePoint(nx - 1, ny - 1, role, [sign * ox, sign * oy]);  // -1 to adjust back from wall
+              this.updateSinglePoint(nx - 1, ny - 1, role, [ox, oy]);  // -1 to adjust back from wall
               // 这里不能跳过，可能会在悔棋时漏掉一些待更新的点位
               // emptyCount++;
               // if (emptyCount >= 3) {
@@ -219,7 +219,7 @@ class Evaluate {
       for (let j = 0; j < this.size; j++) {
         if (this.board[i + 1][j + 1] === 1) {
           t = shapes[this.shapeCache[1][0][i][j]] + shapes[this.shapeCache[1][1][i][j]] + shapes[this.shapeCache[1][2][i][j]] + shapes[this.shapeCache[1][3][i][j]];
-          if (t >= FIVE / 5) return FIVE * role;
+          if (t >= FIVE / 5 && t < LONG) return FIVE * role;
           else if (t >= BLOCK_FOUR / 4 * 2) b4++;
           else if (t >= BLOCK_FOUR / 4 + THREE / 3 && !this.isReverse(i, j, 1)) b43++;
           else if (t >= BLOCK_FOUR / 4) bb4++;

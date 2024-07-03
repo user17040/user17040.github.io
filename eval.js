@@ -300,7 +300,7 @@ class Evaluate {
     for (let i = -2; i < 3; i++) {
       const nx = x + i * dx;
       const ny = y + i * dy;
-      if (i === 0 || nx < 0 || nx >= this.size || ny < 0 || ny >= this.size) continue;
+      if (i === 0 || nx < 0 || nx >= this.size || ny < 0 || ny >= this.size || this.board[nx + 1][ny + 1] === 0) continue;
       if (i === 1 || i === -1) {
         if (shapes[this.shapeCache[-role][d][nx][ny]] >= THREE / 3 && shapes[this.shapeCache[-role][d][nx][ny]] < BLOCK_FOUR / 4) {
           return true;

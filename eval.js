@@ -221,7 +221,12 @@ class Evaluate {
           t = shapes[this.shapeCache[1][0][i][j]] + shapes[this.shapeCache[1][1][i][j]] + shapes[this.shapeCache[1][2][i][j]] + shapes[this.shapeCache[1][3][i][j]];
           if (t >= FIVE / 5 && t < LONG) return FIVE * role;
           else if (t >= BLOCK_FOUR / 4 * 2) b4++;
-          else if (t >= BLOCK_FOUR / 4 + THREE / 3 && !this.isReverse(i, j, 1)) b43++;
+          else if (t >= BLOCK_FOUR / 4 + THREE / 3) {
+            if (shapes[this.shapeCache[1][0][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 0, 1)) b43++;
+            if (shapes[this.shapeCache[1][1][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 1, 1)) b43++;
+            if (shapes[this.shapeCache[1][2][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 2, 1)) b43++;
+            if (shapes[this.shapeCache[1][3][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 3, 1)) b43++;
+          }
           else if (t >= BLOCK_FOUR / 4) bb4++;
           else if (t >= THREE / 3) b3++;
           blackScore += t;
@@ -230,7 +235,12 @@ class Evaluate {
           t = shapes[this.shapeCache[-1][0][i][j]] + shapes[this.shapeCache[-1][1][i][j]] + shapes[this.shapeCache[-1][2][i][j]] + shapes[this.shapeCache[-1][3][i][j]];
           if (t >= FIVE / 5) return -FIVE * role;
           else if (t >= BLOCK_FOUR / 4 * 2) w4++;
-          else if (t >= BLOCK_FOUR / 4 + THREE / 3 && !this.isReverse(i, j, -1)) w43++;
+          else if (t >= BLOCK_FOUR / 4 + THREE / 3) {
+            if (shapes[this.shapeCache[-1][0][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 0, -1)) b43++;
+            if (shapes[this.shapeCache[-1][1][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 1, -1)) b43++;
+            if (shapes[this.shapeCache[-1][2][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 2, -1)) b43++;
+            if (shapes[this.shapeCache[-1][3][i][j]] === BLOCK_FOUR / 4 && !this.isReverse(i, j, 3, -1)) b43++;
+          }
           else if (t >= BLOCK_FOUR / 4) wb4++;
           else if (t >= THREE / 3) w3++;
           whiteScore += t
@@ -267,14 +277,9 @@ class Evaluate {
     }
     return role === 1 ? 2 * blackScore - whiteScore : 2 * whiteScore - blackScore;
   }
-  isReverse(x, y, role) {
-    let dx; let dy; let d;
-    for (let i = 0; i < 4; i++) {
-      if (shapes[this.shapeCache[role][i][x][y]] >= BLOCK_FOUR / 4) {
-        [dx, dy] = allDirections[i];
-        d = i;
-      }
-    }
+  isReverse(x, y, d, role) {
+    let dx; let dy;
+    [dx, dy] = allDirections[d];
     for (let i = -4; i < 5; i++) {
       const nx = x + i * dx;
       const ny = y + i * dy;
@@ -289,14 +294,9 @@ class Evaluate {
     }
     return false;
   }
-  isDis3(x, y, role) {
-    let dx; let dy; let d;
-    for (let i = 0; i < 4; i++) {
-      if (shapes[this.shapeCache[-role][i][x][y]] >= BLOCK_FOUR / 4) {
-        [dx, dy] = allDirections[i];
-        d = i;
-      }
-    }
+  isDis3(x, y, d, role) {
+    let dx; let dy;
+    [dx, dy] = allDirections[d];
     for (let i = -2; i < 3; i++) {
       const nx = x + i * dx;
       const ny = y + i * dy;
@@ -319,6 +319,8 @@ class Evaluate {
     let make4 = [];
     let make43 = [];
     let makeb4 = [];
+    let directionb4;
+    let directionoppb4 = [];
     for (let i = 0; i < this.size; i++) {
       for (let j = 0; j < this.size; j++) {
         let longCount = 0, fourCount = 0, threeCount = 0, score1 = 0, score2 = 0;
@@ -327,27 +329,34 @@ class Evaluate {
           const shape1 = shapes[this.shapeCache[role][direction][i][j]];
           const shape2 = shapes[this.shapeCache[-role][direction][i][j]];
           if (shape1 === FIVE / 5) return [[i, j, FIVE, 0, 2 * FIVE]];
-          score1 += shape1; score2 += shape2;
           if (shape1 === LONG) longCount++;
+          if (shape1 === FOUR / 4) fourCount++;
           if (shape1 === BLOCK_FOUR / 4 * 2) fourCount += 2;
           if (shape1 === BLOCK_FOUR / 4) fourCount++;
           if (shape1 >= THREE / 3 && shape1 < BLOCK_FOUR / 4) threeCount++;
+          if (shape1 >= BLOCK_FOUR / 4) directionb4 = direction;
+          if (shape2 >= BLOCK_FOUR / 4 && shape2 < FIVE) directionoppb4.push(direction);
+          score1 += shape1; score2 += shape2;
         }
         if (role === 1 && (longCount >= 1 || fourCount >= 2 || threeCount >= 2)) continue;
         if (score2 >= FIVE / 5 && score2 < LONG) dis4.push([i, j, 0, FIVE, FIVE]);
         else if (score2 >= BLOCK_FOUR / 4) {
-          if (this.isDis3(i, j, role)) dis3.push([i, j, score1, score2, 2 * score1 + score2]);
+          for (let d of directionoppb4) {
+            if (this.isDis3(i, j, d, role)) dis3.push([i, j, score1, score2, 2 * score1 + score2]);
+            break;
+          }
         }
         if (score1 >= BLOCK_FOUR / 4 * 2) make4.push([i, j, FOUR, 0, 2 * FOUR]);
-        else if (score1 >= BLOCK_FOUR / 4 + THREE / 3 && !this.isReverse(i, j, role)) make43.push([i, j, FOUR + THREE, 0, 2 * FOUR + 2 * THREE]);
-        else if (score1 >= BLOCK_FOUR / 4) makeb4.push([i, j, FOUR + THREE, 0, 2 * FOUR + 2 * THREE])
+        else if (score1 >= BLOCK_FOUR / 4 + THREE / 3 && !this.isReverse(i, j, directionb4, role)) make43.push([i, j, FOUR + THREE, 0, 2 * FOUR + 2 * THREE]);
+        else if (score1 >= BLOCK_FOUR / 4) makeb4.push([i, j, FOUR + THREE, 0, 2 * FOUR + 2 * THREE]);
         if (score1 < BLOCK_TWO / 2 && score2 < BLOCK_TWO / 2) continue;
         res.push([i, j, score1, score2, 2 * score1 + score2]);
       }
     }
     if (dis4.length > 0) return [dis4[0]];
     if (make4.length > 0) return [make4[0]];
-    if (make43.length > 0) return [make43[0]];
+    if (make43.length > 0 && role === 1) return [make43[0]];
+    if (make43.length > 0 && role === -1) return [make43[0], ...makeb4].sort((a, b) => b[4] - a[4]);
     if (dis3.length > 0) return [...makeb4, ...dis3].sort((a, b) => b[4] - a[4]);
     return res.sort((a, b) => b[4] - a[4]);
   }

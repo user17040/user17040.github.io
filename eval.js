@@ -334,7 +334,7 @@ class Evaluate {
           if (shape1 >= THREE / 3 && shape1 < BLOCK_FOUR / 4) threeCount++;
         }
         if (role === 1 && (longCount >= 1 || fourCount >= 2 || threeCount >= 2)) continue;
-        if (score2 >= FIVE / 5) dis4.push([i, j, 0, FIVE, FIVE]);
+        if (score2 >= FIVE / 5 && score2 < LONG) dis4.push([i, j, 0, FIVE, FIVE]);
         else if (score2 >= BLOCK_FOUR / 4) {
           if (this.isDis3(i, j, role)) dis3.push([i, j, score1, score2, 2 * score1 + score2]);
         }

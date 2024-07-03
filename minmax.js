@@ -113,9 +113,9 @@ const situation = (role, score) => {
   let nscore = role * score;
   if (-FIVE + 1000 >= nscore) return '白必胜';
   if (-FIVE + 1000 < nscore && nscore < -800) return '白近胜';
-  if (-800 < nscore && nscore <= -400) return '白大优';
-  if (-400 < nscore && nscore <= -200) return '白小优';
-  if (-200 < nscore && nscore <= -100) return '偏白';
+  if (-800 <= nscore && nscore < -400) return '白大优';
+  if (-400 <= nscore && nscore < -200) return '白小优';
+  if (-200 <= nscore && nscore < -100) return '偏白';
   if (-100 <= nscore && nscore <= 100) return '平衡';
   if (100 < nscore && nscore <= 200) return '偏黑';
   if (200 < nscore && nscore <= 400) return '黑小优';

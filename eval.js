@@ -322,10 +322,10 @@ class Evaluate {
     let directionb4;
     for (let i = 0; i < this.size; i++) {
       for (let j = 0; j < this.size; j++) {
+        if (this.board[i + 1][j + 1] !== 0) continue;
         let directionoppb4 = [];
         let longCount = 0, fourCount = 0, threeCount = 0, score1 = 0, score2 = 0;
         for (let direction of [0, 1, 2, 3]) {
-          if (this.board[i + 1][j + 1] !== 0) continue;
           const shape1 = shapes[this.shapeCache[role][direction][i][j]];
           const shape2 = shapes[this.shapeCache[-role][direction][i][j]];
           if (shape1 === FIVE / 5) return [[i, j, FIVE, 0, 2 * FIVE]];

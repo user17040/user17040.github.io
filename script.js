@@ -1,107 +1,106 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('polynomial-form');
-    const resultDisplay = document.getElementById('result-display');
+document.addEventListener('DOMContentLoaded', function () {
+    const solution = generateSolution();
+    const guesses = document.getElementById('guesses');
+    const currentGuessElement = document.querySelectorAll('#currentGuess .box');
+    const keyboard = document.getElementById('keyboard');
+    const submitGuess = document.getElementById('submitGuess');
+    const deleteButton = document.getElementById('deleteButton'); // 获取删除按钮
+    let currentGuess = '';
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+    // 初始化键盘
+    for (let i = 0; i < 10; i++) {
+        const key = document.createElement('button');
+        key.textContent = i;
+        key.className = 'button'; // 添加按钮类
+        key.addEventListener('click', () => addDigitToGuess(i));
+        keyboard.appendChild(key);
+    }
 
-        const pol = new Polynomial(document.getElementById('pol').value);
-        const hfd = Number(document.getElementById('hfd').value);
-        try {
-            const remainder = calculatePolynomial(pol, hfd, []);
-            resultDisplay.innerHTML = '';
-            katex.render(remainder, resultDisplay);
-        } catch (error) {
-            resultDisplay.innerHTML = `<span style="color: red;">${error.message}</span>`;
+    // 添加删除按钮功能
+    deleteButton.addEventListener('click', () => {
+        if (currentGuess.length > 0) {
+            currentGuess = currentGuess.slice(0, -1); // 删除最后一个字符
+            currentGuessElement[currentGuess.length].textContent = ''; // 清除对应的格子显示
         }
     });
-});
 
-function getFactors(num, b) {
-    num = Math.abs(num);
-    let factors = [];
-    for (let i = 1; i <= Math.sqrt(num); i++) {
-        if (num % i === 0) {
-            factors.push(i);
-            if (b) {
-                factors.push(-i);
-            }
-            if (i !== num / i) {
-                factors.push(num / i);
-                if (b) {
-                    factors.push(-num / i);
+    function addDigitToGuess(digit) {
+        if (currentGuess.length < 5) {  // 确保输入不超过五个数字
+            currentGuess += digit;
+            currentGuessElement[currentGuess.length - 1].textContent = digit;  // 更新对应的格子显示
+        }
+    }
+
+    submitGuess.addEventListener('click', () => {
+        if (currentGuess.length === 5) {
+            evaluateGuess(currentGuess);
+            currentGuess = '';  // 重置当前猜测
+            currentGuessElement.forEach((box, index) => {
+                if (index < 5) {
+                    box.textContent = '';  // 清空前五个数字格子
+                } else {
+                    box.textContent = '?';  // 重置结果提示
                 }
+            });
+        }
+    });
+
+    function evaluateGuess(guess) {
+        const result = calculateBullsAndCows(guess, solution);
+        const guessRow = document.createElement('div');
+        guessRow.className = 'guess';
+        // 显示猜测数字
+        guess.split('').forEach(digit => {
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.textContent = digit;
+            guessRow.appendChild(box);
+        });
+        // 添加间隔
+        const gap = document.createElement('div');
+        gap.className = 'gap';
+        guessRow.appendChild(gap);
+        // 显示A的数量
+        const aBox = document.createElement('div');
+        aBox.className = 'box correct';
+        aBox.textContent = result.bulls;
+        guessRow.appendChild(aBox);
+        // 显示B的数量
+        const bBox = document.createElement('div');
+        bBox.className = 'box present';
+        bBox.textContent = result.cows;
+        guessRow.appendChild(bBox);
+
+        guesses.appendChild(guessRow);
+    }
+
+    function calculateBullsAndCows(guess, solution) {
+        let bulls = 0;
+        let cows = 0;
+        const counts = {};
+        for (let i = 0; i < solution.length; i++) {
+            counts[solution[i]] = (counts[solution[i]] || 0) + 1;
+        }
+        for (let i = 0; i < guess.length; i++) {
+            if (guess[i] === solution[i]) {
+                bulls++;
+                counts[solution[i]]--;
             }
         }
-    }
-    if (b) {
-        factors.push(0);
-    }
-    return factors.sort((a, b) => Math.abs(a) - Math.abs(b));
-}
-
-function combine(arr) {
-    let results = [];
-
-    function helper(temp, i) {
-        if (i === arr.length) {
-            results.push(temp.slice());
-            return;
+        for (let i = 0; i < guess.length; i++) {
+            if (guess[i] !== solution[i] && counts[guess[i]] > 0) {
+                cows++;
+                counts[guess[i]]--;
+            }
         }
-        for (let j = 0; j < arr[i].length; j++) {
-            temp.push(arr[i][j]);
-            helper(temp, i + 1);
-            temp.pop();
-        }
+        return { bulls, cows };
     }
 
-    helper([], 0);
-    return results;
-}
-
-function calculatePolynomial_k(pol, k) {
-    if (k == 1) {
-        if (pol.eval(1) == 0) {
-            return [new Polynomial([-1, 1]), pol.div(new Polynomial([-1, 1])), true];
+    function generateSolution() {
+        let result = '';
+        for (let i = 0; i < 5; i++) {
+            result += Math.floor(Math.random() * 10); // 生成一个0到9之间的随机数
         }
+        return result;
     }
-    let c = [];
-    for (var i = 0; i <= k; i++) {
-        if (i == k) {
-            c.push(getFactors(pol.eval(i), false));
-        } else {
-            c.push(getFactors(pol.eval(i), true));
-        }
-    }
-    let com = combine(c);
-    for (let p of com) {
-        if (pol.mod(p) == 0) {
-            return [p, pol.div(p), true];
-        }
-    }
-    return ['', '', false];
-}
-
-function calculatePolynomial(pol, hfd, get) {
-    for (var k = 1; k <= pol.degree() / 2 && k <= hfd; k++) {
-        const res = calculatePolynomial_k(pol, k);
-        if (res[2]) {
-            get.push(res[0]);
-            return calculatePolynomial(res[1], hfd, get);
-        }
-    }
-    get.push(pol);
-    let s = ''
-    for (let p of get.sort((a, b) => new Polynomial(a).degree() - new Polynomial(b).degree())) {
-        if (new Polynomial(p).toString() == '1') {
-            continue;
-        }
-        if (new Polynomial(p).toString().length == 1) {
-            s += new Polynomial(p).toString();
-        } else {
-            s += '(' + new Polynomial(p).toString() + ')';
-        }
-    }
-    return s;
-}
-
+});

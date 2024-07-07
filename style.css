@@ -1,38 +1,52 @@
-#chessboard {
-    background-image: url('img/board.svg');
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    grid-template-rows: repeat(10, 1fr);
-    width: 500px;
-    height: 555px;
-    border: 1px solid black;
-}
-.cell {
+body, html {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
     display: flex;
-    align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.guess {
+    display: flex;
+}
+.box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    margin: 2px;
+    font-size: 20px;
+}
+.correct {
+    background-color: green;
+}
+.present {
+    background-color: yellow;
+}
+.result {
+    background-color: #dedede; /* 为结果格子设置不同的背景色 */
 }
 
-.piece {
-    background-size: cover;
-    width: 100%;
-    height: 100%;
+.gap {
+    width: 20px; /* 根据需要调整宽度 */
+    flex-shrink: 0; /* 防止间隔被压缩 */
 }
-
-
-.Button {
-    display: block;
-    padding: 10px 20px;
-    font-size: 16px;
+button {
+    padding: 10px;
+    margin: 5px;
+    background-color: #ddd;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
-#chessboard.flipped {
-    transform: rotate(180deg);
-}
-.cell.flipped {
-    transform: rotate(180deg);  /* 保持棋子朝向一致 */
-}
-.piece.flipped {
-    transform: rotate(180deg); /* 翻转黑色棋子 */
+#deleteButton {
+    background-color: #f88; /* 给删除按钮一个不同的颜色以突出显示 */
 }

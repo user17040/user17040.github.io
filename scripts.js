@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         solution.split('').forEach(char => {
             const box = document.createElement('div');
-            box.className = 'box correct';
+            box.className = 'box green';
             box.textContent = char;
             solutionRow.appendChild(box);
         });
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 跟踪已经被标记过的位置
         const solutionMarked = Array(4).fill(false);
-        const guessMarked = Array(4).fill(false);
         const cornersMarked = Array(4).fill(null).map(() => Array(5).fill(false));
 
         // 创建格子并标记四角号码
@@ -64,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (char === solution[index] && !solutionMarked[index]) {
-                box.classList.add('correct');
+                box.classList.add('green');
                 solutionMarked[index] = true;
             }
 
@@ -73,11 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 再次遍历，用于标记部分正确的字符和四角号码
         guess.split('').forEach((char, index) => {
-            if (!guessMarked[index]) {
-                const box = guessRow.children[index];
-                const corners = get_4corners(char);
-                const solutionCorners = solution.split('').map(c => get_4corners(c));
-
+            const box = guessRow.children[index];
+            const corners = get_4corners(char);
+            const solutionCorners = solution.split('').map(c => get_4corners(c));
+            if (!solutionMarked[index] && solution.split('').some((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])) {
+                box.classList.add('yellow');
+                solutionMarked[solution.split('').findIndex((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])] = true;
+            }else{
                 for (let i = 0; i < corners.length; i++) {
                     if (!cornersMarked[index][i]) {
                         for (let j = 0; j < solutionCorners.length; j++) {
@@ -89,20 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 }
-
-                if (!solutionMarked[index] && solution.split('').some((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])) {
-                    box.classList.add('present');
-                    solutionMarked[solution.split('').findIndex((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])] = true;
-                }
             }
+
         });
 
-        // 保留绿色标记的条件
-        guessRow.childNodes.forEach(box => {
-            if (box.classList.contains('present')) {
-                box.classList.add('correct');
-            }
-        });
         guesses.appendChild(guessRow);
 
         // 滚动到最新的猜测记录

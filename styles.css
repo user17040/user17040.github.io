@@ -89,15 +89,6 @@ html {
     transform: translateY(-50%);
 }
 
-.correct {
-    background-color: green;
-    color: white;
-}
-
-.present {
-    background-color: orange;
-    color: black;
-}
 
 #guesses {
     height: 300px;

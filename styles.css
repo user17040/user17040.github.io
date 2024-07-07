@@ -6,7 +6,8 @@
     font-style: normal;
 }
 
-body, html {
+body,
+html {
     font-family: 'HYWenHei85W';
     background: #f4f4f4;
     display: flex;
@@ -62,11 +63,31 @@ body, html {
     font-size: 10px;
 }
 
-.top-left { top: 0; left: 0; }
-.top-right { top: 0; right: 0; }
-.bottom-left { bottom: 0; left: 0; }
-.bottom-right { bottom: 0; right: 0; }
-.right-middle { top: 50%; right: 0; transform: translateY(-50%); }
+.top-left {
+    top: 0;
+    left: 0;
+}
+
+.top-right {
+    top: 0;
+    right: 0;
+}
+
+.bottom-left {
+    bottom: 0;
+    left: 0;
+}
+
+.bottom-right {
+    bottom: 0;
+    right: 0;
+}
+
+.right-middle {
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
 
 .correct {
     background-color: green;
@@ -100,5 +121,20 @@ body, html {
     border-radius: 5px;
     cursor: pointer;
 }
-.green { color: green; }
-.yellow { color: orange; }
+
+.green {
+    color: green;
+}
+
+.yellow {
+    color: orange;
+}
+
+#revealAnswer {
+    font-family: 'HYWenHei85W';
+    padding: 10px;
+    background-color: #ddd;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

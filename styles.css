@@ -1,53 +1,104 @@
-body {
-    font-family: Arial, sans-serif;
+/* 加载自定义字体 */
+@font-face {
+    font-family: 'HYWenHei85W';
+    src: url('fonts/汉仪文黑-85W.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body, html {
+    font-family: 'HYWenHei85W';
+    background: #f4f4f4;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f5f5f5;
     margin: 0;
 }
 
-.container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-h1, h2 {
-    text-align: center;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input {
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    padding: 8px;
+    max-width: 600px;
+    padding: 20px;
     box-sizing: border-box;
 }
 
-button {
+#currentGuess {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
-    padding: 10px;
-    background-color: #007bff;
+    margin-bottom: 20px;
+}
+
+#idiomInput {
+    font-family: 'HYWenHei85W';
+    width: 200px;
+    height: 50px;
+    font-size: 20px;
+    text-align: center;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+.box {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    font-size: 20px;
+    background-color: #f4f4f4;
+    margin-right: 3px;
+}
+
+.box .corner {
+    position: absolute;
+    font-size: 10px;
+}
+
+.top-left { top: 0; left: 0; }
+.top-right { top: 0; right: 0; }
+.bottom-left { bottom: 0; left: 0; }
+.bottom-right { bottom: 0; right: 0; }
+.right-middle { top: 50%; right: 0; transform: translateY(-50%); }
+
+.correct {
+    background-color: green;
     color: white;
+}
+
+.present {
+    background-color: orange;
+    color: black;
+}
+
+#guesses {
+    height: 300px;
+    width: 100%;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.guess {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#submitGuess {
+    font-family: 'HYWenHei85W';
+    padding: 10px;
+    background-color: #ddd;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
 }
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#result {
-    margin-top: 20px;
-}
+.green { color: green; }
+.yellow { color: orange; }

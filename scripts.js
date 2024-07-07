@@ -97,6 +97,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        // 保留绿色标记的条件
+        guessRow.childNodes.forEach(box => {
+            if (box.classList.contains('present')) {
+                box.classList.add('correct');
+            }
+        });
         guesses.appendChild(guessRow);
 
         // 滚动到最新的猜测记录

@@ -78,15 +78,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!solutionMarked[index] && solution.split('').some((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])) {
                 box.classList.add('yellow');
                 solutionMarked[solution.split('').findIndex((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])] = true;
-            }else{
-                for (let i = 0; i < corners.length; i++) {
-                    if (!cornersMarked[index][i]) {
-                        for (let j = 0; j < solutionCorners.length; j++) {
-                            if (index !== j && corners[i] === solutionCorners[j][i] && !cornersMarked[j][i]) {
-                                box.children[i].classList.add('yellow');
-                                cornersMarked[j][i] = true;
-                                break;
-                            }
+            }
+
+            for (let i = 0; i < corners.length; i++) {
+                if (!cornersMarked[index][i]) {
+                    for (let j = 0; j < solutionCorners.length; j++) {
+                        if (index !== j && corners[i] === solutionCorners[j][i] && !cornersMarked[j][i]) {
+                            box.children[i].classList.add('yellow');
+                            cornersMarked[j][i] = true;
+                            break;
                         }
                     }
                 }

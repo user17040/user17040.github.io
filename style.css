@@ -1,3 +1,12 @@
+/* 加载自定义字体 */
+@font-face {
+    font-family: 'HYWenHei85W';
+    src: url('fonts/汉仪文黑-85W.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
 body, html {
     font-family: Arial, sans-serif;
     background: #f4f4f4;
@@ -7,14 +16,24 @@ body, html {
     height: 100vh;
     margin: 0;
 }
+
 #game {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 600px; /* 根据需求调整宽度 */
+    padding: 20px;
+    box-sizing: border-box;
 }
-.guess {
+
+#currentGuess {
     display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 20px;
 }
+
 .box {
     width: 50px;
     height: 50px;
@@ -22,9 +41,53 @@ body, html {
     justify-content: center;
     align-items: center;
     border: 1px solid #ccc;
-    margin: 2px;
     font-size: 20px;
+    background-color: #f4f4f4;
 }
+
+
+.gap {
+    width: 20px; /* 设置间隙的宽度 */
+    flex-shrink: 0; /* 防止间隙在布局调整时被压缩 */
+}
+
+#guesses {
+    height: 300px; /* 根据视口大小调整 */
+    width: 100%;
+    overflow-y: auto; /* 允许垂直方向上滚动 */
+    margin-bottom: 20px; /* 与其他元素的间隔 */
+}
+
+.guess {
+    display: flex;
+    justify-content: center; /* 中心对齐每个元素 */
+    width: 100%;
+    margin-bottom: 10px; /* 猜测记录之间的间距 */
+}
+
+#keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.button, #deleteButton, #submitGuess {
+    padding: 10px;
+    margin: 5px;
+    background-color: #ddd;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#deleteButton {
+    background-color: #f88; /* 给删除按钮一个不同的颜色以突出显示 */
+}
+#submitGuess {
+    background-color: #ade; /* 给删除按钮一个不同的颜色以突出显示 */
+}
+
 .correct {
     background-color: green;
 }
@@ -33,20 +96,4 @@ body, html {
 }
 .result {
     background-color: #dedede; /* 为结果格子设置不同的背景色 */
-}
-
-.gap {
-    width: 20px; /* 根据需要调整宽度 */
-    flex-shrink: 0; /* 防止间隔被压缩 */
-}
-button {
-    padding: 10px;
-    margin: 5px;
-    background-color: #ddd;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-#deleteButton {
-    background-color: #f88; /* 给删除按钮一个不同的颜色以突出显示 */
 }

@@ -11,21 +11,23 @@
     <div id="game">
         <div id="guesses"></div>
         <div id="currentGuess" class="guess">
-            <!-- 初始化 7 个空格子用于输入，最后两个用于显示 A 和 B 的提示 -->
+            <!-- 初始化 5 个空格子用于输入 -->
             <div class="box"></div>
             <div class="box"></div>
             <div class="box"></div>
             <div class="box"></div>
             <div class="box"></div>
-            <div class="gap"></div> <!-- 添加间隔 -->
-            <div class="box result">?</div>
-            <div class="box result">?</div>
+            <div class="gap"></div>
+            <div class="box correct">?</div>
+            <div class="box present">?</div>
         </div>
-        <div id="keyboard"></div>
-        <button id="submitGuess">提交猜测</button>
-        <button id="deleteButton">删除</button>
-        
+        <div id="keyboard">
+            <!-- 数字键盘将通过 JavaScript 动态生成 -->
+            <button id="deleteButton">删除</button>
+        </div>
+        <button id="submitGuess">提交</button>
     </div>
+    
     
     
     <script src="script.js"></script>

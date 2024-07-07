@@ -49,30 +49,33 @@ document.addEventListener('DOMContentLoaded', function () {
         const result = calculateBullsAndCows(guess, solution);
         const guessRow = document.createElement('div');
         guessRow.className = 'guess';
-        // 显示猜测数字
         guess.split('').forEach(digit => {
             const box = document.createElement('div');
             box.className = 'box';
             box.textContent = digit;
             guessRow.appendChild(box);
         });
-        // 添加间隔
         const gap = document.createElement('div');
         gap.className = 'gap';
         guessRow.appendChild(gap);
-        // 显示A的数量
         const aBox = document.createElement('div');
         aBox.className = 'box correct';
         aBox.textContent = result.bulls;
         guessRow.appendChild(aBox);
-        // 显示B的数量
         const bBox = document.createElement('div');
         bBox.className = 'box present';
         bBox.textContent = result.cows;
         guessRow.appendChild(bBox);
-
         guesses.appendChild(guessRow);
+
+        // 更新当前猜测的结果提示
+        currentGuessElement[5].textContent = result.bulls;
+        currentGuessElement[6].textContent = result.cows;
+
+        // 滚动到最新的猜测记录
+        guesses.scrollTop = guesses.scrollHeight;
     }
+    
 
     function calculateBullsAndCows(guess, solution) {
         let bulls = 0;

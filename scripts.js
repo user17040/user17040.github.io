@@ -1,15 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const idioms = data1.split(' ').concat(Object.keys(data2));
     const solution = generateSolution();
     const guesses = document.getElementById('guesses');
     const idiomInput = document.getElementById('idiomInput');
     const submitGuess = document.getElementById('submitGuess');
+    const allowCustomWordsCheckbox = document.getElementById('allowCustomWords');
     let currentGuess = '';
     // 提交按钮功能
     submitGuess.addEventListener('click', () => {
         currentGuess = idiomInput.value.trim();
-        if (currentGuess.length === 4) {
+        const allowCustomWords = allowCustomWordsCheckbox.checked;
+        if (allowCustomWords || idioms.includes(currentGuess)) {
             evaluateGuess(currentGuess);
             idiomInput.value = '';  // 清空输入框
+        } else {
+            alert("请输入有效的成语！");
         }
     });
     // 查看正确答案按钮功能
@@ -106,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function generateSolution() {
-        const idioms = data1.split(' ').concat(Object.keys(data2));
         return idioms[Math.floor(Math.random() * idioms.length)];
     }
 

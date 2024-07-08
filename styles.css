@@ -129,3 +129,6 @@ html {
     border-radius: 5px;
     cursor: pointer;
 }
+#allowCustomWordsLabel {
+    margin-left: 10px;
+}

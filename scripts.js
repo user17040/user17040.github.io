@@ -77,25 +77,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const solutionCorners = solution.split('').map(c => get_4corners(c));
 
             for (let i = 0; i < corners.length; i++) {
-                if (!cornersMarked[index][i]) {
-                    for (let j = 0; j < solutionCorners.length; j++) {
-                        if (index !== j && corners[i] === solutionCorners[j][i] && !cornersMarked[j][i]) {
-                            box.children[i].classList.add('yellow');
-                            cornersMarked[j][i] = true;
-                            break;
-                        }
+                for (let j = 0; j < solutionCorners.length; j++) {
+                    if (index !== j && corners[i] === solutionCorners[j][i] && !cornersMarked[j][i]) {
+                        box.children[i].classList.add('yellow');
+                        cornersMarked[j][i] = true;
+                        break;
                     }
                 }
             }
 
             for (let i = 0; i < solution.length; i++) {
-                if (!solutionMarked[index][i]) {
-                    for (let j = 0; j < solution.length; j++) {
-                        if (index !== j && char === solution[j] && !solutionMarked[j][i]) {
-                            box.classList.add('yellow');
-                            solutionMarked[j][i] = true;
-                            break;
-                        }
+                for (let j = 0; j < solution.length; j++) {
+                    if (index !== j && char === solution[j] && !solutionMarked[j][i]) {
+                        box.classList.add('yellow');
+                        solutionMarked[j][i] = true;
+                        break;
                     }
                 }
             }

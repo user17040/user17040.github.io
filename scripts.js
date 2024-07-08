@@ -38,76 +38,75 @@ document.addEventListener('DOMContentLoaded', function () {
         // 滚动到最新的猜测记录
         guesses.scrollTop = guesses.scrollHeight;
     }
+    function wordleFeedback(solution, guess) {
+        if (solution.length !== guess.length) {
+            return "The length of solution and guess must be the same.";
+        }
+
+        const green = Array(solution.length).fill(false);
+        const yellow = Array(solution.length).fill(false);
+        const solutionCharCount = {};
+
+        // 标记正确位置的字符为绿，并统计每个字符的数量
+        for (let i = 0; i < solution.length; i++) {
+            if (guess[i] === solution[i]) {
+                green[i] = true;
+            } else {
+                solutionCharCount[solution[i]] = (solutionCharCount[solution[i]] || 0) + 1;
+            }
+        }
+
+        // 标记存在于字符串中但位置不正确的字符为黄
+        for (let i = 0; i < guess.length; i++) {
+            if (!green[i] && solutionCharCount[guess[i]]) {
+                yellow[i] = true;
+                solutionCharCount[guess[i]]--;
+            }
+        }
+
+        return { green, yellow };
+    }
     function evaluateGuess(guess) {
         const guessRow = document.createElement('div');
         guessRow.className = 'guess';
 
-        // 跟踪已经被标记过的位置
-        const solutionMarked = Array(4).fill(false);
-        const cornersMarked = Array(4).fill(null).map(() => Array(5).fill(false));
+        // 获取反馈
+        const feedback = wordleFeedback(solution, guess);
+        const positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'right-middle'];
 
-        // 创建格子并标记四角号码
-        guess.split('').forEach((char, index) => {
+        for (let index = 0; index < 4; index++) {
             const box = document.createElement('div');
             box.className = 'box';
-            box.textContent = char;
+            box.textContent = guess[index]; // 添加字符内容
 
-            const corners = get_4corners(char);
-            const solutionCorners = solution.split('').map(c => get_4corners(c));
-
-            for (let i = 0; i < corners.length; i++) {
-                let className = '';
-
-                // 标记完全正确的四角号码
-                if (corners[i] === solutionCorners[index][i] && !cornersMarked[index][i]) {
-                    className = 'green';
-                    cornersMarked[index][i] = true;
-                }
-
-                const positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'right-middle'];
-                box.innerHTML += `<div class="corner ${positions[i]} ${className}">${corners[i]}</div>`;
-            }
-
-            if (char === solution[index] && !solutionMarked[index]) {
+            // 设置颜色标记
+            if (feedback.green[index]) {
                 box.classList.add('green');
-                solutionMarked[index] = true;
+            } else if (feedback.yellow[index]) {
+                box.classList.add('yellow');
+            }else{
+                box.classList.add('black'); 
             }
 
             guessRow.appendChild(box);
-        });
+        }
 
-        // 再次遍历，用于标记部分正确的字符和四角号码
-        guess.split('').forEach((char, index) => {
-            const box = guessRow.children[index];
-            const corners = get_4corners(char);
-            const solutionCorners = solution.split('').map(c => get_4corners(c));
+        for (let i = 0; i < 5; i++) {
+            const guessCorners = get_4corners(guess[0])[i] + get_4corners(guess[1])[i] + get_4corners(guess[2])[i] + get_4corners(guess[3])[i];
+            const solutionCorners = get_4corners(solution[0])[i] + get_4corners(solution[1])[i] + get_4corners(solution[2])[i] + get_4corners(solution[3])[i];
+            const feedbackCorners = wordleFeedback(solutionCorners, guessCorners);
 
-            for (let i = 0; i < corners.length; i++) {
-                if (!cornersMarked[index][i]) {
-                    for (let j = 0; j < solutionCorners.length; j++) {
-                        if (index !== j && corners[i] === solutionCorners[j][i] && !cornersMarked[j][i]) {
-                            box.children[i].classList.add('yellow');
-                            cornersMarked[index][j] = true;
-                            break;
-                        }
-                    }
+            for (let index = 0; index < 4; index++) {
+                const box = guessRow.children[index];
+                let className = 'black';
+                if (feedbackCorners.green[index]) {
+                    className = 'green';
+                } else if (feedbackCorners.yellow[index]) {
+                    className = 'yellow';
                 }
+                box.innerHTML += `<div class="corner ${positions[i]} ${className}">${get_4corners(guess[index])[i]}</div>`;
             }
-
-            for (let i = 0; i < guess.length; i++) {
-                if (!solutionMarked[index][i]) {
-                    for (let j = 0; j < solution.length; j++) {
-                        if (index !== j && char === solution[j] && !solutionMarked[j][i]) {
-                            box.classList.add('yellow');
-                            solutionMarked[j] = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-
-        });
+        }
 
         guesses.appendChild(guessRow);
 

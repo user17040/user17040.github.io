@@ -113,6 +113,11 @@ html {
     cursor: pointer;
 }
 
+
+.black {
+    color: gray;
+}
+
 .green {
     color: green;
 }

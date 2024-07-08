@@ -75,10 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const box = guessRow.children[index];
             const corners = get_4corners(char);
             const solutionCorners = solution.split('').map(c => get_4corners(c));
-            if (!solutionMarked[index] && solution.split('').some((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])) {
-                box.classList.add('yellow');
-                solutionMarked[solution.split('').findIndex((solChar, solIndex) => solChar === char && !solutionMarked[solIndex])] = true;
-            }
 
             for (let i = 0; i < corners.length; i++) {
                 if (!cornersMarked[index][i]) {
@@ -91,6 +87,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
+
+            for (let i = 0; i < solution.length; i++) {
+                if (!solutionMarked[index][i]) {
+                    for (let j = 0; j < solution.length; j++) {
+                        if (index !== j && char === solution[j] && !solutionMarked[j][i]) {
+                            box.classList.add('yellow');
+                            solutionMarked[j][i] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
 
         });
 

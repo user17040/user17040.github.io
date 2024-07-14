@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1A2B Game Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 5px;
+            margin: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>1A2B Game Solver</h1>
+    <div>
+        <label for="guess">Guess: </label>
+        <input type="text" id="guess" maxlength="4">
+        <label for="aCount">A: </label>
+        <input type="number" id="aCount" min="0" max="4">
+        <label for="bCount">B: </label>
+        <input type="number" id="bCount" min="0" max="4">
+        <button onclick="addFeedback()">Add Feedback</button>
+    </div>
+    <div>
+        <button onclick="solveGame()">Solve</button>
+    </div>
+    <h2>Feedback:</h2>
+    <ul id="feedbackList"></ul>
+    <h2>Next Guess:</h2>
+    <p id="nextGuess"></p>
+    <h2>Entropy:</h2>
+    <p id="entropy"></p>
+
+    <script>
+        let feedback = {};
+
+        function addFeedback() {
+            const guess = document.getElementById('guess').value;
+            const aCount = parseInt(document.getElementById('aCount').value);
+            const bCount = parseInt(document.getElementById('bCount').value);
+
+            if (guess.length === 4 && !isNaN(aCount) && !isNaN(bCount)) {
+                feedback[guess] = [aCount, bCount];
+                updateFeedbackList();
+            } else {
+                alert('Please enter valid inputs.');
+            }
+        }
+
+        function updateFeedbackList() {
+            const feedbackList = document.getElementById('feedbackList');
+            feedbackList.innerHTML = '';
+            for (let guess in feedback) {
+                const li = document.createElement('li');
+                li.textContent = `Guess: ${guess}, A: ${feedback[guess][0]}, B: ${feedback[guess][1]}`;
+                feedbackList.appendChild(li);
+            }
+        }
+
+        function generateAllCombinations() {
+            let combinations = [];
+            for (let i = 0; i < 10000; i++) {
+                let numStr = i.toString().padStart(4, '0');
+                if (new Set(numStr).size === 4) {
+                    combinations.push(numStr);
+                }
+            }
+            return combinations;
+        }
+
+        function calculate1A2B(guess, answer) {
+            let A = 0, B = 0;
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] === answer[i]) {
+                    A++;
+                } else if (answer.includes(guess[i])) {
+                    B++;
+                }
+            }
+            return `${A}A${B}B`;
+        }
+
+        function calculateEntropy(guess, possibilities) {
+            let outcomes = {};
+            possibilities.forEach(answer => {
+                let outcome = calculate1A2B(guess, answer);
+                outcomes[outcome] = (outcomes[outcome] || 0) + 1;
+            });
+
+            let entropy = 0;
+            let total = possibilities.length;
+            for (let outcome in outcomes) {
+                let probability = outcomes[outcome] / total;
+                entropy -= probability * Math.log2(probability);
+            }
+            return entropy;
+        }
+
+        function findBestGuess(possibilities) {
+            let maxEntropy = -1;
+            let bestGuess = '';
+            possibilities.forEach(guess => {
+                let entropy = calculateEntropy(guess, possibilities);
+                if (entropy > maxEntropy) {
+                    maxEntropy = entropy;
+                    bestGuess = guess;
+                }
+            });
+            return { bestGuess, maxEntropy };
+        }
+
+        function solveGame() {
+            let possibilities = generateAllCombinations();
+
+            for (let guess in feedback) {
+                let [A, B] = feedback[guess];
+                let userResponse = `${A}A${B}B`;
+                possibilities = possibilities.filter(p => calculate1A2B(guess, p) === userResponse);
+            }
+
+            let { bestGuess, maxEntropy } = findBestGuess(possibilities);
+            document.getElementById('nextGuess').textContent = bestGuess;
+            document.getElementById('entropy').textContent = maxEntropy.toFixed(4);
+        }
+    </script>
+</body>
+</html>

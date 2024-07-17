@@ -90,7 +90,7 @@ let board = function (div, gameinit) {
 			let firstChars = convertedMoves.join('').substring(0, boardobj.currgame.length);
 
 			// 如果相等则输出当前 game 的 id
-			if (firstChars === boardobj.currgame) {
+			if (interleaveSort(firstChars) === interleaveSort(boardobj.currgame)) {
 				pa = 0;
 			} else if (interleaveSort(firstChars) === interleaveSort(trans1(boardobj.currgame))) {
 				pa = 1;

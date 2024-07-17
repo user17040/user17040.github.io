@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五子棋</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+    canvas {
+        border: 2px solid #000;
+    }
+</style>
+</head>
+<body>
+<h1>五子棋</h1>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const ROWS = 15;
+    const COLS = 15;
+    const GRID_SIZE = canvas.width / COLS;
+
+    let board = [];
+
+    // 初始化棋盘
+    function initBoard() {
+        for (let i = 0; i < ROWS; i++) {
+            board[i] = [];
+            for (let j = 0; j < COLS; j++) {
+                board[i][j] = 0; // 0代表空白，1代表黑子，2代表白子
+            }
+        }
+    }
+
+    // 绘制棋盘
+    function drawBoard() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 绘制棋盘线条
+        ctx.strokeStyle = '#000';
+        for (let i = 0; i <= ROWS; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * GRID_SIZE);
+            ctx.lineTo(canvas.width, i * GRID_SIZE);
+            ctx.stroke();
+        }
+        for (let j = 0; j <= COLS; j++) {
+            ctx.beginPath();
+            ctx.moveTo(j * GRID_SIZE, 0);
+            ctx.lineTo(j * GRID_SIZE, canvas.height);
+            ctx.stroke();
+        }
+
+        // 绘制棋子
+        for (let i = 0; i < ROWS; i++) {
+            for (let j = 0; j < COLS; j++) {
+                if (board[i][j] === 1) {
+                    drawPiece(i, j, '#000');
+                } else if (board[i][j] === 2) {
+                    drawPiece(i, j, '#fff');
+                }
+            }
+        }
+    }
+
+    // 绘制棋子
+    function drawPiece(row, col, color) {
+        ctx.beginPath();
+        ctx.arc(col * GRID_SIZE + GRID_SIZE / 2, row * GRID_SIZE + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // 下棋
+    canvas.addEventListener('click', function(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const row = Math.floor(y / GRID_SIZE);
+        const col = Math.floor(x / GRID_SIZE);
+
+        if (board[row][col] === 0) {
+            board[row][col] = 1; // 黑子
+            drawBoard();
+            // TODO: 判断胜负
+            // TODO: AI下棋
+        }
+    });
+
+    initBoard();
+    drawBoard();
+</script>
+</body>
+</html>

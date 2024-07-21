@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生辰八字计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .column {
+            padding: 10px;
+        }
+
+        .木 {
+            color: green;
+        }
+
+        .火 {
+            color: red;
+        }
+
+        .土 {
+            color: brown;
+        }
+
+        .金 {
+            color: gray;
+        }
+
+        .水 {
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>生辰八字计算器</h2>
+        <div>
+            <label for="year">年:</label>
+            <input type="number" id="year" placeholder="默认: 1984">
+        </div>
+        <div>
+            <label for="month">月:</label>
+            <input type="number" id="month" placeholder="默认: 1">
+        </div>
+        <div>
+            <label for="day">日:</label>
+            <input type="number" id="day" placeholder="默认: 1">
+        </div>
+        <div>
+            <label for="hour">时:</label>
+            <input type="number" id="hour" placeholder="默认: 0">
+        </div>
+        <div>
+            <label for="minute">分:</label>
+            <input type="number" id="minute" placeholder="默认: 0">
+        </div>
+        <button onclick="calculateBazi()">计算</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function getColor(ganZhi) {
+            let wuXing = {
+                '甲': '木', '乙': '木',
+                '丙': '火', '丁': '火',
+                '戊': '土', '己': '土',
+                '庚': '金', '辛': '金',
+                '壬': '水', '癸': '水',
+                '子': '水', '丑': '土',
+                '寅': '木', '卯': '木',
+                '辰': '土', '巳': '火',
+                '午': '火', '未': '土',
+                '申': '金', '酉': '金',
+                '戌': '土', '亥': '水'
+            };
+            return wuXing[ganZhi];
+        }
+        let baseDate = new Date(1984, 0, 1);
+        // 计算两个日期之间的天数差
+        function getDaysDifference(startDate, endDate) {
+            let oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
+            return endDate > startDate ? (endDate - startDate) / oneDay : -(startDate - endDate) / oneDay;
+        }
+        function getEarthlyBranchIndex(h, m) {
+            if (h < 1) return Math.floor((h + 1) / 2) + 11;
+            return Math.floor((h + 1) / 2) - 1;
+        }
+        function calculateBazi() {
+            let year = Number(document.getElementById('year').value) || 1984;
+            let month = Number(document.getElementById('month').value) || 1;
+            let day = Number(document.getElementById('day').value) || 1;
+            let hour = Number(document.getElementById('hour').value) || 0;
+            let minute = Number(document.getElementById('minute').value) || 0;
+            let gan = ['癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬'];
+            let zhi = ['丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子'];
+            let yearGan = (year - 3) % 10;
+            let yearZhi = (year - 5) % 12;
+            let monthGan = (yearGan * 2 + month - 1) % 10;
+            let monthZhi = month - 1;
+            let targetDate = new Date(year, month - 1, day);
+            let daysDifference = getDaysDifference(baseDate, targetDate);
+            let dayGan = (daysDifference + 1) % 10;
+            let dayZhi = (daysDifference + 5) % 12;
+            if (dayGan < 0) dayGan = dayGan + 10;
+            if (dayZhi < 0) dayZhi = dayZhi + 12;
+            let hourGan = (dayGan * 2 + getEarthlyBranchIndex(hour, minute)) % 10;
+            let hourZhi = getEarthlyBranchIndex(hour, minute);
+            let result = `
+            <div class="row">
+                <div class="column ${getColor(gan[yearGan])}">${gan[yearGan]}</div>
+                <div class="column ${getColor(gan[monthGan])}">${gan[monthGan]}</div>
+                <div class="column ${getColor(gan[dayGan])}">${gan[dayGan]}</div>
+                <div class="column ${getColor(gan[hourGan])}">${gan[hourGan]}</div>
+            </div>
+            <div class="row">
+                <div class="column ${getColor(zhi[yearZhi])}">${zhi[yearZhi]}</div>
+                <div class="column ${getColor(zhi[monthZhi])}">${zhi[monthZhi]}</div>
+                <div class="column ${getColor(zhi[dayZhi])}">${zhi[dayZhi]}</div>
+                <div class="column ${getColor(zhi[hourZhi])}">${zhi[hourZhi]}</div>`;
+            document.getElementById('result').innerHTML = result;
+        }
+    </script>
+
+</body>
+
+</html>

@@ -134,7 +134,7 @@
         // 计算两个日期之间的天数差
         function getDaysDifference(startDate, endDate) {
             let oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
-            return endDate > startDate ? (endDate - startDate) / oneDay : -(startDate - endDate) / oneDay;
+            return endDate > startDate ? Math.round((endDate - startDate) / oneDay) : -Math.round((startDate - endDate) / oneDay);
         }
         function getEarthlyBranchIndex(h, m) {
             if (h < 1) return Math.floor((h + 1) / 2) + 11;

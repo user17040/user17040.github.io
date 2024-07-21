@@ -121,12 +121,12 @@
                 '戊': '土', '己': '土',
                 '庚': '金', '辛': '金',
                 '壬': '水', '癸': '水',
-                '子': '水', '丑': '土',
                 '寅': '木', '卯': '木',
                 '辰': '土', '巳': '火',
                 '午': '火', '未': '土',
                 '申': '金', '酉': '金',
-                '戌': '土', '亥': '水'
+                '戌': '土', '亥': '水',
+                '子': '水', '丑': '土'
             };
             return wuXing[ganZhi];
         }
@@ -137,7 +137,7 @@
             return endDate > startDate ? Math.round((endDate - startDate) / oneDay) : -Math.round((startDate - endDate) / oneDay);
         }
         function getEarthlyBranchIndex(h, m) {
-            if (h < 1) return Math.floor((h + 1) / 2) + 11;
+            if (h < 1) return -1;
             return Math.floor((h + 1) / 2) - 1;
         }
         function calculateBazi() {
@@ -148,10 +148,18 @@
             let minute = Number(document.getElementById('minute').value) || 0;
             let gan = ['癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬'];
             let zhi = ['丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子'];
-            let yearGan = (year - 3) % 10;
-            let yearZhi = (year - 5) % 12;
-            let monthGan = (yearGan * 2 + month - 1) % 10;
-            let monthZhi = month - 1;
+            let lunar = calendar.solar2lunar(year, month, day);
+            if (lunar === -1) {
+                let result = '无农历数据';
+                document.getElementById('result').innerHTML = result;
+                return;
+            }
+            let lunarYear = lunar[0];
+            let lunarMonth = lunar[1];
+            let yearGan = (lunarYear + 9) % 10;
+            let yearZhi = (lunarYear + 7) % 12;
+            let monthGan = (yearGan * 2 + lunarMonth) % 10;
+            let monthZhi = lunarMonth % 12;
             let targetDate = new Date(year, month - 1, day);
             let daysDifference = getDaysDifference(baseDate, targetDate);
             let dayGan = (daysDifference + 1) % 10;
@@ -160,6 +168,10 @@
             if (dayZhi < 0) dayZhi = dayZhi + 12;
             let hourGan = (dayGan * 2 + getEarthlyBranchIndex(hour, minute)) % 10;
             let hourZhi = getEarthlyBranchIndex(hour, minute);
+            if (hourZhi === -1) {
+                hourGan = (dayGan * 2 + 9) % 10;
+                hourZhi = 11;
+            }
             let result = `
             <div class="row">
                 <div class="column ${getColor(gan[yearGan])}">${gan[yearGan]}</div>
@@ -177,5 +189,6 @@
     </script>
 
 </body>
+<script src="lunar.js"></script>
 
 </html>

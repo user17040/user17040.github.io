@@ -154,12 +154,12 @@
             let t = Solar.fromYmd(year, month, day).next(1).getLunar();
             let jieqi = t.getPrevJieQi().getSolar();
             let jieqimonth = jieqi.getMonth();
-            jieqimonth -= (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second) ? 1 : 0;
+            jieqimonth -= (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && day < 15 && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second) ? 1 : 0;
             let gan = ['癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬'];
             let zhi = ['丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子'];
             let yearGan = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 10 : (year + 7) % 10;
             let yearZhi = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 12 : (year + 7) % 12;
-            let monthGan = (yearGan * 2 + jieqimonth + 11) % 10;
+            let monthGan = (yearGan * 2 + jieqimonth + 9) % 10;
             let monthZhi = (jieqimonth + 11) % 12;
             let targetDate = new Date(year, month - 1, day);
             let daysDifference = getDaysDifference(baseDate, targetDate);

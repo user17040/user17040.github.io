@@ -88,7 +88,7 @@
 <body>
 
     <div class="container">
-        <h2>生辰八字计算器</h2>
+        <h2>八字计算器</h2>
         <div>
             <label for="year">年:</label>
             <input type="number" id="year" placeholder="默认: 1984">
@@ -108,6 +108,10 @@
         <div>
             <label for="minute">分:</label>
             <input type="number" id="minute" placeholder="默认: 0">
+        </div>
+        <div>
+            <label for="second">秒:</label>
+            <input type="number" id="second" placeholder="默认: 0">
         </div>
         <button onclick="calculateBazi()">计算</button>
         <div class="result" id="result"></div>
@@ -146,20 +150,17 @@
             let day = Number(document.getElementById('day').value) || 1;
             let hour = Number(document.getElementById('hour').value) || 0;
             let minute = Number(document.getElementById('minute').value) || 0;
+            let second = Number(document.getElementById('second').value) || 0;
+            let t = Solar.fromYmd(year, month, day).next(1).getLunar();
+            let jieqi = t.getPrevJieQi().getSolar();
+            let jieqimonth = jieqi.getMonth();
+            jieqimonth -= (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second) ? 1 : 0;
             let gan = ['癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬'];
             let zhi = ['丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子'];
-            let lunar = calendar.solar2lunar(year, month, day);
-            if (lunar === -1) {
-                let result = '无农历数据';
-                document.getElementById('result').innerHTML = result;
-                return;
-            }
-            let lunarYear = lunar[0];
-            let lunarMonth = lunar[1];
-            let yearGan = (lunarYear + 7) % 10;
-            let yearZhi = (lunarYear + 7) % 12;
-            let monthGan = (yearGan * 2 + lunarMonth) % 10;
-            let monthZhi = lunarMonth % 12;
+            let yearGan = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 10 : (year + 7) % 10;
+            let yearZhi = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 12 : (year + 7) % 12;
+            let monthGan = (yearGan * 2 + jieqimonth + 11) % 10;
+            let monthZhi = (jieqimonth + 11) % 12;
             let targetDate = new Date(year, month - 1, day);
             let daysDifference = getDaysDifference(baseDate, targetDate);
             let dayGan = (daysDifference + 1) % 10;
@@ -189,6 +190,6 @@
     </script>
 
 </body>
-<script src="lunar.js"></script>
+<script src="lunisolar.js"></script>
 
 </html>

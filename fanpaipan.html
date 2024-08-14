@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反向八字查询</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            word-wrap: break-word;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>反向八字查询（1950.1.1-2050.12.31，以小时为单位）</h2>
+        <input type="text" id="yearGanZhi" placeholder="年柱">
+        <input type="text" id="monthGanZhi" placeholder="月柱">
+        <input type="text" id="dayGanZhi" placeholder="日柱">
+        <input type="text" id="hourGanZhi" placeholder="时柱">
+        <button onclick="reverseBazi()">查询</button>
+        <div class="result" id="result"></div>
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        function reverseBazi() {
+            // 清除之前的结果和错误信息
+            document.getElementById('result').innerHTML = "";
+            document.getElementById('error').innerHTML = "";
+
+            let yearGanZhi = document.getElementById('yearGanZhi').value.trim();
+            let monthGanZhi = document.getElementById('monthGanZhi').value.trim();
+            let dayGanZhi = document.getElementById('dayGanZhi').value.trim();
+            let hourGanZhi = document.getElementById('hourGanZhi').value.trim();
+
+            if (!yearGanZhi || !monthGanZhi || !dayGanZhi || !hourGanZhi) {
+                document.getElementById('error').innerHTML = "请输入完整的年、月、日、时干支。";
+                return;
+            }
+
+            let targetGanZhi = `${yearGanZhi} ${monthGanZhi} ${dayGanZhi} ${hourGanZhi}`;
+
+            // 假设reverseSearch函数实现了从八字反向查找出生日期的功能
+            reverseSearch(targetGanZhi);
+        }
+
+        function reverseSearch(targetGanZhi) {
+            let startDate = new Date(1950, 0, 1); // 假设从1900年开始查找
+            let endDate = new Date(2050, 11, 31); // 假设查找至2100年
+            let found = false;
+            for (let d = new Date(startDate); d <= endDate; d.setHours(d.getHours() + 1)) {
+                let calculatedGanZhi = calculateBazi(d);
+                if (calculatedGanZhi === targetGanZhi) {
+                    found = true;
+                    document.getElementById('result').innerHTML += `匹配的日期和时间为：${d.toLocaleString()} \\n`;
+                }
+            }
+
+            if (!found) {
+                document.getElementById('result').innerHTML = "未找到匹配的日期和时间。";
+            }
+        }
+        let baseDate = new Date(1984, 0, 1);
+        // 计算两个日期之间的天数差
+        function getDaysDifference(startDate, endDate) {
+            let oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
+            return endDate > startDate ? Math.round((endDate - startDate) / oneDay) : -Math.round((startDate - endDate) / oneDay);
+        }
+        function getEarthlyBranchIndex(h, m) {
+            if (h < 1) return -1;
+            return Math.floor((h + 1) / 2) - 1;
+        }
+        function calculateBazi(date) {
+            let gan = ['癸', '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬'];
+            let zhi = ['丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子'];
+            let year = date.getFullYear();
+            let month = date.getMonth() + 1;
+            let day = date.getDate();
+            let hour = date.getHours();
+            let minute = date.getMinutes();
+            let second = date.getSeconds();
+            let t = Solar.fromYmd(year, month, day).next(1).getLunar();
+            let jieqi = t.getPrevJieQi().getSolar();
+            let jieqimonth = jieqi.getMonth();
+            jieqimonth -= (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && day < 15 && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second) ? 1 : 0;
+            if (jieqimonth === 0) jieqimonth = 12;
+            let yearGan = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 10 : (year + 7) % 10;
+            let yearZhi = (month === 1 || (month === 2 && jieqimonth === 1)) ? (year + 6) % 12 : (year + 7) % 12;
+            let monthGan = (yearGan * 2 + jieqimonth + 9) % 10;
+            let monthZhi = (jieqimonth + 11) % 12;
+            let targetDate = new Date(year, month - 1, day);
+            let daysDifference = getDaysDifference(baseDate, targetDate);
+            let dayGan = (daysDifference + 1) % 10;
+            let dayZhi = (daysDifference + 5) % 12;
+            if (dayGan < 0) dayGan = dayGan + 10;
+            if (dayZhi < 0) dayZhi = dayZhi + 12;
+            let hourGan = (dayGan * 2 + getEarthlyBranchIndex(hour, minute)) % 10;
+            let hourZhi = getEarthlyBranchIndex(hour, minute);
+            if (hourZhi === -1) {
+                hourGan = (dayGan * 2 + 9) % 10;
+                hourZhi = 11;
+            }
+
+            let yearGanZhi = `${gan[yearGan]}${zhi[yearZhi]}`;
+            let monthGanZhi = `${gan[monthGan]}${zhi[monthZhi]}`;
+            let dayGanZhi = `${gan[dayGan]}${zhi[dayZhi]}`;
+            let hourGanZhi = `${gan[hourGan]}${zhi[hourZhi]}`;
+            return `${yearGanZhi} ${monthGanZhi} ${dayGanZhi} ${hourGanZhi}`;
+        }
+    </script>
+    </script>
+    <script src="lunisolar.js"></script>
+</body>
+
+</html>

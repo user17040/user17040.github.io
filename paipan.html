@@ -261,7 +261,7 @@
                 let zhi = (monthZhi + (i + 1) * coeff) % 12;
                 if (gan < 0) gan += 10;
                 if (zhi < 0) zhi += 12;
-                daYunArray.push({ age: startAge + i * 10, ganZhi: `${gan}${zhi}` });
+                daYunArray.push({ age: startAge + i * 10, ganZhi: [gan, zhi] });
             }
             return daYunArray;
         }
@@ -306,7 +306,7 @@
                         jieqi = jieqi.getLunar().next(1).getNextJieQi().getSolar();
                     }
                 }
-                days = getDaysDifference(targetDate,new Date(jieqi.getYear(), jieqi.getMonth() - 1, jieqi.getDay()));
+                days = getDaysDifference(targetDate, new Date(jieqi.getYear(), jieqi.getMonth() - 1, jieqi.getDay()));
                 days -= (jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() <= hour * 3600 + minute * 60 + second) ? 1 : 0;
             } else {
                 coeff = -1;
@@ -363,8 +363,8 @@
             const daYunContainer = document.getElementById('daYunContainer');
             daYunContainer.innerHTML = ''; // 清空之前的结果
             daYunArray.forEach(daYun => {
-                const ganColorClass = getColor(gan[daYun.ganZhi.charAt(0)]); // 获取天干的颜色
-                const zhiColorClass = getColor(zhi[daYun.ganZhi.charAt(1)]); // 获取地支的颜色
+                const ganColorClass = getColor(gan[daYun.ganZhi[0]]); // 获取天干的颜色
+                const zhiColorClass = getColor(zhi[daYun.ganZhi[1]]); // 获取地支的颜色
 
                 const column = document.createElement('div');
                 column.className = `da-yun-column`;
@@ -372,8 +372,8 @@
                 column.innerHTML = `
         <div class="age">${daYun.age}岁</div>
         <div class="gan-zhi">
-            <div class="${ganColorClass}">${gan[daYun.ganZhi.charAt(0)]}</div>
-            <div class="${zhiColorClass}">${zhi[daYun.ganZhi.charAt(1)]}</div>
+            <div class="${ganColorClass}">${gan[daYun.ganZhi[0]]}</div>
+            <div class="${zhiColorClass}">${zhi[daYun.ganZhi[1]]}</div>
         </div>
     `;
                 daYunContainer.appendChild(column);

@@ -298,7 +298,7 @@
             }
             let days, coeff;
             if ((gender === 'male' && yearGan % 2 === 1) || gender === 'female' && yearGan % 2 === 0) {
-                coeff = -1;
+                coeff = 1;
                 jieqi = Solar.fromYmd(year, month, day).getLunar().getNextJieQi().getSolar();
                 if (jieqi.getDay() >= 15 || (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() < hour * 3600 + minute * 60 + second)) {
                     jieqi = jieqi.getLunar().next(1).getNextJieQi().getSolar();

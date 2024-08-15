@@ -24,7 +24,8 @@
             border-radius: 8px;
         }
 
-        input {
+        input,
+        select {
             margin-bottom: 10px;
             padding: 5px;
             border: 1px solid #ccc;
@@ -71,9 +72,7 @@
             right: 0;
             font-size: 12px;
             line-height: 36px;
-            /* Ensure this matches the font size of the main text */
             transform: translate(40%, 0%);
-            /* Adjusted to bring the small text closer */
         }
 
         .木 {
@@ -95,6 +94,49 @@
         .水 {
             color: black;
         }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .da-yun {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .da-yun-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 10px;
+        }
+
+        .age,
+        .gan-zhi {
+            font-size: 18px;
+            margin: 5px 0;
+        }
     </style>
 </head>
 
@@ -102,6 +144,13 @@
 
     <div class="container">
         <h2>八字计算器</h2>
+        <div>
+            <label for="gender">性别:</label>
+            <select id="gender">
+                <option value="male">男</option>
+                <option value="female">女</option>
+            </select>
+        </div>
         <div>
             <label for="year">年:</label>
             <input type="number" id="year" placeholder="默认: 1984">
@@ -128,6 +177,9 @@
         </div>
         <button onclick="calculateBazi()">计算</button>
         <div class="result" id="result"></div>
+        <div class="da-yun" id="daYunContainer" class="hidden"></div>
+        <tbody id="daYunBody"></tbody>
+        </table>
     </div>
 
     <script>
@@ -202,6 +254,17 @@
             if (h < 1) return -1;
             return Math.floor((h + 1) / 2) - 1;
         }
+        function calculateDaYun(startAge, coeff, monthGan, monthZhi) {
+            const daYunArray = [];
+            for (let i = 0; i < 10; i++) {
+                let gan = (monthGan + (i + 1) * coeff) % 10;
+                let zhi = (monthZhi + (i + 1) * coeff) % 12;
+                if (gan < 0) gan += 10;
+                if (zhi < 0) zhi += 12;
+                daYunArray.push({ age: startAge + i * 10, ganZhi: `${gan}${zhi}` });
+            }
+            return daYunArray;
+        }
         function calculateBazi() {
             let year = Number(document.getElementById('year').value) || 1984;
             let month = Number(document.getElementById('month').value) || 1;
@@ -209,6 +272,7 @@
             let hour = Number(document.getElementById('hour').value) || 0;
             let minute = Number(document.getElementById('minute').value) || 0;
             let second = Number(document.getElementById('second').value) || 0;
+            let gender = document.getElementById('gender').value;
             let t = Solar.fromYmd(year, month, day).next(1).getLunar();
             let jieqi = t.getPrevJieQi().getSolar();
             let jieqimonth = jieqi.getMonth();
@@ -232,6 +296,31 @@
                 hourGan = (dayGan * 2 + 9) % 10;
                 hourZhi = 11;
             }
+            let days, coeff;
+            if ((gender === 'male' && yearGan % 2 === 1) || gender === 'female' && yearGan % 2 === 0) {
+                coeff = -1;
+                jieqi = Solar.fromYmd(year, month, day).getLunar().getNextJieQi().getSolar();
+                if (jieqi.getDay() >= 15 || (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() < hour * 3600 + minute * 60 + second)) {
+                    jieqi = jieqi.getLunar().next(1).getNextJieQi().getSolar();
+                    if (jieqi.getDay() >= 15 || (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() < hour * 3600 + minute * 60 + second)) {
+                        jieqi = jieqi.getLunar().next(1).getNextJieQi().getSolar();
+                    }
+                }
+                days = getDaysDifference(targetDate,new Date(jieqi.getYear(), jieqi.getMonth() - 1, jieqi.getDay()));
+                days -= (jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() <= hour * 3600 + minute * 60 + second) ? 1 : 0;
+            } else {
+                coeff = -1;
+                jieqi = Solar.fromYmd(year, month, day).getLunar().next(1).getPrevJieQi().getSolar();
+                if (jieqi.getDay() >= 15 || (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second)) {
+                    jieqi = jieqi.getLunar().next(-1).getPrevJieQi().getSolar();
+                    if (jieqi.getDay() >= 15 || (jieqi.getYear() === year && jieqi.getMonth() === month && jieqi.getDay() === day && jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() >= hour * 3600 + minute * 60 + second)) {
+                        jieqi = jieqi.getLunar().next(-1).getPrevJieQi().getSolar();
+                    }
+                }
+                days = getDaysDifference(new Date(jieqi.getYear(), jieqi.getMonth() - 1, jieqi.getDay()), targetDate);
+                days -= (jieqi.getHour() * 3600 + jieqi.getMinute() * 60 + jieqi.getSecond() > hour * 3600 + minute * 60 + second) ? 1 : 0;
+            }
+            let startAge = Math.floor(days / 3) + 1;
             let result = `
             <div class="row">
                 <div class="column ${getColor(gan[yearGan])}">
@@ -269,6 +358,30 @@
                 </div>
             </div>`;
             document.getElementById('result').innerHTML = result;
+            // 计算大运
+            const daYunArray = calculateDaYun(startAge, coeff, monthGan, monthZhi);
+            const daYunContainer = document.getElementById('daYunContainer');
+            daYunContainer.innerHTML = ''; // 清空之前的结果
+            daYunArray.forEach(daYun => {
+                const ganColorClass = getColor(gan[daYun.ganZhi.charAt(0)]); // 获取天干的颜色
+                const zhiColorClass = getColor(zhi[daYun.ganZhi.charAt(1)]); // 获取地支的颜色
+
+                const column = document.createElement('div');
+                column.className = `da-yun-column`;
+
+                column.innerHTML = `
+        <div class="age">${daYun.age}岁</div>
+        <div class="gan-zhi">
+            <div class="${ganColorClass}">${gan[daYun.ganZhi.charAt(0)]}</div>
+            <div class="${zhiColorClass}">${zhi[daYun.ganZhi.charAt(1)]}</div>
+        </div>
+    `;
+                daYunContainer.appendChild(column);
+            });
+
+
+
+
         }
     </script>
 

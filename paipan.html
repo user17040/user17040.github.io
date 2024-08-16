@@ -26,24 +26,14 @@
             top: 10px;
             left: 10px;
         }
+
         input {
             margin-bottom: 10px;
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
 
-        button:hover {
-            background-color: #0056b3;
-        }
         .result {
             margin-top: 20px;
             display: flex;
@@ -127,38 +117,37 @@
         <h2>八字计算器</h2>
         <div>
             <label for="gender">性别:</label>
-            <select id="gender">
+            <select id="gender" onchange="calculateBazi()">
                 <option value="male">男</option>
                 <option value="female">女</option>
             </select>
         </div>
         <div>
             <label for="year">年:</label>
-            <input type="number" id="year" placeholder="默认: 1984">
+            <input type="number" id="year" placeholder="默认: 1984" oninput="calculateBazi()">
         </div>
         <div>
             <label for="month">月:</label>
-            <input type="number" id="month" placeholder="默认: 1">
+            <input type="number" id="month" placeholder="默认: 1" oninput="calculateBazi()">
         </div>
         <div>
             <label for="day">日:</label>
-            <input type="number" id="day" placeholder="默认: 1">
+            <input type="number" id="day" placeholder="默认: 1" oninput="calculateBazi()">
         </div>
         <div>
             <label for="hour">时:</label>
-            <input type="number" id="hour" placeholder="默认: 0">
+            <input type="number" id="hour" placeholder="默认: 0" oninput="calculateBazi()">
         </div>
         <div>
             <label for="minute">分:</label>
-            <input type="number" id="minute" placeholder="默认: 0">
+            <input type="number" id="minute" placeholder="默认: 0" oninput="calculateBazi()">
         </div>
         <div>
             <label for="second">秒:</label>
-            <input type="number" id="second" placeholder="默认: 0">
+            <input type="number" id="second" placeholder="默认: 0" oninput="calculateBazi()">
         </div>
-        <button onclick="calculateBazi()">计算</button>
         <div class="result" id="result"></div>
-        <div class="da-yun" id="daYunContainer" class="hidden"></div>
+        <div class="da-yun" id="daYunContainer"></div>
         <tbody id="daYunBody"></tbody>
         </table>
     </div>

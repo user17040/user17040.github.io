@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script src="data.js"></script>
+<script src="https://unpkg.com/pinyin-pro"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国区县 Wordle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #input {
+            width: 200px;
+            padding: 5px;
+        }
+
+        #submit {
+            padding: 5px 10px;
+        }
+
+        #guesses {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .guess {
+            display: flex;
+            gap: 5px;
+        }
+
+        .char {
+            width: 50px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+        }
+
+        .correct {
+            color: #6aaa64;
+        }
+
+        .present {
+            color: #c9b458;
+        }
+
+        .separator {
+            font-weight: bold;
+        }
+
+        .pinyin {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>中国区县 Wordle</h1>
+    <div id="game-container">
+        <div id="info"></div>
+        <input type="text" id="input" placeholder="请输入">
+        <button id="submit">提交</button>
+        <div id="guesses"></div>
+    </div>
+
+    <script>
+        function removeSuffix(name) {
+            let matchedEthnic1 = ethnicGroups.find(ethnic => name.includes(ethnic.text));
+            let matchedEthnic2 = ethnicGroups.find(ethnic => ethnic.text.length > 3 && name.includes(ethnic.text.slice(0, -1)));
+            let newName;
+            if (matchedEthnic1) {
+                newName = name.replace(matchedEthnic1.text, '').replace(/(自治州|自治区|自治县|自治旗)$/, '');
+            }
+            else if (matchedEthnic2) {
+                newName = name.replace(matchedEthnic2.text.slice(0, -1), '').replace(/(自治州|自治区|自治县|自治旗)$/, '');
+            }
+            else {
+                newName = name.replace(/(省|市|县|区|(?<![前后左右中])旗$|盟|林区|地区|市辖区|省直辖县级行政区划|自治区直辖县级行政区划|自治州|自治区|自治县)$/, '');
+            }
+
+            return newName.length === 1 ? name : newName;
+        }
+        function generateFullNames() {
+            let fullNames = [];
+
+            area.forEach(a => {
+                let provinceName = removeSuffix(province.find(p => p.code === a.provinceCode)?.name);
+                let cityName = removeSuffix(city.find(c => c.code === a.cityCode)?.name);
+                if (provinceName && cityName && !a.name.includes('开发区') && !a.name.includes('管理区') && !a.name.includes('业园区')) {
+                    let areaName = removeSuffix(a.name);
+                    fullNames.push(`${provinceName}${cityName}${areaName}`);
+                }
+            });
+
+            return fullNames;
+        }
+
+        let areas = generateFullNames();
+        let answer = areas[Math.floor(Math.random() * areas.length)];
+        // 显示所需字数信息
+        info.textContent = `请输入${answer.length}个字`;
+
+        let input = document.getElementById('input');
+        let submit = document.getElementById('submit');
+        let guesses = document.getElementById('guesses');
+
+        submit.addEventListener('click', () => {
+            let guess = input.value.replace(/\s/g, '');
+            if (guess.length !== answer.length) {
+                alert(`请输入${answer.length}个字`);
+                return;
+            }
+            if (!areas.includes(guess)) {
+                alert(`不存在该地区`);
+                return;
+            }
+
+            let result = checkGuess(guess);
+            displayGuess(result);
+            input.value = '';
+
+            if (result.every(char => char.status === 'correct')) {
+                alert('恭喜你猜对了！');
+            }
+        });
+
+
+        function checkGuess(guess) {
+            let result = new Array(guess.length).fill().map((_, i) => ({
+                char: guess[i],
+                status: 'absent',
+                initialStatus: 'absent'
+            }));
+
+            let answerCharCount = {};
+            let answerInitialCount = {};
+            let answerFinalCount = {};
+            let answerNumCount = {};
+            let shengA = pinyinPro.pinyin(answer, { pattern: 'initial', type: 'array' });
+            let yunA = pinyinPro.pinyin(answer, { pattern: 'final', type: 'array' });
+            let diaoA = pinyinPro.pinyin(answer, { pattern: 'num', type: 'array' });
+            for (let char of answer) {
+                answerCharCount[char] = (answerCharCount[char] || 0) + 1;
+            }
+            for (let char of shengA) {
+                answerInitialCount[char] = (answerInitialCount[char] || 0) + 1;
+            }
+            for (let char of yunA) {
+                answerFinalCount[char] = (answerFinalCount[char] || 0) + 1;
+            }
+            for (let char of diaoA) {
+                answerNumCount[char] = (answerNumCount[char] || 0) + 1;
+            }
+            let shengG = pinyinPro.pinyin(guess, { pattern: 'initial', type: 'array' });
+            let yunG = pinyinPro.pinyin(guess, { pattern: 'final', type: 'array' });
+            let diaoG = pinyinPro.pinyin(guess, { pattern: 'num', type: 'array' });
+            for (let i = 0; i < guess.length; i++) {
+                if (guess[i] === answer[i]) {
+                    result[i].status = 'correct';
+                    answerCharCount[guess[i]]--;
+                }
+                if (shengG[i] === shengA[i]) {
+                    result[i].initialStatus = 'correct';
+                    answerInitialCount[shengG[i]]--;
+                }
+                if (yunG[i] === yunA[i]) {
+                    result[i].finalStatus = 'correct';
+                    answerFinalCount[yunG[i]]--;
+                }
+                if (diaoG[i] === diaoA[i]) {
+                    result[i].numStatus = 'correct';
+                    answerNumCount[yunG[i]]--;
+                }
+            }
+
+            for (let i = 0; i < guess.length; i++) {
+                if (result[i].status !== 'correct' && answerCharCount[guess[i]] > 0) {
+                    result[i].status = 'present';
+                    answerCharCount[guess[i]]--;
+                }
+
+                if (result[i].initialStatus !== 'correct' && answerInitialCount[shengG[i]] > 0) {
+                    result[i].initialStatus = 'present';
+                    answerInitialCount[guess[i]]--;
+                }
+                if (result[i].finalStatus !== 'correct' && answerFinalCount[yunG[i]] > 0) {
+                    result[i].finalStatus = 'present';
+                    answerFinalCount[guess[i]]--;
+                }
+                if (result[i].numStatus !== 'correct' && answerNumCount[diaoG[i]] > 0) {
+                    result[i].numStatus = 'present';
+                    answerNumCount[guess[i]]--;
+                }
+            }
+            return result;
+        }
+
+        function displayGuess(result) {
+            let guessElement = document.createElement('div');
+            guessElement.className = 'guess';
+
+            result.forEach(char => {
+                let charElement = document.createElement('div');
+                charElement.className = `char ${char.status}`;
+                charElement.textContent = char.char;
+
+                let pinyin = pinyinPro.convert(pinyinPro.pinyin(char.char, { type: 'array' }).join(' '), { format: 'symbolToNum' });
+                let initial = pinyinPro.pinyin(char.char, { pattern: 'initial', type: 'array' }).join(' ');
+                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array' }).join(' ');
+                let num = pinyinPro.pinyin(char.char, { pattern: 'num', type: 'array' }).join(' ');
+                let highlightedPinyin = pinyin.replace(initial, `<span class="${char.initialStatus}">${initial}</span>`).replace(final, `<span class="${char.finalStatus}">${final}</span>`).replace(num, `<span class="${char.numStatus}">${num}</span>`);
+
+                let pinyinElement = document.createElement('div');
+                pinyinElement.className = 'pinyin';
+                pinyinElement.innerHTML = highlightedPinyin;
+
+                charElement.appendChild(pinyinElement);
+                guessElement.appendChild(charElement);
+            });
+
+            guesses.appendChild(guessElement);
+        }
+    </script>
+</body>
+
+</html>

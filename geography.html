@@ -186,7 +186,7 @@
                 }
                 if (diaoG[i] === diaoA[i]) {
                     result[i].numStatus = 'correct';
-                    answerNumCount[yunG[i]]--;
+                    answerNumCount[diaoG[i]]--;
                 }
             }
 
@@ -198,15 +198,15 @@
 
                 if (result[i].initialStatus !== 'correct' && answerInitialCount[shengG[i]] > 0) {
                     result[i].initialStatus = 'present';
-                    answerInitialCount[guess[i]]--;
+                    answerInitialCount[shengG[i]]--;
                 }
                 if (result[i].finalStatus !== 'correct' && answerFinalCount[yunG[i]] > 0) {
                     result[i].finalStatus = 'present';
-                    answerFinalCount[guess[i]]--;
+                    answerFinalCount[yunG[i]]--;
                 }
                 if (result[i].numStatus !== 'correct' && answerNumCount[diaoG[i]] > 0) {
                     result[i].numStatus = 'present';
-                    answerNumCount[guess[i]]--;
+                    answerNumCount[diaoG[i]]--;
                 }
             }
             return result;

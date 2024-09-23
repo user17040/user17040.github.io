@@ -61,6 +61,10 @@
             color: #c9b458;
         }
 
+        .absent {
+            color: #000000;
+        }
+
         .separator {
             font-weight: bold;
         }
@@ -145,8 +149,9 @@
         function checkGuess(guess) {
             let result = new Array(guess.length).fill().map((_, i) => ({
                 char: guess[i],
-                status: 'absent',
-                initialStatus: 'absent'
+                initialStatus: 'absent',
+                finalStatus: 'absent',
+                numStatus: 'absent'
             }));
 
             let answerCharCount = {};
@@ -154,7 +159,7 @@
             let answerFinalCount = {};
             let answerNumCount = {};
             let shengA = pinyinPro.pinyin(answer, { pattern: 'initial', type: 'array' });
-            let yunA = pinyinPro.pinyin(answer, { pattern: 'final', type: 'array' , toneType:'none' });
+            let yunA = pinyinPro.pinyin(answer, { pattern: 'final', type: 'array', toneType: 'none' });
             let diaoA = pinyinPro.pinyin(answer, { pattern: 'num', type: 'array' });
             for (let char of answer) {
                 answerCharCount[char] = (answerCharCount[char] || 0) + 1;
@@ -169,7 +174,7 @@
                 answerNumCount[char] = (answerNumCount[char] || 0) + 1;
             }
             let shengG = pinyinPro.pinyin(guess, { pattern: 'initial', type: 'array' });
-            let yunG = pinyinPro.pinyin(guess, { pattern: 'final', type: 'array' , toneType: 'none' });
+            let yunG = pinyinPro.pinyin(guess, { pattern: 'final', type: 'array', toneType: 'none' });
             let diaoG = pinyinPro.pinyin(guess, { pattern: 'num', type: 'array' });
             for (let i = 0; i < guess.length; i++) {
                 if (guess[i] === answer[i]) {
@@ -189,7 +194,6 @@
                     answerNumCount[diaoG[i]]--;
                 }
             }
-
             for (let i = 0; i < guess.length; i++) {
                 if (result[i].status !== 'correct' && answerCharCount[guess[i]] > 0) {
                     result[i].status = 'present';
@@ -215,15 +219,13 @@
         function displayGuess(result) {
             let guessElement = document.createElement('div');
             guessElement.className = 'guess';
-
             result.forEach(char => {
                 let charElement = document.createElement('div');
                 charElement.className = `char ${char.status}`;
                 charElement.textContent = char.char;
 
-                let pinyin = pinyinPro.convert(pinyinPro.pinyin(char.char, { type: 'array' }).join(' '), { format: 'symbolToNum' });
                 let initial = pinyinPro.pinyin(char.char, { pattern: 'initial', type: 'array' }).join(' ');
-                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array' , toneType: 'none' }).join(' ');
+                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array', toneType: 'none' }).join(' ');
                 let num = pinyinPro.pinyin(char.char, { pattern: 'num', type: 'array' }).join(' ');
                 let highlightedPinyin = `<span class="${char.initialStatus}">${initial}</span><span class="${char.finalStatus}">${final}</span><span class="${char.numStatus}">${num}</span>`;
 

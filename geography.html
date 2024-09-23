@@ -154,7 +154,7 @@
             let answerFinalCount = {};
             let answerNumCount = {};
             let shengA = pinyinPro.pinyin(answer, { pattern: 'initial', type: 'array' });
-            let yunA = pinyinPro.pinyin(answer, { pattern: 'final', type: 'array' });
+            let yunA = pinyinPro.pinyin(answer, { pattern: 'final', type: 'array' , toneType:'none' });
             let diaoA = pinyinPro.pinyin(answer, { pattern: 'num', type: 'array' });
             for (let char of answer) {
                 answerCharCount[char] = (answerCharCount[char] || 0) + 1;

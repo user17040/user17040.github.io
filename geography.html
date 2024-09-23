@@ -92,7 +92,7 @@
                 newName = name.replace(matchedEthnic2.text.slice(0, -1), '').replace(/(自治州|自治区|自治县|自治旗)$/, '');
             }
             else {
-                newName = name.replace(/(省|市|县|区|(?<![前后左右中])旗$|盟|林区|地区|市辖区|省直辖县级行政区划|自治区直辖县级行政区划|自治州|自治区|自治县)$/, '');
+                newName = name.replace(/(省|市|县|区|(?<![前后左右中])旗$|盟|林区|地区|新区|市辖区|省直辖县级行政区划|自治区直辖县级行政区划|自治州|自治区|自治县)$/, '');
             }
 
             return newName.length === 1 ? name : newName;

@@ -223,7 +223,7 @@
 
                 let pinyin = pinyinPro.convert(pinyinPro.pinyin(char.char, { type: 'array' }).join(' '), { format: 'symbolToNum' });
                 let initial = pinyinPro.pinyin(char.char, { pattern: 'initial', type: 'array' }).join(' ');
-                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array' }).join(' ');
+                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array' , toneType: 'none' }).join(' ');
                 let num = pinyinPro.pinyin(char.char, { pattern: 'num', type: 'array' }).join(' ');
                 let highlightedPinyin = pinyin.replace(initial, `<span class="${char.initialStatus}">${initial}</span>`).replace(final, `<span class="${char.finalStatus}">${final}</span>`).replace(num, `<span class="${char.numStatus}">${num}</span>`);
 

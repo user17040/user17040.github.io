@@ -169,7 +169,7 @@
                 answerNumCount[char] = (answerNumCount[char] || 0) + 1;
             }
             let shengG = pinyinPro.pinyin(guess, { pattern: 'initial', type: 'array' });
-            let yunG = pinyinPro.pinyin(guess, { pattern: 'final', type: 'array' });
+            let yunG = pinyinPro.pinyin(guess, { pattern: 'final', type: 'array' , toneType: 'none' });
             let diaoG = pinyinPro.pinyin(guess, { pattern: 'num', type: 'array' });
             for (let i = 0; i < guess.length; i++) {
                 if (guess[i] === answer[i]) {

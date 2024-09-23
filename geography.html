@@ -103,7 +103,7 @@
             area.forEach(a => {
                 let provinceName = removeSuffix(province.find(p => p.code === a.provinceCode)?.name);
                 let cityName = removeSuffix(city.find(c => c.code === a.cityCode)?.name);
-                if (provinceName && cityName && !a.name.includes('开发区') && !a.name.includes('管理区') && !a.name.includes('业园区')) {
+                if (!a.name.includes('开发区') && !a.name.includes('管理区') && !a.name.includes('业园区')) {
                     let areaName = removeSuffix(a.name);
                     fullNames.push(`${provinceName}${cityName}${areaName}`);
                 }

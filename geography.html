@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<script src="data.js"></script>
+<script src="data2.js"></script>
 <script src="https://unpkg.com/pinyin-pro"></script>
 
 <head>
@@ -78,48 +78,13 @@
 <body>
     <h1>中国区县 Wordle</h1>
     <div id="game-container">
-        <div id="info"></div>
         <input type="text" id="input" placeholder="请输入">
         <button id="submit">提交</button>
         <div id="guesses"></div>
     </div>
 
     <script>
-        function removeSuffix(name) {
-            let matchedEthnic1 = ethnicGroups.find(ethnic => name.includes(ethnic.text));
-            let matchedEthnic2 = ethnicGroups.find(ethnic => ethnic.text.length > 3 && name.includes(ethnic.text.slice(0, -1)));
-            let newName;
-            if (matchedEthnic1) {
-                newName = name.replace(matchedEthnic1.text, '').replace(/(自治州|自治区|自治县|自治旗)$/, '');
-            }
-            else if (matchedEthnic2) {
-                newName = name.replace(matchedEthnic2.text.slice(0, -1), '').replace(/(自治州|自治区|自治县|自治旗)$/, '');
-            }
-            else {
-                newName = name.replace(/(省|市|县|区|(?<![前后左右中])旗$|盟|林区|地区|新区|市辖区|省直辖县级行政区划|自治区直辖县级行政区划|自治州|自治区|自治县)$/, '');
-            }
-
-            return newName.length === 1 ? name : newName;
-        }
-        function generateFullNames() {
-            let fullNames = [];
-
-            area.forEach(a => {
-                let provinceName = removeSuffix(province.find(p => p.code === a.provinceCode)?.name);
-                let cityName = removeSuffix(city.find(c => c.code === a.cityCode)?.name);
-                if (!a.name.includes('开发区') && !a.name.includes('管理区') && !a.name.includes('业园区') && !a.name.includes('化工园')) {
-                    let areaName = removeSuffix(a.name);
-                    fullNames.push(`${provinceName}${cityName}${areaName}`);
-                }
-            });
-
-            return fullNames;
-        }
-
-        let areas = generateFullNames();
         let answer = areas[Math.floor(Math.random() * areas.length)];
-        // 显示所需字数信息
-        info.textContent = `请输入${answer.length}个字`;
 
         let input = document.getElementById('input');
         let submit = document.getElementById('submit');
@@ -128,7 +93,7 @@
         submit.addEventListener('click', () => {
             let guess = input.value.replace(/\s/g, '');
             if (guess.length !== answer.length) {
-                alert(`请输入${answer.length}个字`);
+                alert(`答案固定6个字`);
                 return;
             }
             if (!areas.includes(guess)) {
@@ -137,7 +102,7 @@
             }
 
             let result = checkGuess(guess);
-            displayGuess(result);
+            displayGuess(guess,result);
             input.value = '';
 
             if (result.every(char => char.status === 'correct')) {
@@ -216,18 +181,16 @@
             return result;
         }
 
-        function displayGuess(result) {
+        function displayGuess(guess,result) {
             let guessElement = document.createElement('div');
             guessElement.className = 'guess';
+            let all = pinyinPro.pinyin(guess, { type: 'all' });
+            let i=0;
             result.forEach(char => {
                 let charElement = document.createElement('div');
                 charElement.className = `char ${char.status}`;
                 charElement.textContent = char.char;
-
-                let initial = pinyinPro.pinyin(char.char, { pattern: 'initial', type: 'array' }).join(' ');
-                let final = pinyinPro.pinyin(char.char, { pattern: 'final', type: 'array', toneType: 'none' }).join(' ');
-                let num = pinyinPro.pinyin(char.char, { pattern: 'num', type: 'array' }).join(' ');
-                let highlightedPinyin = `<span class="${char.initialStatus}">${initial}</span><span class="${char.finalStatus}">${final}</span><span class="${char.numStatus}">${num}</span>`;
+                let highlightedPinyin = `<span class="${result[i].initialStatus}">${all[i].initial}</span><span class="${result[i].finalStatus}">${all[i].final}</span><span class="${result[i].numStatus}">${all[i].num}</span>`;
 
                 let pinyinElement = document.createElement('div');
                 pinyinElement.className = 'pinyin';
@@ -235,6 +198,7 @@
 
                 charElement.appendChild(pinyinElement);
                 guessElement.appendChild(charElement);
+                i++;
             });
 
             guesses.appendChild(guessElement);

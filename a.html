@@ -81,12 +81,11 @@
                 return;
             }
 
-            if (guessedCity === endCity) {
-                message.textContent = "恭喜！你已经到达目的地！";
-                return;
-            }
-
             if (getConnectedCities(currentCity).includes(guessedCity)) {
+                if (guessedCity === endCity) {
+                    message.textContent = "恭喜！你已经到达目的地！";
+                    return;
+                }
                 currentCity = guessedCity;
                 score -= 1;
                 document.getElementById('current-city').textContent = currentCity;

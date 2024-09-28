@@ -43,18 +43,22 @@
         <input type="text" id="guess" placeholder="输入下一个城市">
         <button onclick="makeGuess()">猜测</button>
         <p id="message"></p>
+        
+        <!-- 添加查找最短路径按钮 -->
+        <button onclick="openCityInput()">查找最短路径</button>
     </div>
 
     <script>
-
         const cities = cityData.map((x) => x["1是/0否"]);
         let startCity, endCity, currentCity, score;
 
+        // 获取与指定城市相连的所有城市
         function getConnectedCities(city) {
             let t = cityData[cities.indexOf(city)];
             return Object.keys(t).filter((x) => t[x] === '1' && city !== x);
         }
 
+        // 初始化游戏
         function initGame() {
             startCity = cities[Math.floor(Math.random() * cities.length)];
             do {
@@ -72,6 +76,7 @@
             document.getElementById('guess').value = '';
         }
 
+        // 猜测下一个城市
         function makeGuess() {
             const guessedCity = document.getElementById('guess').value.trim();
             const message = document.getElementById('message');
@@ -102,6 +107,55 @@
             }
         }
 
+        // 弹出输入框，输入两个城市
+        function openCityInput() {
+            const cityA = prompt("请输入第一个城市：");
+            const cityB = prompt("请输入第二个城市：");
+
+            if (!cities.includes(cityA) || !cities.includes(cityB)) {
+                alert("输入的城市不存在！");
+                return;
+            }
+
+            const result = findShortestPath(cityA, cityB);
+            if (result) {
+                alert(`最短路径长度为: ${result.distance}，经过的点: ${result.path.join(' -> ')}`);
+            } else {
+                alert("无法找到连接这两个城市的路径。");
+            }
+        }
+
+        // 查找最短路径（使用广度优先搜索 BFS）
+        function findShortestPath(start, end) {
+            let visited = new Set();
+            let queue = [[start, [start]]];  // [当前城市, 路径数组]
+
+            while (queue.length > 0) {
+                const [currentCity, path] = queue.shift();
+
+                // 如果找到目标城市，返回路径
+                if (currentCity === end) {
+                    return {
+                        distance: path.length - 1,  // 路径长度 = 节点数 - 1
+                        path: path                 // 路径数组
+                    };
+                }
+
+                visited.add(currentCity);
+
+                // 遍历与当前城市相连的所有城市
+                for (let neighbor of getConnectedCities(currentCity)) {
+                    if (!visited.has(neighbor)) {
+                        queue.push([neighbor, path.concat(neighbor)]);
+                    }
+                }
+            }
+
+            // 无法找到路径，返回 null
+            return null;
+        }
+
+        // 初始化游戏
         initGame();
     </script>
 </body>

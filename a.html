@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<script src="citydata.js"></script>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市连接游戏</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>城市连接游戏</h1>
+        <p>得分: <span id="score">100</span></p>
+        <p>起始城市: <span id="start-city"></span></p>
+        <p>终止城市: <span id="end-city"></span></p>
+        <p>当前城市: <span id="current-city"></span></p>
+        <input type="text" id="guess" placeholder="输入下一个城市">
+        <button onclick="makeGuess()">猜测</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+
+        const cities = cityData.map((x)=>x["1是/0否"]);
+        let startCity, endCity, currentCity, score;
+
+        function getConnectedCities(city) {
+            return Object.keys(cityData).filter(c => c !== "1是/0否" && cityData[c] === "1" && c !== city);
+        }
+
+        function initGame() {
+            startCity = cities[Math.floor(Math.random() * cities.length)];
+            do {
+                endCity = cities[Math.floor(Math.random() * cities.length)];
+            } while (endCity === startCity);
+
+            currentCity = startCity;
+            score = 100;
+
+            document.getElementById('start-city').textContent = startCity;
+            document.getElementById('end-city').textContent = endCity;
+            document.getElementById('current-city').textContent = currentCity;
+            document.getElementById('score').textContent = score;
+            document.getElementById('message').textContent = '';
+            document.getElementById('guess').value = '';
+        }
+
+        function makeGuess() {
+            const guessedCity = document.getElementById('guess').value.trim();
+            const message = document.getElementById('message');
+
+            if (!cities.includes(guessedCity)) {
+                message.textContent = "不存在该城市！";
+                return;
+            }
+
+            if (guessedCity === endCity) {
+                message.textContent = "恭喜！你已经到达目的地！";
+                return;
+            }
+
+            if (getConnectedCities(currentCity).includes(guessedCity)) {
+                currentCity = guessedCity;
+                score -= 1;
+                document.getElementById('current-city').textContent = currentCity;
+                document.getElementById('score').textContent = score;
+                message.textContent = '正确！继续前进。';
+            } else {
+                score -= 5;
+                document.getElementById('score').textContent = score;
+                message.textContent = '错误。这些城市不相连。请重试。';
+            }
+
+            if (score <= 0) {
+                message.textContent = '游戏结束。你的分数已用完。';
+            }
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

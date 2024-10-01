@@ -6,11 +6,11 @@ const factory = () => {
   // depth 表示总深度，cDepth表示当前搜索深度
   const helper = (board, role, depth, cDepth = 0, path = [], alpha = -MAX, beta = MAX, isChong = false) => {
     const ev = board.evaluate(role);
-    if (ev >= FIVE) {
-      return [FIVE - path.length, [...path]];
+    if (ev >= FIVE - 4 && cDepth > 0 && !isChong) {
+      return [ev - path.length, [...path]];
     }
-    if (ev <= -FIVE) {
-      return [-FIVE + path.length, [...path]];
+    if (ev <= -FIVE + 4 && cDepth > 0 && !isChong) {
+      return [ev + path.length, [...path]];
     }
     if (cDepth >= depth) {
       return [ev, [...path]];
@@ -96,7 +96,7 @@ const minmax = (board, role, maxtime = 2000) => {
       const startTime = new Date();
       const res = _minmax(board, role, depth);
       res.push(depth, new Date() - d);
-      document.getElementById('info').value = '计算|深度：' + res[2] + '|分数：' + res[0] + '（' + situation(role , res[0]) + '）|路径：' + convertCoordinates(res[1]) + '|时间：' + res[3] + '\n' + document.getElementById('info').value;
+      document.getElementById('info').value = '计算|深度：' + res[2] + '|分数：' + res[0] + '（' + situation(role, res[0]) + '）|路径：' + convertCoordinates(res[1]) + '|时间：' + res[3] + '\n' + document.getElementById('info').value;
       if (new Date() - d > maxtime) {
         resolve(res);
         return;
@@ -111,15 +111,15 @@ const minmax = (board, role, maxtime = 2000) => {
 };
 const situation = (role, score) => {
   let nscore = role * score;
-  if (-FIVE + 1000 >= nscore) return '白必胜';
-  if (-FIVE + 1000 < nscore && nscore < -800) return '白近胜';
-  if (-800 <= nscore && nscore < -400) return '白大优';
-  if (-400 <= nscore && nscore < -200) return '白小优';
-  if (-200 <= nscore && nscore < -100) return '偏白';
-  if (-100 <= nscore && nscore <= 100) return '平衡';
-  if (100 < nscore && nscore <= 200) return '偏黑';
-  if (200 < nscore && nscore <= 400) return '黑小优';
-  if (400 < nscore && nscore <= 800) return '黑大优';
-  if (800 < nscore && nscore < FIVE - 1000) return '黑近胜';
-  if (FIVE - 1000 <= nscore) return '黑必胜';
+  if (-FIVE + 225 >= nscore) return '白必胜';
+  if (-FIVE + 225 < nscore && nscore < -133) return '白近胜';
+  if (-133 <= nscore && nscore < -100) return '白大优';
+  if (-100 <= nscore && nscore < -66) return '白小优';
+  if (-66 <= nscore && nscore < -33) return '偏白';
+  if (-33 <= nscore && nscore <= 33) return '平衡';
+  if (33 < nscore && nscore <= 66) return '偏黑';
+  if (66 < nscore && nscore <= 100) return '黑小优';
+  if (100 < nscore && nscore <= 133) return '黑大优';
+  if (133 < nscore && nscore < FIVE - 225) return '黑近胜';
+  if (FIVE - 225 <= nscore) return '黑必胜';
 }

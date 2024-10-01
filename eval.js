@@ -9,14 +9,14 @@
 - 提供 evaluatePoint 方法，用于计算某个点的得分。
 */
 
-const FIVE = 100000;
+const FIVE = 30000;
 const LONG = 1000000;
-const FOUR = 25000;
-const BLOCK_FOUR = 4000;
-const THREE = 750;
-const BLOCK_THREE = 150;
-const TWO = 30;
-const BLOCK_TWO = 6;
+const FOUR = 4000;
+const BLOCK_FOUR = 800;
+const THREE = 180;
+const BLOCK_THREE = 30;
+const TWO = 10;
+const BLOCK_TWO = 4;
 const ONE = 1;
 
 const shapes = {
@@ -30,8 +30,8 @@ const shapes = {
   431: BLOCK_FOUR / 4,
   422: BLOCK_FOUR / 4,
   413: BLOCK_FOUR / 4,
-  3: THREE / 3 + 50,
-  30: THREE / 3 + 25,
+  3: THREE / 3,
+  30: THREE / 3,
   321: THREE / 3,
   312: THREE / 3,
   300: BLOCK_THREE / 3,
@@ -41,8 +41,8 @@ const shapes = {
   3012: BLOCK_THREE / 3,
   30111: BLOCK_THREE / 3,
   31110: BLOCK_THREE / 3,
-  2: TWO / 2 + 4,
-  21: TWO / 2 + 2,
+  2: TWO / 2,
+  21: TWO / 2,
   211: TWO / 2,
   20: BLOCK_TWO / 2,
   210: BLOCK_TWO / 2,
@@ -249,30 +249,30 @@ class Evaluate {
     }
     if (role === 1) {
       if (b4 + bb4 + b43 > 0) {
-        return FIVE - 250;
+        return FIVE - 1;
       }
       if (b4 + bb4 + b43 === 0 && w4 > 0) {
-        return -FIVE + 500;
+        return -FIVE + 2;
       }
       if (w4 + w43 + wb4 === 0 && b3 > 0) {
-        return FIVE - 750;
+        return FIVE - 3;
       }
       if (b4 + bb4 + b43 === 0 && w43 > 0) {
-        return -FIVE + 1000;
+        return -FIVE + 4;
       }
     }
     else {
       if (w4 + wb4 + w43 > 0) {
-        return FIVE - 250;
+        return FIVE - 1;
       }
       if (w4 + wb4 + w43 === 0 && b4 > 0) {
-        return -FIVE + 500;
+        return -FIVE + 2;
       }
       if (b4 + b43 + bb4 === 0 && w3 > 0) {
-        return FIVE - 750;
+        return FIVE - 3;
       }
       if (w4 + wb4 + w43 === 0 && b43 > 0) {
-        return -FIVE + 1000;
+        return -FIVE + 4;
       }
     }
     return role === 1 ? 2 * blackScore - whiteScore : 2 * whiteScore - blackScore;

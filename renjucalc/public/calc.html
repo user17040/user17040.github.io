@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <h1>五子棋分析器</h1>
+    <div id="board"></div>
+    <button onclick="undoMove()">回退</button>
+    <button onclick="think()">计算</button>
+    <button onclick="gomocalc.stopThinking();makeMove(best[0],best[1])">停止</button>
+    <h2>计算结果</h2>
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th>深度</th>
+                <th>分数</th>
+                <th>时间</th>
+                <th>路线</th>
+            </tr>
+        <tbody id="result-body">
+            <!-- 计算结果会被动态添加到这里 -->
+        </tbody>
+        </thead>
+    </table>
+</body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gomoku Board</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin: 20px;
+        }
+
+        td {
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 12px;
+            border: 1px solid #000;
+            background-color: #ccc;
+            /* 灰色背景 */
+            position: relative;
+        }
+
+        td::before {
+            content: '';
+            display: block;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+
+        .black {
+            color: #000;
+            /* 白色数字 */
+        }
+
+        .white {
+            color: #fff;
+            /* 黑色数字 */
+        }
+
+        .red {
+            color: #f00;
+            /* 黑色数字 */
+        }
+
+        .empty {
+            color: transparent;
+            /* 空格无数字显示 */
+        }
+
+        .info-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .info-table th,
+        .info-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .info-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="gomocalc.js"></script>
+    <script>
+        let board = Array(15).fill().map(() => Array(15).fill(null)); // 15x15 empty board
+        let moveHistory = []; // Stores the move history for undo
+        let currentMove = 1; // Move counter
+        let gomocalcInitialized = false; // Flag to track if gomocalc is initialized
+        let path = "";
+        let best;
+        function convertCoordinate(coordinate) {
+            const columnLetter = coordinate[0]; // 获取列字母
+            const rowNumber = parseInt(coordinate.slice(1,coordinate.length), 10); // 获取行数字
+
+            const columnNumber = columnLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+
+            const rowNumberConverted = 15 - rowNumber;
+            return [rowNumberConverted, columnNumber];
+        }
+        function callback(o) {
+            if (o.msg && !o.msg.includes("Speed")) {
+                console.log(o.msg);
+                let s = o.msg.split("|");
+                best = convertCoordinate(s[3].split(" ")[1]);
+                updateTable(s[0].slice(6, s[0].length), s[1].slice(5, s[1].length), s[2].slice(5, s[2].length), s[3].slice(0, s[3].length));
+            }
+        }
+
+        function drawBoard() {
+            let table = "<table>";
+            // Add coordinates on the top row
+            table += "<tr><td></td>";
+            for (let i = 0; i < 15; i++) {
+                table += `<td class="red">${String.fromCharCode(65 + i)}</td>`; // A-O
+            }
+            table += "</tr>";
+            for (let i = 0; i < 15; i++) {
+                table += `<tr><td class="red">${15 - i}</td>`; // Row numbers 15-1 on the left
+                for (let j = 0; j < 15; j++) {
+                    let cellClass = board[i][j] ? (board[i][j].side === 1 ? "black" : "white") : "empty";
+                    table += `<td class="${cellClass}" onclick="makeMove(${i}, ${j})">`;
+                    if (board[i][j]) {
+                        table += board[i][j].move; // Display move number
+                    }
+                    table += "</td>";
+                }
+                table += "</tr>";
+            }
+            document.getElementById('board').innerHTML = table;
+        }
+
+        function makeMove(i, j) {
+            if (board[i][j] !== null) return; // If already occupied, return
+            let side = currentMove % 2 === 1 ? 1 : 2; // Alternates between 1 (black) and 2 (white)
+            board[i][j] = { side, move: currentMove }; // Store side and move number
+            moveHistory.push({ i, j, side, move: currentMove, path });
+            currentMove++;
+            drawBoard();
+            path += ` ${j},${i},${side}`;
+        }
+
+        function undoMove() {
+            if (moveHistory.length === 0) return;
+            let lastMove = moveHistory.pop();
+            board[lastMove.i][lastMove.j] = null; // Clear last move
+            path = lastMove.path;
+            currentMove--;
+            drawBoard();
+        }
+
+        function think() {
+            if (!gomocalcInitialized) {
+                // Initialize gomocalc only when the first "计算" is pressed
+                initGomocalc().then(() => {
+                    performThink();
+                });
+            } else {
+                performThink();
+            }
+        }
+
+        function performThink() {
+            // The actual think process starts here
+            gomocalc.sendCommand('RELOADCONFIG config-220723.toml');
+            gomocalc.sendCommand('INFO HASH_SIZE 262144');
+            gomocalc.sendCommand('INFO RULE 2');
+            gomocalc.sendCommand('INFO THREAD_NUM 1');
+            gomocalc.sendCommand('INFO CAUTION_FACTOR 3');
+            gomocalc.sendCommand('INFO STRENGTH 100');
+            gomocalc.sendCommand('INFO TIMEOUT_TURN 86400000');
+            gomocalc.sendCommand('INFO TIMEOUT_MATCH 86400000');
+            gomocalc.sendCommand('INFO MAX_DEPTH 225');
+            gomocalc.sendCommand('INFO MAX_NODE 0');
+            gomocalc.sendCommand('INFO SHOW_DETAIL 3');
+            gomocalc.sendCommand('INFO PONDERING 0');
+            gomocalc.sendCommand('INFO SWAPABLE 1');
+            gomocalc.sendCommand('START 15');
+            gomocalc.sendCommand('INFO TIME_LEFT 86400000');
+            if (currentMove % 2 === 1) {
+                gomocalc.sendCommand(`YXBOARD${path} DONE`);
+            } else {
+                let s = path.split(' ');
+                gomocalc.sendCommand(`YXBOARD${s.slice(0, s.length - 1).join(' ')} DONE`);
+                gomocalc.sendCommand(`TURN ${s[s.length - 1]}`);
+            }
+            gomocalc.sendCommand('YXNBEST 1');
+        }
+
+        function initGomocalc() {
+            return new Promise((resolve, reject) => {
+                gomocalc.init(o => {
+                    gomocalcInitialized = true;
+                    o && o.ok && resolve(o);
+                    callback(o);
+                });
+            });
+        }
+        // 更新表格显示深度、分数、路线
+        function updateTable(depth, score, time, line) {
+            let tableBody = document.getElementById('result-body');
+            tableBody.innerHTML = ''; // 清空原有内容，防止重复添加
+            let newRow = document.createElement('tr');
+            newRow.innerHTML = `<td>${depth}</td><td>${score}</td><td>${time}</td><td>${line}</td>`;
+            tableBody.appendChild(newRow);
+        }
+        // Draw the board on page load
+        drawBoard();
+
+    </script>
+</head>
+
+
+</html>

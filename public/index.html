@@ -1,157 +1,145 @@
 <!DOCTYPE html>
 <html>
-
-<body>
-    <h1>五子棋先手必胜（有禁手，黑棋不走33、44、长连）</h1>
-    <div id="board"></div>
-    <button onclick="undoMove();undoMove()">回退</button>
-</body>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gomoku Board</title>
+    <title>Gomoku and Wordle Analyzer</title>
     <style>
+        .guess-result {
+            margin: 10px 0;
+            font-size: 18px;
+            font-family: monospace;
+        }
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+        .present {
+            background-color: #c9b458;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+        .absent {
+            background-color: #787c7d;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
         table {
             border-collapse: collapse;
             margin: 20px;
         }
-
         td {
-            width: 20px;
-            height: 20px;
+            width: 30px;
+            height: 30px;
             text-align: center;
             vertical-align: middle;
-            font-size: 15px;
-            border: 1px solid #000;
+            font-size: 18px;
+            border: 2px solid #000;
             background-color: #ccc;
-            /* 灰色背景 */
             position: relative;
         }
-
-        td::before {
-            content: '';
-            display: block;
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1;
-        }
-
-
-        .black {
-            color: #000;
-            /* 白色数字 */
-        }
-
-        .white {
-            color: #fff;
-            /* 黑色数字 */
-        }
-
-        .red {
-            color: #f00;
-            /* 黑色数字 */
-        }
-
-        .empty {
-            color: transparent;
-            /* 空格无数字显示 */
+        .black { color: #000; }
+        .white { color: #fff; }
+        .red { color: #f00; }
+        .empty { color: transparent; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
+</head>
+<body>
+    <h1>五子棋Wordle</h1>
+    <div id="board"></div>
+    <button onclick="undoMove()">回退</button>
+    <button onclick="think()">生成wordle</button>
+    <button onclick="inputCoordinates()">输入坐标</button>
+    <h2>猜测记录</h2>
+    <div id="guess-history"></div>
+
     <script src="gomocalc.js"></script>
     <script>
-        let board = Array(15).fill().map(() => Array(15).fill(null)); // 15x15 empty board
-        let moveHistory = []; // Stores the move history for undo
-        let currentMove = 1; // Move counter
-        let gomocalcInitialized = false; // Flag to track if gomocalc is initialized
+        let board = Array(15).fill().map(() => Array(15).fill(null));
+        let moveHistory = [];
+        let currentMove = 1;
+        let gomocalcInitialized = false;
         let path = "";
-        let best;
+        let targetCoordinates;
+        let guessHistory = [];
+
         function convertCoordinate(coordinate) {
-            const columnLetter = coordinate[0]; // 获取列字母
-            const rowNumber = parseInt(coordinate.slice(1, coordinate.length), 10); // 获取行数字
-
+            const columnLetter = coordinate[0];
+            const rowNumber = parseInt(coordinate.slice(1), 10);
             const columnNumber = columnLetter.charCodeAt(0) - 'A'.charCodeAt(0);
-
             const rowNumberConverted = 15 - rowNumber;
             return [rowNumberConverted, columnNumber];
         }
+
         function callback(o) {
-            if (o.pos && best === null) {
-                makeMove(o.pos[1], o.pos[0]);
-            }
-            if (o.msg) {
-                if (o.msg.includes("Speed")) {
-                    makeMove(best[0], best[1]);
-                } else {
-                    console.log(o.msg);
-                    let s = o.msg.split("|");
-                    best = convertCoordinate(s[3].split(" ")[1]);
-                    if (Number(s[0].slice(6, s[0].length).split('-')[0]) >= 25) { gomocalc.stopThinking(); makeMove(best[0], best[1]); }
+            if (o.msg && !o.msg.includes("Speed")) {
+                console.log(o.msg);
+                let s = o.msg.split("|");
+                targetCoordinates = [s[3].split(" ")[1], s[3].split(" ")[2], s[3].split(" ")[3], s[3].split(" ")[4], s[3].split(" ")[5]];
+                if (Number(s[0].slice(6, s[0].length).split('-')[0]) >= 16) { 
+                    gomocalc.stopThinking(); 
+                    alert('生成成功！'); 
                 }
             }
         }
 
         function drawBoard() {
             let table = "<table>";
-            // Add coordinates on the top row
             table += "<tr><td></td>";
             for (let i = 0; i < 15; i++) {
-                table += `<td class="red">${String.fromCharCode(65 + i)}</td>`; // A-O
+                table += `<td class="red">${String.fromCharCode(65 + i)}</td>`;
             }
             table += "</tr>";
             for (let i = 0; i < 15; i++) {
-                table += `<tr><td class="red">${15 - i}</td>`; // Row numbers 15-1 on the left
+                table += `<tr><td class="red">${15 - i}</td>`;
                 for (let j = 0; j < 15; j++) {
                     let cellClass = board[i][j] ? (board[i][j].side === 1 ? "black" : "white") : "empty";
                     table += `<td class="${cellClass}" onclick="makeMove(${i}, ${j})">`;
                     if (board[i][j]) {
-                        table += board[i][j].move; // Display move number
+                        table += board[i][j].move;
                     }
                     table += "</td>";
                 }
                 table += "</tr>";
             }
+            table += "</table>";
             document.getElementById('board').innerHTML = table;
         }
 
         function makeMove(i, j) {
-            if (board[i][j] !== null) return; // If already occupied, return
-            let side = currentMove % 2 === 1 ? 1 : 2; // Alternates between 1 (black) and 2 (white)
-            board[i][j] = { side, move: currentMove }; // Store side and move number
+            if (board[i][j] !== null) return;
+            let side = currentMove % 2 === 1 ? 1 : 2;
+            board[i][j] = { side, move: currentMove };
             moveHistory.push({ i, j, side, move: currentMove, path });
             currentMove++;
             drawBoard();
             path += ` ${j},${i},${side}`;
-            if (side !== 1) {
-                const result = findMatchingMove(moveHistory.map(x => [x.i, x.j]), books, 15);
-                console.log(result);
-                if (result === null) {
-                    think();
-                    makeMove(best[0], best[1]);
-                } else {
-                    makeMove(result[0], result[1]);
-                }
-            }
         }
 
         function undoMove() {
             if (moveHistory.length === 0) return;
             let lastMove = moveHistory.pop();
-            board[lastMove.i][lastMove.j] = null; // Clear last move
+            board[lastMove.i][lastMove.j] = null;
             path = lastMove.path;
             currentMove--;
             drawBoard();
         }
 
         function think() {
-            best = null;
             if (!gomocalcInitialized) {
-                // Initialize gomocalc only when the first "计算" is pressed
                 initGomocalc().then(() => {
                     performThink();
                 });
@@ -161,7 +149,6 @@
         }
 
         function performThink() {
-            // The actual think process starts here
             gomocalc.sendCommand('RELOADCONFIG config-220723.toml');
             gomocalc.sendCommand('INFO HASH_SIZE 262144');
             gomocalc.sendCommand('INFO RULE 2');
@@ -184,7 +171,7 @@
                 gomocalc.sendCommand(`YXBOARD${s.slice(0, s.length - 1).join(' ')} DONE`);
                 gomocalc.sendCommand(`TURN ${s[s.length - 1]}`);
             }
-            gomocalc.sendCommand('YXNBEST 1');
+            gomocalc.sendCommand('YXNtargetCoordinates 1');
         }
 
         function initGomocalc() {
@@ -196,223 +183,50 @@
                 });
             });
         }
-        // Draw the board on page load
-        drawBoard();
-        makeMove(7, 7);
-        //---book---
-        let books = [
-            [[7, 7]],
-            [[7, 7], [7, 9], [8, 6]],
-            [[7, 7], [7, 8], [8, 8]],
-            [[7, 7], [7, 9], [8, 6]],
-            [[7, 7], [7, 10], [8, 6]],
-            [[7, 7], [7, 11], [8, 6]],
-            [[7, 7], [7, 12], [8, 6]],
-            [[7, 7], [7, 13], [8, 6]],
-            [[7, 7], [7, 14], [8, 6]],
-            [[7, 7], [8, 8], [8, 6]],
-            [[7, 7], [8, 9], [8, 6]],
-            [[7, 7], [8, 10], [8, 6]],
-            [[7, 7], [8, 11], [8, 6]],
-            [[7, 7], [8, 12], [8, 6]],
-            [[7, 7], [8, 13], [8, 6]],
-            [[7, 7], [8, 14], [8, 6]],
-            [[7, 7], [9, 9], [8, 6]],
-            [[7, 7], [9, 10], [8, 6]],
-            [[7, 7], [9, 11], [8, 6]],
-            [[7, 7], [9, 12], [8, 6]],
-            [[7, 7], [9, 13], [8, 6]],
-            [[7, 7], [9, 14], [8, 6]],
-            [[7, 7], [10, 10], [8, 6]],
-            [[7, 7], [10, 11], [8, 6]],
-            [[7, 7], [10, 12], [8, 6]],
-            [[7, 7], [10, 13], [8, 6]],
-            [[7, 7], [10, 14], [8, 6]],
-            [[7, 7], [11, 11], [8, 6]],
-            [[7, 7], [11, 12], [8, 6]],
-            [[7, 7], [11, 13], [8, 6]],
-            [[7, 7], [11, 14], [8, 6]],
-            [[7, 7], [12, 12], [8, 6]],
-            [[7, 7], [12, 13], [8, 6]],
-            [[7, 7], [12, 14], [8, 6]],
-            [[7, 7], [13, 13], [8, 6]],
-            [[7, 7], [13, 14], [8, 6]],
-            [[7, 7], [14, 14], [8, 6]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9]],
-            [[7, 7], [7, 8], [8, 8], [6, 7], [9, 9]],
-            [[7, 7], [7, 8], [8, 8], [6, 9], [8, 7]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6]],
-            [[7, 7], [7, 8], [8, 8], [8, 9], [6, 6]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6]],
-            [[7, 7], [7, 9], [8, 6], [6, 8], [7, 5]],
-            [[7, 7], [7, 9], [8, 6], [9, 5], [6, 6]],
-            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6]],
-            [[7, 7], [8, 8], [8, 6], [7, 5], [6, 8]],
-            [[7, 7], [8, 8], [8, 6], [7, 6], [6, 8]],
-            [[7, 7], [8, 8], [8, 6], [9, 5], [6, 8]],
-            [[7, 7], [8, 9], [8, 6], [6, 8], [6, 6]],
-            [[7, 7], [8, 9], [8, 6], [9, 5], [7, 6]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [6, 8], [9, 10]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [6, 9], [9, 7]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 7], [9, 6]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 9], [9, 7]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [9, 6], [8, 7]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [6, 6], [10, 6]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [6, 7], [9, 9]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [7, 6], [10, 6]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [8, 6], [10, 7]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 5], [10, 6]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 7], [8, 5]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 8], [9, 5]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 9], [9, 5]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [10, 6], [9, 5]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [6, 7], [8, 6]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [6, 9], [8, 6]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [7, 9], [5, 6]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [8, 7], [9, 6]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [9, 6], [8, 7]],
-            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8], [9, 5], [5, 7]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 6], [9, 7]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 7], [9, 7]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [7, 6], [9, 7]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [8, 7], [10, 6]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [9, 8], [7, 8]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [10, 6], [7, 8]],
-            [[7, 7], [8, 8], [8, 6], [7, 5], [6, 8], [5, 9], [6, 7]],
-            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 7], [9, 6], [9, 8], [10, 9]],
-            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [8, 7], [9, 6], [7, 6], [6, 5]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [8, 6], [10, 7], [11, 8], [6, 6]],
-            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 7], [8, 5], [7, 4], [9, 9]],
-            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8], [9, 5], [5, 7], [4, 6], [7, 6]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 6], [9, 7], [6, 7], [6, 5]],
-            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [9, 8], [7, 8], [7, 6], [8, 7]]
-        ];
-        function Sort(arr) {
-            // 将数组分割为奇数位和偶数位
-            let oddIndices = [];
-            let evenIndices = [];
 
-            for (let i = 0; i < arr.length; i++) {
-                if (i % 2 === 0) {
-                    evenIndices.push(arr[i]); // 偶数位元素
+        function inputCoordinates() {
+            let input = prompt("请输入五个坐标，以空格分隔（如A1 B2 C3 D4 E5）");
+            if (input) {
+                let guesses = input.split(" ");
+                if (guesses.length === 5) {
+                    compareGuesses(guesses);
                 } else {
-                    oddIndices.push(arr[i]);  // 奇数位元素
+                    alert("请确保输入5个坐标！");
                 }
             }
+        }
 
-            // 分别对奇数位和偶数位的数组进行排序
-            evenIndices.sort(); // 升序排序偶数位
-            oddIndices.sort();  // 升序排序奇数位
-
-            // 合并排序后的数组
-            let result = [];
-            let evenPointer = 0;
-            let oddPointer = 0;
-
-            for (let i = 0; i < arr.length; i++) {
-                if (i % 2 === 0) {
-                    result.push(evenIndices[evenPointer++]); // 插入偶数位元素
+        function compareGuesses(guesses) {
+            let resultHTML = document.createElement('div');
+            resultHTML.className = 'guess-result';
+            
+            for (let i = 0; i < guesses.length; i++) {
+                let coord = guesses[i];
+                let span = document.createElement('span');
+                span.textContent = coord;
+                
+                if (targetCoordinates[i] === coord) {
+                    span.className = 'correct';
+                } else if (targetCoordinates.includes(coord)) {
+                    span.className = 'present';
                 } else {
-                    result.push(oddIndices[oddPointer++]);  // 插入奇数位元素
+                    span.className = 'absent';
                 }
+                
+                resultHTML.appendChild(span);
             }
-
-            return result;
+            
+            guessHistory.push(resultHTML.outerHTML);
+            updateGuessHistory();
         }
 
-        function rotate90(steps, boardSize) {
-            const center = (boardSize - 1) / 2;
-            return steps.map(([x, y]) => {
-                const newX = center + (center - y);
-                const newY = center - (center - x);
-                return [newX, newY];
-            });
-        }
-        function rotate180(steps, boardSize) {
-            return steps.map(([x, y]) => {
-                const newX = boardSize - 1 - x;
-                const newY = boardSize - 1 - y;
-                return [newX, newY];
-            });
-        }
-        function rotate270(steps, boardSize) {
-            const center = (boardSize - 1) / 2;
-            return steps.map(([x, y]) => {
-                const newX = center - (center - y);
-                const newY = center + (center - x);
-                return [newX, newY];
-            });
-        }
-        function flipHorizontal(steps, boardSize) {
-            return steps.map(([x, y]) => {
-                return [x, boardSize - 1 - y];
-            });
-        }
-        function findMatchingMove(inputSequence, books, boardSize) {
-            const n = inputSequence.length;
-
-            // 检查是否有匹配的序列
-            for (let i = 0; i < books.length; i++) {
-                const bookSequence = books[i];
-                // 如果长度不匹配，跳过
-                if (bookSequence.length - 1 !== n) continue;
-                // 检查正向匹配
-                if (JSON.stringify(Sort(bookSequence.slice(0, n))) === JSON.stringify(Sort(inputSequence))) {
-                    return bookSequence[n];
-                }
-
-                // 检查旋转90度匹配
-                const rotated90 = rotate90(bookSequence.slice(0, n), boardSize);
-                if (JSON.stringify(Sort(rotated90)) === JSON.stringify(Sort(inputSequence))) {
-                    return rotate90([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
-                }
-
-                // 检查旋转180度匹配
-                const rotated180 = rotate180(bookSequence.slice(0, n), boardSize);
-                if (JSON.stringify(Sort(rotated180)) === JSON.stringify(Sort(inputSequence))) {
-                    return rotate180([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
-                }
-
-                // 检查旋转270度匹配
-                const rotated270 = rotate270(bookSequence.slice(0, n), boardSize);
-                if (JSON.stringify(Sort(rotated270)) === JSON.stringify(Sort(inputSequence))) {
-                    return rotate270([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
-                }
-
-                // 检查水平翻转匹配
-                const flippedHorizontal = flipHorizontal(bookSequence.slice(0, n), boardSize);
-                if (JSON.stringify(Sort(flippedHorizontal)) === JSON.stringify(Sort(inputSequence))) {
-                    return flipHorizontal([bookSequence[n]], boardSize)[0]; // 返回翻转后的点
-                }
-
-                // 检查水平翻转 + 旋转90度匹配
-                const flippedHorizontalRotated90 = rotate90(flippedHorizontal, boardSize);
-                if (JSON.stringify(Sort(flippedHorizontalRotated90)) === JSON.stringify(Sort(inputSequence))) {
-                    return flipHorizontal(rotate90([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
-                }
-
-                // 检查水平翻转 + 旋转180度匹配
-                const flippedHorizontalRotated180 = rotate180(flippedHorizontal, boardSize);
-                if (JSON.stringify(Sort(flippedHorizontalRotated180)) === JSON.stringify(Sort(inputSequence))) {
-                    return flipHorizontal(rotate180([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
-                }
-
-                // 检查水平翻转 + 旋转270度匹配
-                const flippedHorizontalRotated270 = rotate270(flippedHorizontal, boardSize);
-                if (JSON.stringify(Sort(flippedHorizontalRotated270)) === JSON.stringify(Sort(inputSequence))) {
-                    return flipHorizontal(rotate270([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
-                }
-            }
-
-            // 如果没有找到匹配
-            return null;
+        function updateGuessHistory() {
+            document.getElementById('guess-history').innerHTML = guessHistory.join('<br>');
         }
 
-
-
+        window.onload = function() {
+            drawBoard();
+        };
     </script>
-</head>
-
-
+</body>
 </html>

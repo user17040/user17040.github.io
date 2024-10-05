@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gomoku and Wordle Analyzer</title>
+    <style>
+        .guess-result {
+            margin: 10px 0;
+            font-size: 18px;
+            font-family: monospace;
+        }
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+        .present {
+            background-color: #c9b458;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+        .absent {
+            background-color: #787c7d;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px;
+        }
+        td {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 18px;
+            border: 2px solid #000;
+            background-color: #ccc;
+            position: relative;
+        }
+        .black { color: #000; }
+        .white { color: #fff; }
+        .red { color: #f00; }
+        .empty { color: transparent; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>五子棋Wordle</h1>
+    <div id="board"></div>
+    <button onclick="undoMove()">回退</button>
+    <button onclick="think()">生成wordle</button>
+    <button onclick="inputCoordinates()">输入坐标</button>
+    <h2>猜测记录</h2>
+    <div id="guess-history"></div>
+
+    <script src="gomocalc.js"></script>
+    <script>
+        let board = Array(15).fill().map(() => Array(15).fill(null));
+        let moveHistory = [];
+        let currentMove = 1;
+        let gomocalcInitialized = false;
+        let path = "";
+        let targetCoordinates;
+        let guessHistory = [];
+
+        function convertCoordinate(coordinate) {
+            const columnLetter = coordinate[0];
+            const rowNumber = parseInt(coordinate.slice(1), 10);
+            const columnNumber = columnLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+            const rowNumberConverted = 15 - rowNumber;
+            return [rowNumberConverted, columnNumber];
+        }
+
+        function callback(o) {
+            if (o.msg && !o.msg.includes("Speed")) {
+                console.log(o.msg);
+                let s = o.msg.split("|");
+                targetCoordinates = [s[3].split(" ")[1], s[3].split(" ")[2], s[3].split(" ")[3], s[3].split(" ")[4], s[3].split(" ")[5]];
+                if (Number(s[0].slice(6, s[0].length).split('-')[0]) >= 16) { 
+                    gomocalc.stopThinking(); 
+                    alert('生成成功！'); 
+                }
+            }
+        }
+
+        function drawBoard() {
+            let table = "<table>";
+            table += "<tr><td></td>";
+            for (let i = 0; i < 15; i++) {
+                table += `<td class="red">${String.fromCharCode(65 + i)}</td>`;
+            }
+            table += "</tr>";
+            for (let i = 0; i < 15; i++) {
+                table += `<tr><td class="red">${15 - i}</td>`;
+                for (let j = 0; j < 15; j++) {
+                    let cellClass = board[i][j] ? (board[i][j].side === 1 ? "black" : "white") : "empty";
+                    table += `<td class="${cellClass}" onclick="makeMove(${i}, ${j})">`;
+                    if (board[i][j]) {
+                        table += board[i][j].move;
+                    }
+                    table += "</td>";
+                }
+                table += "</tr>";
+            }
+            table += "</table>";
+            document.getElementById('board').innerHTML = table;
+        }
+
+        function makeMove(i, j) {
+            if (board[i][j] !== null) return;
+            let side = currentMove % 2 === 1 ? 1 : 2;
+            board[i][j] = { side, move: currentMove };
+            moveHistory.push({ i, j, side, move: currentMove, path });
+            currentMove++;
+            drawBoard();
+            path += ` ${j},${i},${side}`;
+        }
+
+        function undoMove() {
+            if (moveHistory.length === 0) return;
+            let lastMove = moveHistory.pop();
+            board[lastMove.i][lastMove.j] = null;
+            path = lastMove.path;
+            currentMove--;
+            drawBoard();
+        }
+
+        function think() {
+            if (!gomocalcInitialized) {
+                initGomocalc().then(() => {
+                    performThink();
+                });
+            } else {
+                performThink();
+            }
+        }
+
+        function performThink() {
+            gomocalc.sendCommand('RELOADCONFIG config-220723.toml');
+            gomocalc.sendCommand('INFO HASH_SIZE 262144');
+            gomocalc.sendCommand('INFO RULE 2');
+            gomocalc.sendCommand('INFO THREAD_NUM 1');
+            gomocalc.sendCommand('INFO CAUTION_FACTOR 3');
+            gomocalc.sendCommand('INFO STRENGTH 100');
+            gomocalc.sendCommand('INFO TIMEOUT_TURN 86400000');
+            gomocalc.sendCommand('INFO TIMEOUT_MATCH 86400000');
+            gomocalc.sendCommand('INFO MAX_DEPTH 225');
+            gomocalc.sendCommand('INFO MAX_NODE 0');
+            gomocalc.sendCommand('INFO SHOW_DETAIL 3');
+            gomocalc.sendCommand('INFO PONDERING 0');
+            gomocalc.sendCommand('INFO SWAPABLE 1');
+            gomocalc.sendCommand('START 15');
+            gomocalc.sendCommand('INFO TIME_LEFT 86400000');
+            if (currentMove % 2 === 1) {
+                gomocalc.sendCommand(`YXBOARD${path} DONE`);
+            } else {
+                let s = path.split(' ');
+                gomocalc.sendCommand(`YXBOARD${s.slice(0, s.length - 1).join(' ')} DONE`);
+                gomocalc.sendCommand(`TURN ${s[s.length - 1]}`);
+            }
+            gomocalc.sendCommand('YXNtargetCoordinates 1');
+        }
+
+        function initGomocalc() {
+            return new Promise((resolve, reject) => {
+                gomocalc.init(o => {
+                    gomocalcInitialized = true;
+                    o && o.ok && resolve(o);
+                    callback(o);
+                });
+            });
+        }
+
+        function inputCoordinates() {
+            let input = prompt("请输入五个坐标，以空格分隔（如A1 B2 C3 D4 E5）");
+            if (input) {
+                let guesses = input.split(" ");
+                if (guesses.length === 5) {
+                    compareGuesses(guesses);
+                } else {
+                    alert("请确保输入5个坐标！");
+                }
+            }
+        }
+
+        function compareGuesses(guesses) {
+            let resultHTML = document.createElement('div');
+            resultHTML.className = 'guess-result';
+            
+            for (let i = 0; i < guesses.length; i++) {
+                let coord = guesses[i];
+                let span = document.createElement('span');
+                span.textContent = coord;
+                
+                if (targetCoordinates[i] === coord) {
+                    span.className = 'correct';
+                } else if (targetCoordinates.includes(coord)) {
+                    span.className = 'present';
+                } else {
+                    span.className = 'absent';
+                }
+                
+                resultHTML.appendChild(span);
+            }
+            
+            guessHistory.push(resultHTML.outerHTML);
+            updateGuessHistory();
+        }
+
+        function updateGuessHistory() {
+            document.getElementById('guess-history').innerHTML = guessHistory.join('<br>');
+        }
+
+        window.onload = function() {
+            drawBoard();
+        };
+    </script>
+</body>
+</html>

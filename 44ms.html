@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中文人名 Don't Wordle</title>
+  <title>44中 Don't Wordle</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -178,7 +178,7 @@
 </head>
 
 <body>
-  <h1>中文人名 Don't Wordle</h1>
+  <h1>44中 Don't Wordle</h1>
   <div id="game-board"></div>
   <input type="text" id="guess-input" placeholder="输入你的猜测（6个字）" maxlength="6">
   <button id="submit-guess">提交</button>
@@ -403,24 +403,14 @@
           result[i] = 'correct';
           answerArray[i] = null;
           guessArray[i] = null;
-        }
-        if (guessPinyin[i] === answerPinyin[i]) {
-          pinyinResult[i] = 'correct';
           answerPinyin[i] = null;
           guessPinyin[i] = null;
-        }
-        if (guessPinyin2[i] === answerPinyin2[i]) {
-          pinyin2Result[i] = 'correct';
           answerPinyin2[i] = null;
           guessPinyin2[i] = null;
-        }
-        if (guessSheng[i] === answerSheng[i]) {
-          shengresult[i] = 'correct';
           answerSheng[i] = null;
           guessSheng[i] = null;
         }
       }
-
       // 再标记存在但位置不对的字符和拼音
       for (let i = 0; i < 6; i++) {
         if (guessArray[i] !== null) {
@@ -428,22 +418,62 @@
           if (index !== -1) {
             result[i] = 'present';
             answerArray[index] = null;
+            answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin[i] === answerPinyin[i]) {
+          pinyinResult[i] = 'correct';
+          answerPinyin[i] = null;
+          guessPinyin[i] = null;
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+
+      for (let i = 0; i < 6; i++) {
         if (guessPinyin[i] !== null) {
           const index = answerPinyin.indexOf(guessPinyin[i]);
           if (index !== -1) {
             pinyinResult[i] = 'present';
             answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin2[i] === answerPinyin2[i]) {
+          pinyin2Result[i] = 'correct';
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
         if (guessPinyin2[i] !== null) {
           const index = answerPinyin2.indexOf(guessPinyin2[i]);
           if (index !== -1) {
             pinyin2Result[i] = 'present';
             answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessSheng[i] === answerSheng[i]) {
+          shengresult[i] = 'correct';
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
         if (guessSheng[i] !== null) {
           const index = answerSheng.indexOf(guessSheng[i]);
           if (index !== -1) {
@@ -510,24 +540,14 @@
           result[i] = 'correct';
           answerArray[i] = null;
           guessArray[i] = null;
-        }
-        if (guessPinyin[i] === answerPinyin[i]) {
-          pinyinResult[i] = 'correct';
           answerPinyin[i] = null;
           guessPinyin[i] = null;
-        }
-        if (guessPinyin2[i] === answerPinyin2[i]) {
-          pinyin2Result[i] = 'correct';
           answerPinyin2[i] = null;
           guessPinyin2[i] = null;
-        }
-        if (guessSheng[i] === answerSheng[i]) {
-          shengresult[i] = 'correct';
           answerSheng[i] = null;
           guessSheng[i] = null;
         }
       }
-
       // 再标记存在但位置不对的字符和拼音
       for (let i = 0; i < 6; i++) {
         if (guessArray[i] !== null) {
@@ -535,22 +555,62 @@
           if (index !== -1) {
             result[i] = 'present';
             answerArray[index] = null;
+            answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin[i] === answerPinyin[i]) {
+          pinyinResult[i] = 'correct';
+          answerPinyin[i] = null;
+          guessPinyin[i] = null;
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+
+      for (let i = 0; i < 6; i++) {
         if (guessPinyin[i] !== null) {
           const index = answerPinyin.indexOf(guessPinyin[i]);
           if (index !== -1) {
             pinyinResult[i] = 'present';
             answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin2[i] === answerPinyin2[i]) {
+          pinyin2Result[i] = 'correct';
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
         if (guessPinyin2[i] !== null) {
           const index = answerPinyin2.indexOf(guessPinyin2[i]);
           if (index !== -1) {
             pinyin2Result[i] = 'present';
             answerPinyin2[index] = null;
+            answerSheng[index] = null;
           }
         }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessSheng[i] === answerSheng[i]) {
+          shengresult[i] = 'correct';
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
         if (guessSheng[i] !== null) {
           const index = answerSheng.indexOf(guessSheng[i]);
           if (index !== -1) {

@@ -234,7 +234,10 @@
 
         const answerCount = document.createElement('div');
         answerCount.classList.add('answer-count');
-        answerCount.addEventListener('click', showPossibleAnswers);
+        // 为每个answerCount添加点击事件，传递当前行的索引i
+        answerCount.addEventListener('click', function () {
+          showPossibleAnswers(i);
+        });
         row.appendChild(answerCount);
 
         gameBoard.appendChild(row);
@@ -254,19 +257,20 @@
         }
       }
     }
-    function showPossibleAnswers() {
-      if (over && possibleAnswers.length <= 100) {
-        const modal = document.getElementById('answersModal');
-        const possibleAnswersDiv = document.getElementById('possible-answers');
-        possibleAnswersDiv.innerHTML = '';
-        let cnt = 0;
-        possibleAnswers.forEach(answer => {
-          cnt++;
-          possibleAnswersDiv.appendChild(createPossibleAnswerGrid(answer, cnt));
-        });
+    let stepsResults = [];
+    function showPossibleAnswers(rowIndex) {
+      if(!over) return;
+      const modal = document.getElementById('answersModal');
+      const possibleAnswersDiv = document.getElementById('possible-answers');
+      possibleAnswersDiv.innerHTML = '';
 
-        modal.style.display = "block";
-      }
+      let cnt = 0;
+      stepsResults[rowIndex].forEach(answer => {
+        cnt++;
+        possibleAnswersDiv.appendChild(createPossibleAnswerGrid(answer, cnt));
+      });
+
+      modal.style.display = "block";
     }
 
     function createPossibleAnswerGrid(answer, index) {
@@ -323,7 +327,7 @@
       filterPossibleAnswers(guess);
       updateGameBoard(guess);
       guessInput.value = '';
-
+      stepsResults.push(possibleAnswers);
       if (guess === correctAnswer) {
         over = true;
         updateMessage(`游戏结束！你输了。你猜到了正确答案：${correctAnswer}`);

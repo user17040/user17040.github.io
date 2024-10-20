@@ -98,10 +98,22 @@
 
     .pinyin2-correct {
       border-bottom: 2px solid #6aaa64;
+      border-top: 2px solid #6aaa64;
       color: black;
     }
 
     .pinyin2-present {
+      border-bottom: 2px solid #c9b458;
+      border-top: 2px solid #c9b458;
+      color: black;
+    }
+
+    .sheng-correct {
+      border-bottom: 2px solid #6aaa64;
+      color: black;
+    }
+
+    .sheng-present {
       border-bottom: 2px solid #c9b458;
       color: black;
     }
@@ -187,7 +199,7 @@
     let correctAnswer = '';
     let guesses = [];
     let over = false;
-    const maxGuesses = 8;
+    const maxGuesses = 6;
 
     function initGame() {
       possibleAnswers = generateAllPossibleAnswers();
@@ -259,7 +271,7 @@
     }
     let stepsResults = [];
     function showPossibleAnswers(rowIndex) {
-      if(!over) return;
+      if (!over) return;
       const modal = document.getElementById('answersModal');
       const possibleAnswersDiv = document.getElementById('possible-answers');
       possibleAnswersDiv.innerHTML = '';
@@ -333,6 +345,7 @@
         updateMessage(`游戏结束！你输了。你猜到了正确答案：${correctAnswer}`);
         document.getElementById('submit-guess').disabled = true;
       } else if (guesses.length === maxGuesses) {
+        over = true;
         updateMessage(`游戏结束！你赢了！仍有 ${possibleAnswers.length} 个可能的答案。正确答案是：${correctAnswer}`);
         document.getElementById('submit-guess').disabled = true;
       } else {
@@ -371,16 +384,19 @@
       const result = new Array(6).fill('absent');
       const answerArray = Array.from(correctAnswer);
       const guessArray = Array.from(guess);
-      const answerPinyin = pinyinPro.pinyin(correctAnswer[0] + correctAnswer[1] + correctAnswer[2], { type: 'array', toneSandhi: false, surname: 'head' }).concat(
-        pinyinPro.pinyin(correctAnswer[3] + correctAnswer[4] + correctAnswer[5], { type: 'array', toneSandhi: false, surname: 'head' }));
-      const guessPinyin = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneSandhi: false, surname: 'head' }).concat(
-        pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneSandhi: false, surname: 'head' }));
+      const answerPinyin = pinyinPro.pinyin(correctAnswer[0] + correctAnswer[1] + correctAnswer[2], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }).concat(
+        pinyinPro.pinyin(correctAnswer[3] + correctAnswer[4] + correctAnswer[5], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }));
+      const guessPinyin = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }).concat(
+        pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }));
       const pinyinResult = new Array(6).fill('absent');
       const answerPinyin2 = pinyinPro.pinyin(correctAnswer[0] + correctAnswer[1] + correctAnswer[2], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }).concat(
         pinyinPro.pinyin(correctAnswer[3] + correctAnswer[4] + correctAnswer[5], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }));
       const guessPinyin2 = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }).concat(
         pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }));
       const pinyin2Result = new Array(6).fill('absent');
+      const answerSheng = [answerPinyin[0][0], answerPinyin[1][0], answerPinyin[2][0], answerPinyin[3][0], answerPinyin[4][0], answerPinyin[5][0]]
+      const guessSheng = [guessPinyin[0][0], guessPinyin[1][0], guessPinyin[2][0], guessPinyin[3][0], guessPinyin[4][0], guessPinyin[5][0]];
+      const shengresult = new Array(6).fill('absent');
       // 先标记完全匹配的字符和拼音
       for (let i = 0; i < 6; i++) {
         if (guessArray[i] === answerArray[i]) {
@@ -397,6 +413,11 @@
           pinyin2Result[i] = 'correct';
           answerPinyin2[i] = null;
           guessPinyin2[i] = null;
+        }
+        if (guessSheng[i] === answerSheng[i]) {
+          shengresult[i] = 'correct';
+          answerSheng[i] = null;
+          guessSheng[i] = null;
         }
       }
 
@@ -423,6 +444,13 @@
             answerPinyin2[index] = null;
           }
         }
+        if (guessSheng[i] !== null) {
+          const index = answerSheng.indexOf(guessSheng[i]);
+          if (index !== -1) {
+            shengresult[i] = 'present';
+            answerSheng[index] = null;
+          }
+        }
       }
 
       // 合并汉字和拼音的结果
@@ -437,6 +465,12 @@
               result[i] = 'pinyin2-correct';
             } else if (pinyin2Result[i] === 'present') {
               result[i] = 'pinyin2-present';
+            } else {
+              if (shengresult[i] === 'correct') {
+                result[i] = 'sheng-correct';
+              } else if (shengresult[i] === 'present') {
+                result[i] = 'sheng-present';
+              }
             }
           }
         }
@@ -457,16 +491,19 @@
       const result = new Array(6).fill('absent');
       const answerArray = Array.from(answer);
       const guessArray = Array.from(guess);
-      const answerPinyin = pinyinPro.pinyin(answer[0] + answer[1] + answer[2], { type: 'array', toneSandhi: false, surname: 'head' }).concat(
-        pinyinPro.pinyin(answer[3] + answer[4] + answer[5], { type: 'array', toneSandhi: false, surname: 'head' }));
-      const guessPinyin = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneSandhi: false, surname: 'head' }).concat(
-        pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneSandhi: false, surname: 'head' }));
+      const answerPinyin = pinyinPro.pinyin(answer[0] + answer[1] + answer[2], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }).concat(
+        pinyinPro.pinyin(answer[3] + answer[4] + answer[5], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }));
+      const guessPinyin = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }).concat(
+        pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' }));
       const pinyinResult = new Array(6).fill('absent');
       const answerPinyin2 = pinyinPro.pinyin(answer[0] + answer[1] + answer[2], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }).concat(
         pinyinPro.pinyin(answer[3] + answer[4] + answer[5], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }));
       const guessPinyin2 = pinyinPro.pinyin(guess[0] + guess[1] + guess[2], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }).concat(
         pinyinPro.pinyin(guess[3] + guess[4] + guess[5], { type: 'array', toneType: 'none', toneSandhi: false, surname: 'head' }));
       const pinyin2Result = new Array(6).fill('absent');
+      const answerSheng = [answerPinyin[0][0], answerPinyin[1][0], answerPinyin[2][0], answerPinyin[3][0], answerPinyin[4][0], answerPinyin[5][0]];
+      const guessSheng = [guessPinyin[0][0], guessPinyin[1][0], guessPinyin[2][0], guessPinyin[3][0], guessPinyin[4][0], guessPinyin[5][0]];
+      const shengresult = new Array(6).fill('absent');
       // 先标记完全匹配的字符和拼音
       for (let i = 0; i < 6; i++) {
         if (guessArray[i] === answerArray[i]) {
@@ -483,6 +520,11 @@
           pinyin2Result[i] = 'correct';
           answerPinyin2[i] = null;
           guessPinyin2[i] = null;
+        }
+        if (guessSheng[i] === answerSheng[i]) {
+          shengresult[i] = 'correct';
+          answerSheng[i] = null;
+          guessSheng[i] = null;
         }
       }
 
@@ -509,6 +551,13 @@
             answerPinyin2[index] = null;
           }
         }
+        if (guessSheng[i] !== null) {
+          const index = answerSheng.indexOf(guessSheng[i]);
+          if (index !== -1) {
+            shengresult[i] = 'present';
+            answerSheng[index] = null;
+          }
+        }
       }
 
       // 合并汉字和拼音的结果
@@ -523,10 +572,17 @@
               result[i] = 'pinyin2-correct';
             } else if (pinyin2Result[i] === 'present') {
               result[i] = 'pinyin2-present';
+            } else {
+              if (shengresult[i] === 'correct') {
+                result[i] = 'sheng-correct';
+              } else if (shengresult[i] === 'present') {
+                result[i] = 'sheng-present';
+              }
             }
           }
         }
       }
+
       return result;
     }
 

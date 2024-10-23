@@ -118,7 +118,7 @@
 </head>
 
 <body>
-  <h1>44中 Wordle</h1>
+  <h1>44中 Wordle V1.1</h1>
   <div id="game-board"></div>
   <input type="text" id="guess-input" placeholder="输入你的猜测（9个字）" maxlength="9">
   <button id="submit-guess">提交</button>
@@ -131,7 +131,7 @@
       .map(student => student["学生姓名"]);
     let s = {};
     for (let i of names) {
-      s[i] = pinyinPro.pinyin(i, { type: 'array', toneSandhi: false, surname: 'head' })
+      s[i] = pinyinPro.pinyin(i, { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' })
     }
     let answer = '';
     let guesses = [];

@@ -1,136 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1A2B Game Solver</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
         }
-        input[type="text"], input[type="number"] {
-            padding: 5px;
-            margin: 5px;
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        button {
-            padding: 5px 10px;
-            margin: 5px;
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .guess-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .guess-box {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #d3d6da;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            background: white;
+        }
+        
+        .result {
+            margin-left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 60px;
+        }
+        
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            max-width: 400px;
+        }
+        
+        .key {
+            padding: 15px;
+            border: none;
+            background-color: #d3d6da;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .key:hover {
+            background-color: #bbbdc0;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2196f3;
+            color: white;
+        }
+        
+        .control-btn:hover {
+            background-color: #1976d2;
+        }
+        
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 27px;
         }
     </style>
 </head>
 <body>
-    <h1>1A2B Game Solver</h1>
-    <div>
-        <label for="guess">Guess: </label>
-        <input type="text" id="guess" maxlength="4">
-        <label for="aCount">A: </label>
-        <input type="number" id="aCount" min="0" max="4">
-        <label for="bCount">B: </label>
-        <input type="number" id="bCount" min="0" max="4">
-        <button onclick="addFeedback()">Add Feedback</button>
+    <div class="header">
+        <h1>1A2B 猜数字</h1>
+        <p>猜出4位不重复的数字（绿色=位置正确，黄色=数字正确但位置错误）</p>
     </div>
-    <div>
-        <button onclick="solveGame()">Solve</button>
+    
+    <div class="game-container" id="gameBoard">
+        <!-- Rows will be added dynamically -->
     </div>
-    <h2>Feedback:</h2>
-    <ul id="feedbackList"></ul>
-    <h2>Next Guess:</h2>
-    <p id="nextGuess"></p>
-    <h2>Entropy:</h2>
-    <p id="entropy"></p>
+    
+    <div class="keyboard">
+        <button class="key">0</button>
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+    </div>
+    
+    <div class="controls">
+        <button class="control-btn" id="submitBtn">提交(Enter)</button>
+        <button class="control-btn" id="deleteBtn">删除(←)</button>
+        <button class="control-btn" id="newGameBtn">新游戏</button>
+    </div>
+    
+    <div class="message" id="message"></div>
 
     <script>
-        let feedback = {};
-
-        function addFeedback() {
-            const guess = document.getElementById('guess').value;
-            const aCount = parseInt(document.getElementById('aCount').value);
-            const bCount = parseInt(document.getElementById('bCount').value);
-
-            if (guess.length === 4 && !isNaN(aCount) && !isNaN(bCount)) {
-                feedback[guess] = [aCount, bCount];
-                updateFeedbackList();
-            } else {
-                alert('Please enter valid inputs.');
+        class BullsAndCows {
+            constructor() {
+                this.answer = this.generateAnswer();
+                this.currentGuess = '';
+                this.currentRow = 0;
+                this.maxAttempts = 10;
+                this.gameOver = false;
+                
+                this.initializeBoard();
+                this.setupEventListeners();
             }
-        }
-
-        function updateFeedbackList() {
-            const feedbackList = document.getElementById('feedbackList');
-            feedbackList.innerHTML = '';
-            for (let guess in feedback) {
-                const li = document.createElement('li');
-                li.textContent = `Guess: ${guess}, A: ${feedback[guess][0]}, B: ${feedback[guess][1]}`;
-                feedbackList.appendChild(li);
+            
+            generateAnswer() {
+                const numbers = Array.from({length: 10}, (_, i) => i);
+                const answer = [];
+                for (let i = 0; i < 4; i++) {
+                    const index = Math.floor(Math.random() * numbers.length);
+                    answer.push(numbers[index]);
+                    numbers.splice(index, 1);
+                }
+                return answer.join('');
             }
-        }
-
-        function generateAllCombinations() {
-            let combinations = [];
-            for (let i = 0; i < 10000; i++) {
-                let numStr = i.toString().padStart(4, '0');
-                if (new Set(numStr).size === 4) {
-                    combinations.push(numStr);
+            
+            initializeBoard() {
+                const gameBoard = document.getElementById('gameBoard');
+                gameBoard.innerHTML = '';
+                
+                for (let i = 0; i < this.maxAttempts; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'guess-row';
+                    
+                    for (let j = 0; j < 4; j++) {
+                        const box = document.createElement('div');
+                        box.className = 'guess-box';
+                        row.appendChild(box);
+                    }
+                    
+                    const result = document.createElement('div');
+                    result.className = 'result';
+                    row.appendChild(result);
+                    
+                    gameBoard.appendChild(row);
                 }
             }
-            return combinations;
-        }
-
-        function calculate1A2B(guess, answer) {
-            let A = 0, B = 0;
-            for (let i = 0; i < 4; i++) {
-                if (guess[i] === answer[i]) {
-                    A++;
-                } else if (answer.includes(guess[i])) {
-                    B++;
+            
+            setupEventListeners() {
+                // 鼠标点击数字键盘
+                document.querySelectorAll('.key').forEach(key => {
+                    key.addEventListener('click', () => this.handleKeyClick(key.textContent));
+                });
+                
+                // 按钮点击
+                document.getElementById('submitBtn').addEventListener('click', () => this.submitGuess());
+                document.getElementById('deleteBtn').addEventListener('click', () => this.deleteLastDigit());
+                document.getElementById('newGameBtn').addEventListener('click', () => this.startNewGame());
+                
+                // 键盘输入
+                document.addEventListener('keydown', (e) => {
+                    if (e.key >= '0' && e.key <= '9') {
+                        this.handleKeyClick(e.key);
+                    } else if (e.key === 'Enter') {
+                        this.submitGuess();
+                    } else if (e.key === 'Backspace') {
+                        this.deleteLastDigit();
+                    }
+                });
+            }
+            
+            handleKeyClick(digit) {
+                if (this.gameOver || this.currentGuess.length >= 4) return;
+                if (this.currentGuess.includes(digit)) return; // 不允许重复数字
+                
+                this.currentGuess += digit;
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                const currentRow = document.querySelectorAll('.guess-row')[this.currentRow];
+                const boxes = currentRow.querySelectorAll('.guess-box');
+                
+                for (let i = 0; i < 4; i++) {
+                    boxes[i].textContent = this.currentGuess[i] || '';
                 }
             }
-            return `${A}A${B}B`;
-        }
-
-        function calculateEntropy(guess, possibilities) {
-            let outcomes = {};
-            possibilities.forEach(answer => {
-                let outcome = calculate1A2B(guess, answer);
-                outcomes[outcome] = (outcomes[outcome] || 0) + 1;
-            });
-
-            let entropy = 0;
-            let total = possibilities.length;
-            for (let outcome in outcomes) {
-                let probability = outcomes[outcome] / total;
-                entropy -= probability * Math.log2(probability);
-            }
-            return entropy;
-        }
-
-        function findBestGuess(possibilities) {
-            let maxEntropy = -1;
-            let bestGuess = '';
-            possibilities.forEach(guess => {
-                let entropy = calculateEntropy(guess, possibilities);
-                if (entropy > maxEntropy) {
-                    maxEntropy = entropy;
-                    bestGuess = guess;
+            
+            checkGuess() {
+                let bulls = 0; // 位置和数字都对（绿色）
+                let cows = 0;  // 只有数字对（黄色）
+                
+                for (let i = 0; i < 4; i++) {
+                    if (this.currentGuess[i] === this.answer[i]) {
+                        bulls++;
+                    } else if (this.answer.includes(this.currentGuess[i])) {
+                        cows++;
+                    }
                 }
-            });
-            return { bestGuess, maxEntropy };
-        }
-
-        function solveGame() {
-            let possibilities = generateAllCombinations();
-
-            for (let guess in feedback) {
-                let [A, B] = feedback[guess];
-                let userResponse = `${A}A${B}B`;
-                possibilities = possibilities.filter(p => calculate1A2B(guess, p) === userResponse);
+                
+                return { bulls, cows };
             }
-
-            let { bestGuess, maxEntropy } = findBestGuess(possibilities);
-            document.getElementById('nextGuess').textContent = bestGuess;
-            document.getElementById('entropy').textContent = maxEntropy.toFixed(4);
+            
+            submitGuess() {
+                if (this.currentGuess.length !== 4 || this.gameOver) return;
+                
+                const result = this.checkGuess();
+                this.colorizeRow(result);
+                
+                if (result.bulls === 4) {
+                    this.showMessage('恭喜你赢了！🎉');
+                    this.gameOver = true;
+                } else if (this.currentRow === this.maxAttempts - 1) {
+                    this.showMessage(`游戏结束！正确答案是 ${this.answer}`);
+                    this.gameOver = true;
+                } else {
+                    this.currentRow++;
+                    this.currentGuess = '';
+                }
+            }
+            
+            colorizeRow(result) {
+                const currentRow = document.querySelectorAll('.guess-row')[this.currentRow];
+                const boxes = currentRow.querySelectorAll('.guess-box');
+                const resultDiv = currentRow.querySelector('.result');
+                
+                // 显示结果数字
+                resultDiv.textContent = `🟢${result.bulls} 🟡${result.cows}`;
+                
+            }
+            
+            deleteLastDigit() {
+                if (this.currentGuess.length > 0 && !this.gameOver) {
+                    this.currentGuess = this.currentGuess.slice(0, -1);
+                    this.updateDisplay();
+                }
+            }
+            
+            showMessage(text) {
+                document.getElementById('message').textContent = text;
+            }
+            
+            startNewGame() {
+                this.answer = this.generateAnswer();
+                this.currentGuess = '';
+                this.currentRow = 0;
+                this.gameOver = false;
+                this.initializeBoard();
+                this.showMessage('');
+                console.log('New answer:', this.answer); // 用于测试
+            }
         }
+        
+        // 启动游戏
+        const game = new BullsAndCows();
+        console.log('Answer:', game.answer); // 用于测试
     </script>
 </body>
 </html>

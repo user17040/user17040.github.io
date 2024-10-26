@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>44中 UnWordle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #guess-input {
+      margin-bottom: 10px;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    #submit-guess {
+      padding: 5px 10px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #submit-guess:hover {
+      background-color: #45a049;
+    }
+
+    .correct {
+      background-color: #6aaa64;
+      color: black;
+    }
+
+    .present {
+      background-color: #c9b458;
+      color: black;
+    }
+
+    .absent {
+      background-color: #787c7e;
+      color: black;
+    }
+
+    .pinyin-correct {
+      border: 2px solid #6aaa64;
+      color: black;
+    }
+
+    .pinyin-present {
+      border: 2px solid #c9b458;
+      color: black;
+    }
+
+    .pinyin2-correct {
+      border-bottom: 2px solid #6aaa64;
+      border-top: 2px solid #6aaa64;
+      color: black;
+    }
+
+    .pinyin2-present {
+      border-bottom: 2px solid #c9b458;
+      border-top: 2px solid #c9b458;
+      color: black;
+    }
+
+    .sheng-correct {
+      border-bottom: 2px solid #6aaa64;
+      color: black;
+    }
+
+    .sheng-present {
+      border-bottom: 2px solid #c9b458;
+      color: black;
+    }
+
+
+    #message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #name-list {
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+  <script src="https://unpkg.com/pinyin-pro"></script>
+  <script src="data.js"></script>
+</head>
+
+<body>
+  <h1>44中 Wordle</h1>
+  <div id="game-board"></div>
+  <div id="message"></div>
+  <button id="submit-guess">提交</button>
+  <div id="name-list"></div>
+  <script>
+    const names = data
+      .filter(student => student["学生姓名"].length === 3)
+      .map(student => student["学生姓名"]);
+    let s = {};
+    for (let i of names) {
+      s[i] = pinyinPro.pinyin(i, { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' })
+    }
+    let answer = '';
+    let guesses = [];
+    let possibleAnswers = [];
+    let possibles = [];
+    const maxGuesses = 4;
+
+    function filterPossibleAnswers(guess) {
+      const result = updateGameBoard(guess, 2);
+      possibleAnswers = possibleAnswers.filter(answer => {
+        return JSON.stringify(JSON.stringify(result) === JSON.stringify(updateGameBoard(answer, 2)));
+      });
+    }
+    function generateAllPossibleAnswers() {
+      const answers = [];
+      for (let i = 0; i < names.length; i++) {
+        for (let j = 0; j < names.length; j++) {
+          if (i !== j) {
+            answers.push(names[i] + names[j]);
+          }
+        }
+      }
+      return answers;
+    }
+
+    function getRandomAnswer() {
+      return possibleAnswers[Math.floor(Math.random() * possibleAnswers.length)];
+    }
+    function initGame() {
+      createGameBoard();
+      possibleAnswers = generateAllPossibleAnswers();
+      answer = getRandomAnswer();
+      for (let i = 0; i < maxGuesses - 1; i++) {
+        const g = getRandomAnswer();
+        handleGuess(g, 0);
+        filterPossibleAnswers(g);
+      }
+      handleGuess(answer, 1);
+      displayNameList();
+      document.getElementById('submit-guess').addEventListener('click', getUserInput);
+
+    }
+
+    function createGameBoard() {
+      const gameBoard = document.getElementById('game-board');
+      for (let i = 0; i < maxGuesses; i++) {
+        for (let j = 0; j < 6; j++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.row = i;
+          cell.dataset.col = j;
+
+          const input = document.createElement('input');
+          input.setAttribute('maxlength', '1');
+          input.setAttribute('type', 'text');
+          input.style.width = '100%';
+          input.style.height = '100%';
+          input.style.border = 'none';
+          input.style.textAlign = 'center';
+          input.style.fontSize = '20px';
+          input.style.fontWeight = 'bold';
+          input.style.backgroundColor = 'transparent';
+          input.style.color = 'black';
+
+          cell.appendChild(input);
+          gameBoard.appendChild(cell);
+        }
+      }
+    }
+    function getUserInput() {
+      // 获取所有输入框
+      const inputs = document.querySelectorAll('.cell input');
+      let inputValues = '';
+      let cnt = 0;
+      let res = [];
+      // 遍历所有输入框，拼接输入的内容
+      inputs.forEach(input => {
+        inputValues += input.value || ' '; // 如果为空格，添加空字符避免空格
+        cnt++;
+        if (cnt % 6 === 0) {
+          res.push(inputValues);
+          inputValues = '';
+        }
+      });
+      let ANS = answer;
+      let win = true;
+      for (let i = 0; i < res.length; i++) {
+        if (!possibleAnswers.includes(res[i])) { win = false; break }
+      }
+      for (let i = maxGuesses - 1; i >= 0; i--) {
+        for (let j = maxGuesses - 1; j > i; j--) {
+          ans = j === maxGuesses - 1 ? guesses[j] : res[j];
+          let s1 = JSON.stringify(handleGuess(res[i], 2));
+          ans = ANS;
+          let s2 = JSON.stringify(handleGuess(guesses[i], 2));
+          if (s1 !== s2) { win = false; break }
+        }
+      }
+      if (win) showMessage('获胜!');
+      return win;
+    }
+    function handleGuess(guess, bool) {
+      guesses.push(guess);
+      possibles.push(possibleAnswers);
+      updateGameBoard(guess, bool);
+    }
+
+
+    function updateGameBoard(guess, bool) {
+      const row = guesses.length - 1;
+      const result = new Array(6).fill('absent');
+      const answerArray = Array.from(answer);
+      const guessArray = Array.from(guess);
+      const answerPinyin = s[answer[0] + answer[1] + answer[2]]
+        .concat(s[answer[3] + answer[4] + answer[5]]);
+      const guessPinyin = s[guess[0] + guess[1] + guess[2]]
+        .concat(s[guess[3] + guess[4] + guess[5]]);
+      const pinyinResult = new Array(6).fill('absent');
+      const answerPinyin2 = [answerPinyin[0].slice(0, -1), answerPinyin[1].slice(0, -1), answerPinyin[2].slice(0, -1), answerPinyin[3].slice(0, -1), answerPinyin[4].slice(0, -1), answerPinyin[5].slice(0, -1)];
+      const guessPinyin2 = [guessPinyin[0].slice(0, -1), guessPinyin[1].slice(0, -1), guessPinyin[2].slice(0, -1), guessPinyin[3].slice(0, -1), guessPinyin[4].slice(0, -1), guessPinyin[5].slice(0, -1)];
+      const pinyin2Result = new Array(6).fill('absent');
+      const answerSheng = [answerPinyin[0][0], answerPinyin[1][0], answerPinyin[2][0], answerPinyin[3][0], answerPinyin[4][0], answerPinyin[5][0]];
+      const guessSheng = [guessPinyin[0][0], guessPinyin[1][0], guessPinyin[2][0], guessPinyin[3][0], guessPinyin[4][0], guessPinyin[5][0]];
+      const shengresult = new Array(6).fill('absent');
+      // 先标记完全匹配的字符和拼音
+      for (let i = 0; i < 6; i++) {
+        if (guessArray[i] === answerArray[i]) {
+          result[i] = 'correct';
+          answerArray[i] = null;
+          guessArray[i] = null;
+          answerPinyin[i] = null;
+          guessPinyin[i] = null;
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      // 再标记存在但位置不对的字符和拼音
+      for (let i = 0; i < 6; i++) {
+        if (guessArray[i] !== null) {
+          const index = answerArray.indexOf(guessArray[i]);
+          if (index !== -1) {
+            result[i] = 'present';
+            answerArray[index] = null;
+            answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
+          }
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin[i] === answerPinyin[i]) {
+          pinyinResult[i] = 'correct';
+          answerPinyin[i] = null;
+          guessPinyin[i] = null;
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin[i] !== null) {
+          const index = answerPinyin.indexOf(guessPinyin[i]);
+          if (index !== -1) {
+            pinyinResult[i] = 'present';
+            answerPinyin[index] = null;
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
+          }
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin2[i] === answerPinyin2[i]) {
+          pinyin2Result[i] = 'correct';
+          answerPinyin2[i] = null;
+          guessPinyin2[i] = null;
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessPinyin2[i] !== null) {
+          const index = answerPinyin2.indexOf(guessPinyin2[i]);
+          if (index !== -1) {
+            pinyin2Result[i] = 'present';
+            answerPinyin2[index] = null;
+            answerSheng[index] = null;
+          }
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessSheng[i] === answerSheng[i]) {
+          shengresult[i] = 'correct';
+          answerSheng[i] = null;
+          guessSheng[i] = null;
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        if (guessSheng[i] !== null) {
+          const index = answerSheng.indexOf(guessSheng[i]);
+          if (index !== -1) {
+            shengresult[i] = 'present';
+            answerSheng[index] = null;
+          }
+        }
+      }
+
+      // 合并汉字和拼音的结果
+      for (let i = 0; i < 6; i++) {
+        if (result[i] === 'absent') {
+          if (pinyinResult[i] === 'correct') {
+            result[i] = 'pinyin-correct';
+          } else if (pinyinResult[i] === 'present') {
+            result[i] = 'pinyin-present';
+          } else {
+            if (pinyin2Result[i] === 'correct') {
+              result[i] = 'pinyin2-correct';
+            } else if (pinyin2Result[i] === 'present') {
+              result[i] = 'pinyin2-present';
+            } else {
+              if (shengresult[i] === 'correct') {
+                result[i] = 'sheng-correct';
+              } else if (shengresult[i] === 'present') {
+                result[i] = 'sheng-present';
+              }
+            }
+          }
+        }
+      }
+      if (bool === 2) return result;
+      // 更新游戏板
+      for (let i = 0; i < 6; i++) {
+        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${i}"]`);
+        if (bool === 1) {
+          cell.textContent = guess[i];
+        }
+        cell.classList.add(result[i]);
+      }
+    }
+
+    function showMessage(msg) {
+      document.getElementById('message').textContent = msg;
+    }
+
+    function displayNameList() {
+      const nameList = document.getElementById('name-list');
+      nameList.innerHTML = '<h3>可用人名列表：</h3>' + names.join('、');
+    }
+
+    initGame();
+  </script>
+</body>
+
+</html>

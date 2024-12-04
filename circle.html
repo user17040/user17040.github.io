@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圆形近似度游戏</title>
+    <title>徒手画圆</title>
     <style>
         body {
             display: flex;
@@ -57,7 +57,7 @@
     </style>
 </head>
 <body>
-    <h1>圆形近似度游戏</h1>
+    <h1>徒手画圆</h1>
     <p>在画布上绘制一个封闭图形，看看它有多接近圆形！</p>
     <canvas id="canvas" width="500" height="500"></canvas>
     <div id="result"></div>
@@ -202,13 +202,9 @@
             const metric = (perimeter * perimeter) / (4 * area);
 
             resultDiv.innerHTML = `
-                <p>周长: ${perimeter.toFixed(3)} 像素</p>
-                <p>面积: ${area.toFixed(3)} 平方像素</p>
-                <p>C²/(4S): ${metric.toFixed(6)}</p>
-                <p>与π的偏差: ${Math.abs(metric - Math.PI).toFixed(6)}</p>
-                <p>${Math.abs(metric - Math.PI) < 0.1 
-                    ? '非常接近圆形！' 
-                    : `越接近π(${Math.PI.toFixed(6)})越好`}
+                <p>周长: ${perimeter.toFixed(6)} 像素</p>
+                <p>面积: ${area.toFixed(6)} 平方像素</p>
+                <p>圆周率 = 周长²/(4*面积): ${metric.toFixed(6)}</p>
             `;
         }
 

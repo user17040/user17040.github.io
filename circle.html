@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>徒手画圆</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>圆形近似度游戏</title>
     <style>
         body {
             display: flex;
@@ -11,15 +12,22 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             padding: 20px;
+            margin: 0;
+            user-select: none;
+            touch-action: none;
+            overscroll-behavior: none;
         }
         #canvas {
             border: 2px solid #333;
             background-color: white;
             cursor: crosshair;
+            max-width: 100%;
+            touch-action: none;
         }
         #result {
             margin-top: 20px;
             text-align: center;
+            color: #333;
         }
         .button {
             margin: 10px;
@@ -28,16 +36,29 @@
             color: white;
             border: none;
             cursor: pointer;
+            touch-action: manipulation;
             transition: background-color 0.3s;
         }
         .button:hover {
             background-color: #45a049;
         }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
-    <h1>徒手画圆</h1>
-    <p>在画布上绘制一个图形，看看它有多接近圆形！</p>
+    <h1>圆形近似度游戏</h1>
+    <p>在画布上绘制一个封闭图形，看看它有多接近圆形！</p>
     <canvas id="canvas" width="500" height="500"></canvas>
     <div>
         <button id="clearBtn" class="button">清除画布</button>
@@ -55,39 +76,88 @@
         let isDrawing = false;
         let points = [];
 
+        // 禁用默认触摸行为
+        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+        document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        document.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+
+        // 兼容触摸和鼠标事件
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function distance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function startDrawing(e) {
+            // 阻止默认行为
+            e.preventDefault();
+            
+            isDrawing = true;
+            points = [];
+            const coords = getCanvasCoords(e);
+            points.push(coords);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+        }
+
+        function draw(e) {
+            // 阻止默认行为
+            e.preventDefault();
+            
+            if (!isDrawing) return;
+            const coords = getCanvasCoords(e);
+            points.push(coords);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing(e) {
+            // 阻止默认行为
+            e.preventDefault();
+            
+            isDrawing = false;
+        }
+
+        // 添加鼠标事件监听器
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
 
+        // 添加触摸事件监听器
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopDrawing(e);
+            
+            // 检查是否为封闭图形
+            if (points.length > 2) {
+                const startPoint = points[0];
+                const endPoint = points[points.length - 1];
+                const closureThreshold = 20; // 像素距离阈值
+
+                if (distance(startPoint, endPoint) > closureThreshold) {
+                    resultDiv.innerHTML = `<p class="error">请绘制封闭图形！起点和终点距离太远。</p>`;
+                    points = []; // 清空点
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }, { passive: false });
+
         clearBtn.addEventListener('click', clearCanvas);
         calculateBtn.addEventListener('click', calculateMetrics);
-
-        function startDrawing(e) {
-            isDrawing = true;
-            points = [];
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            points.push({x, y});
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            points.push({x, y});
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-            ctx.closePath();
-        }
 
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -102,6 +172,8 @@
                 const dy = points[i].y - points[i-1].y;
                 perimeter += Math.sqrt(dx * dx + dy * dy);
             }
+            // 添加起点和终点的距离
+            perimeter += distance(points[0], points[points.length - 1]);
             return perimeter;
         }
 
@@ -118,7 +190,17 @@
 
         function calculateMetrics() {
             if (points.length < 3) {
-                resultDiv.innerHTML = '请先绘制一个闭合图形';
+                resultDiv.innerHTML = '<p class="error">请先绘制一个完整的封闭图形</p>';
+                return;
+            }
+
+            // 检查是否为封闭图形
+            const startPoint = points[0];
+            const endPoint = points[points.length - 1];
+            const closureThreshold = 10; // 像素距离阈值
+
+            if (distance(startPoint, endPoint) > closureThreshold) {
+                resultDiv.innerHTML = `<p class="error">请绘制封闭图形！起点和终点距离太远。</p>`;
                 return;
             }
 
@@ -129,11 +211,30 @@
             const metric = (perimeter * perimeter) / (4 * area);
 
             resultDiv.innerHTML = `
-                <p>周长 C = ${perimeter.toFixed(6)} 像素</p>
-                <p>面积 S = ${area.toFixed(6)} 平方像素</p>
-                <p>圆周率 = C²/(4S) = ${metric.toFixed(6)}</p>
+                <p>周长: ${perimeter.toFixed(3)} 像素</p>
+                <p>面积: ${area.toFixed(3)} 平方像素</p>
+                <p>C²/(4S): ${metric.toFixed(6)}</p>
+                <p>与π的偏差: ${Math.abs(metric - Math.PI).toFixed(6)}</p>
+                <p>${Math.abs(metric - Math.PI) < 0.1 
+                    ? '非常接近圆形！' 
+                    : `越接近π(${Math.PI.toFixed(4)})越好`}
             `;
         }
+
+        // 响应式调整
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            const scaleFactor = Math.min(containerWidth * 0.9, 500) / 500;
+            canvas.width = 500 * scaleFactor;
+            canvas.height = 500 * scaleFactor;
+            canvas.style.width = `${500 * scaleFactor}px`;
+            canvas.style.height = `${500 * scaleFactor}px`;
+        }
+
+        // 初始化时调整大小
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
     </script>
 </body>
 </html>

@@ -70,8 +70,6 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const resultDiv = document.getElementById('result');
-        const clearBtn = document.getElementById('clearBtn');
-        const calculateBtn = document.getElementById('calculateBtn');
 
         let isDrawing = false;
         let points = [];
@@ -125,7 +123,7 @@
         function stopDrawing(e) {
             // 阻止默认行为
             e.preventDefault();
-            
+            calculateMetrics();
             isDrawing = false;
         }
 
@@ -155,9 +153,6 @@
                 }
             }
         }, { passive: false });
-
-        clearBtn.addEventListener('click', clearCanvas);
-        calculateBtn.addEventListener('click', calculateMetrics);
 
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -217,7 +212,7 @@
                 <p>与π的偏差: ${Math.abs(metric - Math.PI).toFixed(6)}</p>
                 <p>${Math.abs(metric - Math.PI) < 0.1 
                     ? '非常接近圆形！' 
-                    : `越接近π(${Math.PI.toFixed(4)})越好`}
+                    : `越接近π(${Math.PI.toFixed(6)})越好`}
             `;
         }
 

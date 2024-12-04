@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>徒手画圆</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        #canvas {
+            border: 2px solid #333;
+            background-color: white;
+            cursor: crosshair;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .button {
+            margin: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>徒手画圆</h1>
+    <p>在画布上绘制一个图形，看看它有多接近圆形！</p>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <div>
+        <button id="clearBtn" class="button">清除画布</button>
+        <button id="calculateBtn" class="button">计算结果</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const resultDiv = document.getElementById('result');
+        const clearBtn = document.getElementById('clearBtn');
+        const calculateBtn = document.getElementById('calculateBtn');
+
+        let isDrawing = false;
+        let points = [];
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        clearBtn.addEventListener('click', clearCanvas);
+        calculateBtn.addEventListener('click', calculateMetrics);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            points = [];
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            points.push({x, y});
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            points.push({x, y});
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            resultDiv.innerHTML = '';
+            points = [];
+        }
+
+        function calculatePerimeter(points) {
+            let perimeter = 0;
+            for (let i = 1; i < points.length; i++) {
+                const dx = points[i].x - points[i-1].x;
+                const dy = points[i].y - points[i-1].y;
+                perimeter += Math.sqrt(dx * dx + dy * dy);
+            }
+            return perimeter;
+        }
+
+        function calculateArea(points) {
+            // 使用多边形面积计算公式（Shoelace formula）
+            let area = 0;
+            const n = points.length;
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                area += points[i].x * points[j].y - points[j].x * points[i].y;
+            }
+            return Math.abs(area) / 2;
+        }
+
+        function calculateMetrics() {
+            if (points.length < 3) {
+                resultDiv.innerHTML = '请先绘制一个闭合图形';
+                return;
+            }
+
+            const perimeter = calculatePerimeter(points);
+            const area = calculateArea(points);
+
+            // 计算 C^2 / (4S)
+            const metric = (perimeter * perimeter) / (4 * area);
+
+            resultDiv.innerHTML = `
+                <p>周长 C = ${perimeter.toFixed(6)} 像素</p>
+                <p>面积 S = ${area.toFixed(6)} 平方像素</p>
+                <p>圆周率 = C²/(4S) = ${metric.toFixed(6)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

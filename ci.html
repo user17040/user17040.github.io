@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script src="data.js"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <title>词变游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #game-container {
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        input {
+            margin: 10px;
+            padding: 5px;
+            width: 150px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 5px 10px;
+        }
+
+        #result {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .path-step {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <h1>词变游戏</h1>
+        <input type="text" id="start-word" placeholder="起始词">
+        <input type="text" id="end-word" placeholder="目标词">
+        <input type="number" id="depth" placeholder="搜索深度">
+        <button onclick="findWordPath()">开始变换</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 词库（为了演示，我们使用内置的词库）
+        let wordLibrary = data
+            .filter(item =>
+                item.word.length === 2 &&
+                /^[\u4e00-\u9fa5]{2}$/.test(item.word)
+            )
+            .map(item => item.word);
+        function generateReachabilityDict(pairs) {
+            const reachability = {};
+
+            pairs.forEach(pair => {
+                const start = pair[0];
+                const end = pair[1];
+
+                // 如果起始字母不在字典中，初始化它的值为一个空数组
+                if (!reachability[start]) {
+                    reachability[start] = [];
+                }
+                if (!reachability[end]) {
+                    reachability[end] = [];
+                }
+
+                // 将字母对添加到对应的起始字母数组中
+                reachability[start].push(pair);
+                reachability[end].push(pair);
+            });
+
+            return reachability;
+        }
+        wordLibrary = generateReachabilityDict(wordLibrary);
+
+        // 深度优先搜索，找出从x变换到y的路径
+        function dfsTransform(x, y, depth, adjacencyList) {
+            const visited = new Set(); // 记录访问过的词
+            const path = [];           // 用于存储当前路径
+
+            // 深度优先搜索核心逻辑
+            function dfs(current, lastDiffPos) {
+                if (path.length >= depth) {
+                    return false; // 超过最大深度，终止搜索
+                }
+
+                if (current[0] === y[0] || current[1] === y[1]) {
+                    path.push(current);
+                    path.push(y);
+                    return true; // 找到目标词
+                }
+
+                visited.add(current);
+                path.push(current);
+                for (const i of current) {
+                    const neighbors = adjacencyList[i] || [];
+                    for (const next of neighbors) {
+                        if (!visited.has(next)) {
+                            // 计算变换位置
+                            const diffPositions = getDiffPositions(current, next);
+                            if (diffPositions && (!lastDiffPos || diffPositions[0] !== lastDiffPos[0])) {
+                                if (dfs(next, diffPositions)) {
+                                    return true; // 找到路径
+                                }
+                            }
+                        }
+                    }
+                }
+
+                path.pop(); // 回溯
+                return false;
+            }
+
+            // 判断两个词的差异位置
+            function getDiffPositions(word1, word2) {
+                if (word1.length !== 2 || word2.length !== 2) return null;
+                let diffCount = 0;
+                let diffPositions = [];
+                for (let i = 0; i < 2; i++) {
+                    if (word1[i] !== word2[i]) {
+                        diffCount++;
+                        diffPositions.push(i);
+                    }
+                }
+                return diffCount === 1 ? diffPositions : null; // 返回差异字的位置
+            }
+
+            if (dfs(x, null)) {
+                return path; // 返回找到的路径
+            } else {
+                return null; // 无法从x变换到y
+            }
+        }
+
+        // 处理查找路径的函数
+        function findWordPath() {
+            const startWord = document.getElementById('start-word').value.trim();
+            const endWord = document.getElementById('end-word').value.trim();
+            const depth = document.getElementById('depth').value;
+            const resultDiv = document.getElementById('result');
+
+            // 清空之前的结果
+            resultDiv.innerHTML = '';
+
+            // 检查输入
+            if (!startWord || !endWord) {
+                resultDiv.innerHTML = '<p class="error">请输入起始词和目标词</p>';
+                return;
+            }
+
+            // 找路径
+            const path = dfsTransform(startWord, endWord, depth, wordLibrary);
+
+            if (path) {
+                // 显示路径
+                const pathHtml = path.map(word => `<span class="path-step">${word}</span>`).join(' → ');
+                resultDiv.innerHTML = `<p>找到路径：${pathHtml}</p>`;
+            } else {
+                resultDiv.innerHTML = '<p class="error">无法找到从"' + startWord + '"到"' + endWord + '"的变换路径</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>

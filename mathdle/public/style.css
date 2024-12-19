@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+#expression {
+    width: 300px;
+    padding: 10px;
+    margin: 10px;
+}
+
+#submit {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#submit:hover {
+    background-color: #45a049;
+}
+
+#leaderboard {
+    list-style: none;
+    padding: 0;
+}
+
+#leaderboard li {
+    margin: 5px 0;
+}

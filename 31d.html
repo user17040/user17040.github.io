@@ -304,7 +304,7 @@
       const cells = document.createElement('div');
       cells.classList.add('cells');
 
-      const result = evaluateGuessAgainstAnswer(answer, correctAnswer);
+      const result = evaluateGuess(answer, correctAnswer);
 
       for (let i = 0; i < 9; i++) {
         const cell = document.createElement('div');
@@ -376,7 +376,7 @@
 
     function updateGameBoard(guess) {
       const row = guesses.length - 1;
-      const result = evaluateGuess(guess);
+      const result = evaluateGuess(guess,correctAnswer);
 
       const cells = document.querySelectorAll(`.cell[data-row="${row}"]`);
       for (let i = 0; i < 9; i++) {
@@ -388,16 +388,16 @@
       answerCountElement.textContent = possibleAnswers.length;
     }
 
-    function evaluateGuess(guess) {
+    function evaluateGuess(guess, correctAnswer) {
       const result = new Array(9).fill('absent');
       const answerArray = Array.from(correctAnswer);
       const guessArray = Array.from(guess);
       const answerPinyin = s[correctAnswer[0] + correctAnswer[1] + correctAnswer[2]]
-      .concat(s[correctAnswer[3] + correctAnswer[4] + correctAnswer[5]]).concat(
-        s[correctAnswer[6] + correctAnswer[7] + correctAnswer[8]]);
+        .concat(s[correctAnswer[3] + correctAnswer[4] + correctAnswer[5]]).concat(
+          s[correctAnswer[6] + correctAnswer[7] + correctAnswer[8]]);
       const guessPinyin = s[guess[0] + guess[1] + guess[2]]
-      .concat(s[guess[3] + guess[4] + guess[5]]).concat(
-        s[guess[6] + guess[7] + guess[8]]);
+        .concat(s[guess[3] + guess[4] + guess[5]]).concat(
+          s[guess[6] + guess[7] + guess[8]]);
       const pinyinResult = new Array(9).fill('absent');
       const answerPinyin2 = [answerPinyin[0].slice(0, -1), answerPinyin[1].slice(0, -1), answerPinyin[2].slice(0, -1), answerPinyin[3].slice(0, -1), answerPinyin[4].slice(0, -1), answerPinyin[5].slice(0, -1), answerPinyin[6].slice(0, -1), answerPinyin[7].slice(0, -1), answerPinyin[8].slice(0, -1)];
       const guessPinyin2 = [guessPinyin[0].slice(0, -1), guessPinyin[1].slice(0, -1), guessPinyin[2].slice(0, -1), guessPinyin[3].slice(0, -1), guessPinyin[4].slice(0, -1), guessPinyin[5].slice(0, -1), guessPinyin[6].slice(0, -1), guessPinyin[7].slice(0, -1), guessPinyin[8].slice(0, -1)];
@@ -518,112 +518,14 @@
     }
 
     function filterPossibleAnswers(guess) {
-      const result = evaluateGuess(guess);
-      possibleAnswers = possibleAnswers.filter(answer => {
-        return evaluateGuessAgainstAnswer(guess, answer, result);
-      });
-    }
-
-    function evaluateGuessAgainstAnswer(guess, answer, result) {
-      const answerArray = Array.from(answer);
-      const guessArray = Array.from(guess);
-      const answerPinyin = s[answer[0] + answer[1] + answer[2]]
-      .concat(s[answer[3] + answer[4] + answer[5]]).concat(
-        s[answer[6] + answer[7] + answer[8]]);
-      const guessPinyin = s[guess[0] + guess[1] + guess[2]]
-      .concat(s[guess[3] + guess[4] + guess[5]]).concat(
-        s[guess[6] + guess[7] + guess[8]]);   
-      const answerPinyin2 = [answerPinyin[0].slice(0, -1), answerPinyin[1].slice(0, -1), answerPinyin[2].slice(0, -1), answerPinyin[3].slice(0, -1), answerPinyin[4].slice(0, -1), answerPinyin[5].slice(0, -1), answerPinyin[6].slice(0, -1), answerPinyin[7].slice(0, -1), answerPinyin[8].slice(0, -1)];
-      const guessPinyin2 = [guessPinyin[0].slice(0, -1), guessPinyin[1].slice(0, -1), guessPinyin[2].slice(0, -1), guessPinyin[3].slice(0, -1), guessPinyin[4].slice(0, -1), guessPinyin[5].slice(0, -1), guessPinyin[6].slice(0, -1), guessPinyin[7].slice(0, -1), guessPinyin[8].slice(0, -1)];
-      const answerSheng = [answerPinyin[0][0], answerPinyin[1][0], answerPinyin[2][0], answerPinyin[3][0], answerPinyin[4][0], answerPinyin[5][0], answerPinyin[6][0], answerPinyin[7][0], answerPinyin[8][0]];
-      const guessSheng = [guessPinyin[0][0], guessPinyin[1][0], guessPinyin[2][0], guessPinyin[3][0], guessPinyin[4][0], guessPinyin[5][0], guessPinyin[6][0], guessPinyin[7][0], guessPinyin[8][0]];
-      // 先标记完全匹配的字符和拼音
-      for (let i = 0; i < 9; i++) {
-        if (guessArray[i] === answerArray[i]) {
-          if (result[i] !== 'correct') return false;
-          answerArray[i] = null;
-          guessArray[i] = null;
-          answerPinyin[i] = null;
-          guessPinyin[i] = null;
-          answerPinyin2[i] = null;
-          guessPinyin2[i] = null;
-          answerSheng[i] = null;
-          guessSheng[i] = null;
+      const result = evaluateGuess(guess, correctAnswer);
+      const t = [];
+      for(let answer of possibleAnswers){
+        if(JSON.stringify(result) === JSON.stringify(evaluateGuess(guess,answer))){
+          t.push(answer);
         }
       }
-      // 再标记存在但位置不对的字符和拼音
-      for (let i = 0; i < 9; i++) {
-        if (guessArray[i] !== null) {
-          const index = answerArray.indexOf(guessArray[i]);
-          if (index !== -1) {
-            if (result[i] !== 'present') return false;
-            answerArray[index] = null;
-            answerPinyin[index] = null;
-            answerPinyin2[index] = null;
-            answerSheng[index] = null;
-          }
-        }
-      }
-      for (let i = 0; i < 9; i++) {
-        if (guessPinyin[i] === answerPinyin[i]) {
-          if (result[i] !== 'pinyin-correct') return false;
-          answerPinyin[i] = null;
-          guessPinyin[i] = null;
-          answerPinyin2[i] = null;
-          guessPinyin2[i] = null;
-          answerSheng[i] = null;
-          guessSheng[i] = null;
-        }
-      }
-
-      for (let i = 0; i < 9; i++) {
-        if (guessPinyin[i] !== null) {
-          const index = answerPinyin.indexOf(guessPinyin[i]);
-          if (index !== -1) {
-            if (result[i] !== 'pinyin-present') return false;
-            answerPinyin[index] = null;
-            answerPinyin2[index] = null;
-            answerSheng[index] = null;
-          }
-        }
-      }
-      for (let i = 0; i < 9; i++) {
-        if (guessPinyin2[i] === answerPinyin2[i]) {
-          if (result[i] !== 'pinyin2-correct') return false;
-          answerPinyin2[i] = null;
-          guessPinyin2[i] = null;
-          answerSheng[i] = null;
-          guessSheng[i] = null;
-        }
-      }
-      for (let i = 0; i < 9; i++) {
-        if (guessPinyin2[i] !== null) {
-          const index = answerPinyin2.indexOf(guessPinyin2[i]);
-          if (index !== -1) {
-            if (result[i] !== 'pinyin2-present') return false;
-            answerPinyin2[index] = null;
-            answerSheng[index] = null;
-          }
-        }
-      }
-      for (let i = 0; i < 9; i++) {
-        if (guessSheng[i] === answerSheng[i]) {
-          if (result[i] !== 'sheng-correct') return false;
-          answerSheng[i] = null;
-          guessSheng[i] = null;
-        }
-      }
-      for (let i = 0; i < 9; i++) {
-        if (guessSheng[i] !== null) {
-          const index = answerSheng.indexOf(guessSheng[i]);
-          if (index !== -1) {
-            if (result[i] !== 'sheng-present') return false;
-            answerSheng[index] = null;
-          }
-        }
-      }
-
-      return true;
+      possibleAnswers = t;
     }
 
     function updateMessage(msg) {

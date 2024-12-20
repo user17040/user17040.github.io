@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>31中 高一4班 Don't Wordle</title>
+  <title>31中 高一4班 Don't Wordle V2</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -197,7 +197,7 @@
       .map(student => student["name"]);
     let s = {};
     for (let i of names) {
-      s[i] = pinyinPro.pinyin(i, { type: 'array', toneSandhi: false, surname: 'head' })
+      s[i] = pinyinPro.pinyin(i, { type: 'array', toneSandhi: false, surname: 'head', toneType: 'num' })
     }
     let possibleAnswers = [];
     let correctAnswer = '';
@@ -398,6 +398,7 @@
       const guessPinyin = s[guess[0] + guess[1] + guess[2]]
         .concat(s[guess[3] + guess[4] + guess[5]]).concat(
           s[guess[6] + guess[7] + guess[8]]);
+      console.log(answerPinyin)
       const pinyinResult = new Array(9).fill('absent');
       const answerPinyin2 = [answerPinyin[0].slice(0, -1), answerPinyin[1].slice(0, -1), answerPinyin[2].slice(0, -1), answerPinyin[3].slice(0, -1), answerPinyin[4].slice(0, -1), answerPinyin[5].slice(0, -1), answerPinyin[6].slice(0, -1), answerPinyin[7].slice(0, -1), answerPinyin[8].slice(0, -1)];
       const guessPinyin2 = [guessPinyin[0].slice(0, -1), guessPinyin[1].slice(0, -1), guessPinyin[2].slice(0, -1), guessPinyin[3].slice(0, -1), guessPinyin[4].slice(0, -1), guessPinyin[5].slice(0, -1), guessPinyin[6].slice(0, -1), guessPinyin[7].slice(0, -1), guessPinyin[8].slice(0, -1)];

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        .game-container {
+            margin-top: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: white;
+        }
+
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+            border-color: #6aaa64;
+        }
+
+        .present {
+            background-color: #c9b458;
+            color: white;
+            border-color: #c9b458;
+        }
+
+        .absent {
+            background-color: #787c7e;
+            color: white;
+            border-color: #787c7e;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>化学 Wordle</h1>
+    <div class="game-container">
+        <div class="grid" id="grid"></div>
+        <input type="text" id="guess-input" maxlength="5" placeholder="请输入">
+        <button onclick="makeGuess()">猜测</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // 化学式词库
+        const words = ["Ac2O3", "AgBF4", "AgIO3", "AgNO3", "AgONC", "AgPF6", "AgSNC", "Ag2C2", "Ag2Se", "Ag2Te", "Ag3I3", "AlBO2", "AlBr3", "AlClF", "AlClF", "AlClO", "AlCl3", "AlCl3", "AlF2O", "AlF4K", "AlOSi", "AlPO4", "AlTe2", "Al2F6", "Al2I6", "Al2O2", "Al2O3", "Al2S3", "Al2Se", "Al2Te", "Al4C3", "ArClF", "ArClH", "AsBrO", "AsBr3", "AsClO", "AsCl3", "As2I4", "As2O3", "As2P2", "As2O5", "As2S4", "As2S5", "As2Se", "As3O4", "As4O3", "As4O5", "As4S3", "As4S4", "AuBr3", "AuCl3", "Au2O3", "Au2S3", "BAsO4", "B2Cl4", "BaBr2", "BaCO3", "BaCl2", "BaSO3", "BaSO4", "BaSi2", "BaSn3", "BaWO4", "Ba3N2", "BeBr2", "BeCl2", "BeSO4", "Be3N2", "BiBO3", "BiBr3", "BiCl3", "BiOCl", "BiPO4", "Bi2O3", "Bi2S3", "CFCl3", "CHCl3", "CH2CO", "CH3Cl", "CH3OH", "CH3SH", "COCl2", "C3H8O", "C3N12", "C4H8O", "C4H10", "C5H5N", "C5H10", "C5H12", "C6H5F", "C6H12", "C6H14", "C7H16", "C8H18", "C9H20", "C10H8", "Cl2O8", "CaBr2", "CaCO3", "CaCN2", "CaCl2", "CaSO4", "CaWO4", "Ca3N2", "Ca3P2", "CdBr2", "CdCO3", "CdCl2", "CdSO3", "CdSO4", "CdWO4", "Cd3P2", "CeBr3", "CeCl3", "CeSi2", "Ce2C3", "Ce2O3", "Ce2S3", "ClO3F", "Cl2O3", "Cl2O6", "Cl2O7", "CoAs2", "CoBr2", "CoCl2", "CoWO4", "Co2S3", "CrBr2", "CrBr3", "CrCl2", "CrCl3", "CrCl4", "CrPO4", "CrVO4", "Cr2O3", "Cr2S3", "Cr3C2", "CsBO2", "CsBr3", "CsNH2", "CsNO3", "CsSCN", "CuBr2", "CuCl2", "CuIO3", "CuSCN", "CuSO4", "CuWO4", "Cu2Se", "Cu2Te", "Cu3As", "Cu3Sb", "Cu9S5", "CaBr2", "CaCO3", "CaCN2", "CaCl2", "CaSO4", "CaWO4", "Ca3N2", "Ca3P2", "CdBr2", "CdCO3", "CdCl2", "CdSO3", "CdSO4", "CdWO4", "Cd3P2", "CeBr3", "CeCl3", "CeSi2", "Ce2C3", "Ce2O3", "Ce2S3", "ClO3F", "Cl2O3", "Cl2O6", "Cl2O7", "CoAs2", "CoBr2", "CoCl2", "CoWO4", "Co2S3", "CrBr2", "CrBr3", "CrCl2", "CrCl3", "CrCl4", "CrPO4", "CrVO4", "Cr2O3", "Cr2S3", "Cr3C2", "CsBO2", "CsBr3", "CsNH2", "CsNO3", "CsSCN", "CuBr2", "CuCl2", "CuIO3", "CuSCN", "CuSO4", "CuWO4", "Cu2Se", "Cu2Te", "Cu3As", "Cu3Sb", "Cu9S5", "EuO2V", "EuO3V", "EuO4W", "Eu2O2", "Eu2S2", "FMnO3", "F2GeO", "F2Hg2", "F2Li2", "F2N2O", "F2Na2", "F2OSi", "F2OTi", "F2O2S", "F2O2W", "F2S2W", "F2Tl2", "F3Li3", "F3MoO", "F3MoS", "F3OTa", "F4Ge2", "F4Mg2", "F4Mg2", "F4MoO", "F4MoS", "F4OOs", "F4OP2", "F4ORe", "F4OXe", "F4Sn2", "F5ORe", "F6Fe2", "F6La2", "F6NP3", "F6Si2", "F6Sn3", "F8Si3", "F10S2", "FeAsS", "FeCO3", "FeCl2", "FeCl3", "FeO2H", "FeO4S", "FeVO4", "FeWO4", "Fe2I2", "Fe2I4", "Fe2O3", "Fe2O3", "Fe3O4", "GaBr3", "GaCl2", "GaCl3", "GaPO4", "Ga2O3", "Ga2S3", "GeBr4", "HCOOH", "HClO2", "HClO3", "HClO4", "H2CO3", "H2CSO", "H2SO3", "H2SO4", "H3PO4", "HfBr4", "HgBr2", "HgCl2", "HgWO4", "Hg2I2", "InBr3", "InCl2", "InCl3", "InPO4", "In2O3", "In2S3", "KClO3", "KClO4", "KMnO4", "LaCl3", "LaPO4", "LiIO3", "LiNO3", "MgCO3", "MgCl2", "MgSO4", "MgWO4", "Mg3P2", "MnBr2", "MnCO3", "MnCl2", "MnOOH", "Mn2O3", "Mn3O4", "Mn3P2", "MoBr2", "MoBr3", "MoCl2", "MoCl3", "MoCl5", "NaBCl", "NH2OH", "NH4Br", "NH4Cl", "NH4HS", "NO2Cl", "NaNO3", "NaOCl", "NaVO3", "Na2O2", "Na2S4", "NbBr5", "NbCl3", "NbCl5", "Nb2O3", "NdCl2", "Nd2O3", "NiAsS", "NiBr2", "NiCl2", "NiOOH", "NiSO4", "NiWO4", "P2Se3", "POCl3", "PbCO3", "PbSO4", "PoBr2", "PoCl2", "PoCl4", "RuCl3", "SO2F2", "S2Br2", "SbBr3", "SbCl3", "SbCl5", "SbPO4", "Sb2O3", "Sb2O5", "Sb2S3", "Sc2O3", "SeBr4", "SeCl4", "SeOF2", "SiBr4", "SiCl4", "Si3N4", "SnBr2", "SnBr4", "SnCl2", "SnCl4", "SnSe2", "SnTe4", "SrBr2", "SrCO3", "SrCl2", "TaBr3", "TaBr5", "TaCl5", "TeBr2", "TeBr2", "TeBr4", "TeCl2", "TeCl4", "TiBr4", "TiCl4", "TlBr3", "TlCl3", "TlIO3", "TlNO3", "TlPF6", "TlSCN", "Tl3As", "WOBr3", "WOBr4", "WOCl3", "WOCl4", "WO2I2", "YbBr2", "YbBr3", "YbCl2", "YbCl3", "YbSi2", "Yb2O3", "Yb2S3", "ZnBr2", "ZnCO3", "ZnCl2", "ZnSO4", "ZnWO4", "Zn3N2", "Zn3P2", "ZrBr4", "ZrCl4", "ZrSi2"]
+        let targetWord = words[Math.floor(Math.random() * words.length)];
+        let currentRow = 0;
+        const maxGuesses = 6;
+
+        // 创建游戏网格
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            for (let i = 0; i < maxGuesses; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for (let j = 0; j < 5; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    row.appendChild(cell);
+                }
+                grid.appendChild(row);
+            }
+        }
+
+        // 检查猜测
+        function makeGuess() {
+            const input = document.getElementById('guess-input');
+            const guess = input.value;
+
+            if (guess.length !== 5) {
+                showMessage("请输入一个五位的化学式");
+                return;
+            }
+
+            if (!words.includes(guess)) {
+                showMessage("请输入一个合法的化学式!");
+                return;
+            }
+
+            if (currentRow >= maxGuesses) {
+                showMessage(`游戏结束 答案是 ${targetWord}`);
+                return;
+            }
+
+            updateGrid(guess);
+
+            if (guess === targetWord) {
+                showMessage("你赢了");
+                input.disabled = true;
+                return;
+            }
+
+            if (currentRow === maxGuesses - 1) {
+                showMessage(`游戏结束 答案是 ${targetWord}`);
+                input.disabled = true;
+                return;
+            }
+
+            currentRow++;
+            input.value = '';
+        }
+
+        // 更新网格显示
+        function updateGrid(guess) {
+            const row = document.getElementsByClassName('row')[currentRow];
+            const cells = row.getElementsByClassName('cell');
+
+            // 首先填入字母
+            for (let i = 0; i < 5; i++) {
+                cells[i].textContent = guess[i];
+            }
+
+            // 创建答案字符的计数映射
+            const targetCharCount = {};
+            for (let char of targetWord) {
+                targetCharCount[char] = (targetCharCount[char] || 0) + 1;
+            }
+
+            // 第一遍扫描：标记所有完全匹配的字符
+            const correctPositions = new Set();
+            for (let i = 0; i < 5; i++) {
+                if (guess[i] === targetWord[i]) {
+                    correctPositions.add(i);
+                    targetCharCount[guess[i]]--;
+                }
+            }
+
+            // 第二遍扫描：标记部分匹配和不匹配的字符
+            for (let i = 0; i < 5; i++) {
+                if (correctPositions.has(i)) {
+                    cells[i].className = 'cell correct';
+                } else if (targetCharCount[guess[i]] > 0) {
+                    cells[i].className = 'cell present';
+                    targetCharCount[guess[i]]--;
+                } else {
+                    cells[i].className = 'cell absent';
+                }
+            }
+        }
+
+        // 显示消息
+        function showMessage(text) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+        }
+
+        // 初始化游戏
+        createGrid();
+
+        // 添加键盘事件监听
+        document.getElementById('guess-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                makeGuess();
+            }
+        });
+    </script>
+</body>
+
+</html>

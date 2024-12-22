@@ -180,7 +180,7 @@
                 <h3>基本规则：</h3>
                 <ul>
                     <li>每次游戏随机生成一个10笔及以上的汉字作为答案</li>
-                    <li>你有6次机会猜测这个汉字</li>
+                    <li>你有10次机会猜测这个汉字</li>
                     <li>每次猜测必须输入一个10笔及以上的汉字</li>
                 </ul>
 
@@ -216,7 +216,7 @@
         let targetChar = '';
         let targetStrokes = [];
         let guesses = [];
-        const maxGuesses = 6;
+        const maxGuesses = 10;
 
         function getStrokeType(strokeId) {
             if (strokeId === 1 || strokeId === 5) return '横';

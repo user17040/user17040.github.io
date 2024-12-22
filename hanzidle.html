@@ -291,7 +291,7 @@
         }
 
         function initializeGame() {
-            const validChars = easyHanzi
+            const validChars = easyHanzi.split('')
                 .filter(x => strokeData[x] && parseInt(strokeData[x].num) >= 10);
             const randomChar = validChars[Math.floor(Math.random() * validChars.length)];
             targetChar = randomChar;

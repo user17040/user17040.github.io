@@ -1,23 +1,617 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
+<body>
+    <h1>五子棋先手必胜（有禁手，黑棋不走33、44、长连）</h1>
+    <div id="board"></div>
+    <div class="status-container">
+        <div id="win-counter" class="win-counter">最大连五手数: <span id="max-moves"> - </span></div>
+        <button onclick="undoMove();undoMove()" class="undo-button">回退</button>
+    </div>
+</body>
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Mathdle Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>五子棋先手必胜（有禁手，黑棋不走33、44、长连）</title>
+    <style>
+        /* Existing styles remain the same */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Add new styles for the status container */
+        .status-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .win-counter {
+            background-color: #fff;
+            padding: 12px 24px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .undo-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .undo-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Rest of the existing styles remain the same */
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            border-collapse: collapse;
+            background: #DEB887;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 16px;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        table {
+            border-collapse: collapse;
+            background: #DEB887;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 16px;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        td:not(:first-child):not(.red) {
+            border: 1px solid #8B4513;
+            background: linear-gradient(45deg, transparent 25%, rgba(139, 69, 19, 0.1) 25%,
+                    rgba(139, 69, 19, 0.1) 75%, transparent 75%);
+        }
+
+        .red {
+            background-color: transparent;
+            color: #8B4513;
+            font-weight: bold;
+            border: none;
+        }
+
+        .black,
+        .white {
+            position: relative;
+            z-index: 1;
+        }
+
+        .black::before,
+        .white::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .black::before {
+            background: radial-gradient(circle at 30% 30%, #666, #000);
+        }
+
+        .white::before {
+            background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+        }
+
+        .move-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            color: var(--number-color, white);
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        }
+
+        .black .move-number {
+            --number-color: white;
+        }
+
+        .white .move-number {
+            --number-color: black;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .coordinates-input {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .coordinates-input input {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 60px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .coordinates-input button {
+            margin-left: 15px;
+        }
+
+        .guess-result {
+            margin: 15px 0;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .correct,
+        .present,
+        .absent {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: transform 0.2s;
+        }
+
+        .correct {
+            background-color: #6aaa64;
+        }
+
+        .present {
+            background-color: #c9b458;
+        }
+
+        .absent {
+            background-color: #787c7d;
+        }
+
+        .correct:hover,
+        .present:hover,
+        .absent:hover {
+            transform: scale(1.05);
+        }
+
+        #guess-history {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script src="gomocalc.js"></script>
+    <script>
+        let board = Array(15).fill().map(() => Array(15).fill(null)); // 15x15 empty board
+        let moveHistory = []; // Stores the move history for undo
+        let currentMove = 1; // Move counter
+        let gomocalcInitialized = false; // Flag to track if gomocalc is initialized
+        let path = "";
+        let best;
+        function convertCoordinate(coordinate) {
+            const columnLetter = coordinate[0]; // 获取列字母
+            const rowNumber = parseInt(coordinate.slice(1, coordinate.length), 10); // 获取行数字
+
+            const columnNumber = columnLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+
+            const rowNumberConverted = 15 - rowNumber;
+            return [rowNumberConverted, columnNumber];
+        }
+        function callback(o) {
+            if (o.pos && best === null) {
+                makeMove(o.pos[1], o.pos[0]);
+            }
+            if (o.msg) {
+                if (o.msg.includes("Speed")) {
+                    makeMove(best[0], best[1]);
+                } else {
+                    console.log(o.msg);
+                    let s = o.msg.split("|");
+                    best = convertCoordinate(s[3].split(" ")[1]);
+                    if (s[1].slice(6,8) === '+M') document.getElementById('max-moves').textContent = s[1].slice(8, s[1].length);
+                    if (Number(s[0].slice(6, s[0].length).split('-')[0]) >= 25) { gomocalc.stopThinking(); makeMove(best[0], best[1]); }
+                }
+            }
+        }
+
+        function drawBoard() {
+            let table = "<table>";
+            table += "<tr><td></td>";
+            for (let i = 0; i < 15; i++) {
+                table += `<td class="red">${String.fromCharCode(65 + i)}</td>`;
+            }
+            table += "</tr>";
+            for (let i = 0; i < 15; i++) {
+                table += `<tr><td class="red">${15 - i}</td>`;
+                for (let j = 0; j < 15; j++) {
+                    let cellClass = board[i][j] ? (board[i][j].side === 1 ? "black" : "white") : "empty";
+                    table += `<td class="${cellClass}" onclick="makeMove(${i}, ${j})">`;
+                    if (board[i][j]) {
+                        table += `<span class="move-number">${board[i][j].move}</span>`;
+                    }
+                    table += "</td>";
+                }
+                table += "</tr>";
+            }
+            table += "</table>";
+            document.getElementById('board').innerHTML = table;
+        }
+
+        function makeMove(i, j) {
+            if (board[i][j] !== null) return; // If already occupied, return
+            let side = currentMove % 2 === 1 ? 1 : 2; // Alternates between 1 (black) and 2 (white)
+            board[i][j] = { side, move: currentMove }; // Store side and move number
+            moveHistory.push({ i, j, side, move: currentMove, path });
+            currentMove++;
+            drawBoard();
+            path += ` ${j},${i},${side}`;
+            if (side !== 1) {
+                const result = findMatchingMove(moveHistory.map(x => [x.i, x.j]), books, 15);
+                console.log(result);
+                if (result === null) {
+                    think();
+                    makeMove(best[0], best[1]);
+                } else {
+                    makeMove(result[0], result[1]);
+                }
+            }
+        }
+
+        function undoMove() {
+            if (moveHistory.length === 0) return;
+            let lastMove = moveHistory.pop();
+            board[lastMove.i][lastMove.j] = null; // Clear last move
+            path = lastMove.path;
+            currentMove--;
+            drawBoard();
+        }
+
+        function think() {
+            best = null;
+            if (!gomocalcInitialized) {
+                // Initialize gomocalc only when the first "计算" is pressed
+                initGomocalc().then(() => {
+                    performThink();
+                });
+            } else {
+                performThink();
+            }
+        }
+
+        function performThink(num=1) {
+            // The actual think process starts here
+            gomocalc.sendCommand('RELOADCONFIG config-220723.toml');
+            gomocalc.sendCommand('INFO HASH_SIZE 262144');
+            gomocalc.sendCommand('INFO RULE 2');
+            gomocalc.sendCommand('INFO THREAD_NUM 1');
+            gomocalc.sendCommand('INFO CAUTION_FACTOR 3');
+            gomocalc.sendCommand('INFO STRENGTH 100');
+            gomocalc.sendCommand('INFO TIMEOUT_TURN 86400000');
+            gomocalc.sendCommand('INFO TIMEOUT_MATCH 86400000');
+            gomocalc.sendCommand('INFO MAX_DEPTH 225');
+            gomocalc.sendCommand('INFO MAX_NODE 0');
+            gomocalc.sendCommand('INFO SHOW_DETAIL 3');
+            gomocalc.sendCommand('INFO PONDERING 0');
+            gomocalc.sendCommand('INFO SWAPABLE 1');
+            gomocalc.sendCommand('START 15');
+            gomocalc.sendCommand('INFO TIME_LEFT 86400000');
+            if (currentMove % 2 === 1) {
+                gomocalc.sendCommand(`YXBOARD${path} DONE`);
+            } else {
+                let s = path.split(' ');
+                gomocalc.sendCommand(`YXBOARD${s.slice(0, s.length - 1).join(' ')} DONE`);
+                gomocalc.sendCommand(`TURN ${s[s.length - 1]}`);
+            }
+            gomocalc.sendCommand(`YXNBEST ${num}`);
+        }
+
+        function initGomocalc() {
+            return new Promise((resolve, reject) => {
+                gomocalc.init(o => {
+                    gomocalcInitialized = true;
+                    o && o.ok && resolve(o);
+                    callback(o);
+                });
+            });
+        }
+        // Draw the board on page load
+        drawBoard();
+        makeMove(7, 7);
+        //---book---
+        let books = [
+            [[7, 7]],
+            [[7, 7], [7, 9], [8, 6]],
+            [[7, 7], [7, 8], [8, 8]],
+            [[7, 7], [7, 9], [8, 6]],
+            [[7, 7], [7, 10], [8, 6]],
+            [[7, 7], [7, 11], [8, 6]],
+            [[7, 7], [7, 12], [8, 6]],
+            [[7, 7], [7, 13], [8, 6]],
+            [[7, 7], [7, 14], [8, 6]],
+            [[7, 7], [8, 8], [8, 6]],
+            [[7, 7], [8, 9], [8, 6]],
+            [[7, 7], [8, 10], [8, 6]],
+            [[7, 7], [8, 11], [8, 6]],
+            [[7, 7], [8, 12], [8, 6]],
+            [[7, 7], [8, 13], [8, 6]],
+            [[7, 7], [8, 14], [8, 6]],
+            [[7, 7], [9, 9], [8, 6]],
+            [[7, 7], [9, 10], [8, 6]],
+            [[7, 7], [9, 11], [8, 6]],
+            [[7, 7], [9, 12], [8, 6]],
+            [[7, 7], [9, 13], [8, 6]],
+            [[7, 7], [9, 14], [8, 6]],
+            [[7, 7], [10, 10], [8, 6]],
+            [[7, 7], [10, 11], [8, 6]],
+            [[7, 7], [10, 12], [8, 6]],
+            [[7, 7], [10, 13], [8, 6]],
+            [[7, 7], [10, 14], [8, 6]],
+            [[7, 7], [11, 11], [8, 6]],
+            [[7, 7], [11, 12], [8, 6]],
+            [[7, 7], [11, 13], [8, 6]],
+            [[7, 7], [11, 14], [8, 6]],
+            [[7, 7], [12, 12], [8, 6]],
+            [[7, 7], [12, 13], [8, 6]],
+            [[7, 7], [12, 14], [8, 6]],
+            [[7, 7], [13, 13], [8, 6]],
+            [[7, 7], [13, 14], [8, 6]],
+            [[7, 7], [14, 14], [8, 6]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9]],
+            [[7, 7], [7, 8], [8, 8], [6, 7], [9, 9]],
+            [[7, 7], [7, 8], [8, 8], [6, 9], [8, 7]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6]],
+            [[7, 7], [7, 8], [8, 8], [8, 9], [6, 6]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6]],
+            [[7, 7], [7, 9], [8, 6], [6, 8], [7, 5]],
+            [[7, 7], [7, 9], [8, 6], [9, 5], [6, 6]],
+            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6]],
+            [[7, 7], [8, 8], [8, 6], [7, 5], [6, 8]],
+            [[7, 7], [8, 8], [8, 6], [7, 6], [6, 8]],
+            [[7, 7], [8, 8], [8, 6], [9, 5], [6, 8]],
+            [[7, 7], [8, 9], [8, 6], [6, 8], [6, 6]],
+            [[7, 7], [8, 9], [8, 6], [9, 5], [7, 6]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [6, 8], [9, 10]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [6, 9], [9, 7]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 7], [9, 6]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 9], [9, 7]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [9, 6], [8, 7]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [6, 6], [10, 6]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [6, 7], [9, 9]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [7, 6], [10, 6]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [8, 6], [10, 7]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 5], [10, 6]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 7], [8, 5]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 8], [9, 5]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 9], [9, 5]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [10, 6], [9, 5]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [6, 7], [8, 6]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [6, 9], [8, 6]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [7, 9], [5, 6]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [8, 7], [9, 6]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [9, 6], [8, 7]],
+            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8], [9, 5], [5, 7]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 6], [9, 7]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 7], [9, 7]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [7, 6], [9, 7]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [8, 7], [10, 6]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [9, 8], [7, 8]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [10, 6], [7, 8]],
+            [[7, 7], [8, 8], [8, 6], [7, 5], [6, 8], [5, 9], [6, 7]],
+            [[7, 7], [7, 8], [8, 8], [6, 6], [9, 9], [8, 7], [9, 6], [9, 8], [10, 9]],
+            [[7, 7], [7, 8], [8, 8], [9, 9], [6, 6], [8, 7], [9, 6], [7, 6], [6, 5]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [8, 6], [10, 7], [11, 8], [6, 6]],
+            [[7, 7], [7, 8], [8, 8], [8, 7], [9, 6], [9, 7], [8, 5], [7, 4], [9, 9]],
+            [[7, 7], [8, 8], [8, 6], [6, 7], [6, 8], [9, 5], [5, 7], [4, 6], [7, 6]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [6, 6], [9, 7], [6, 7], [6, 5]],
+            [[7, 7], [8, 8], [8, 6], [6, 8], [9, 6], [9, 8], [7, 8], [7, 6], [8, 7]]
+        ];
+        function Sort(arr) {
+            // 将数组分割为奇数位和偶数位
+            let oddIndices = [];
+            let evenIndices = [];
+
+            for (let i = 0; i < arr.length; i++) {
+                if (i % 2 === 0) {
+                    evenIndices.push(arr[i]); // 偶数位元素
+                } else {
+                    oddIndices.push(arr[i]);  // 奇数位元素
+                }
+            }
+
+            // 分别对奇数位和偶数位的数组进行排序
+            evenIndices.sort(); // 升序排序偶数位
+            oddIndices.sort();  // 升序排序奇数位
+
+            // 合并排序后的数组
+            let result = [];
+            let evenPointer = 0;
+            let oddPointer = 0;
+
+            for (let i = 0; i < arr.length; i++) {
+                if (i % 2 === 0) {
+                    result.push(evenIndices[evenPointer++]); // 插入偶数位元素
+                } else {
+                    result.push(oddIndices[oddPointer++]);  // 插入奇数位元素
+                }
+            }
+
+            return result;
+        }
+
+        function rotate90(steps, boardSize) {
+            const center = (boardSize - 1) / 2;
+            return steps.map(([x, y]) => {
+                const newX = center + (center - y);
+                const newY = center - (center - x);
+                return [newX, newY];
+            });
+        }
+        function rotate180(steps, boardSize) {
+            return steps.map(([x, y]) => {
+                const newX = boardSize - 1 - x;
+                const newY = boardSize - 1 - y;
+                return [newX, newY];
+            });
+        }
+        function rotate270(steps, boardSize) {
+            const center = (boardSize - 1) / 2;
+            return steps.map(([x, y]) => {
+                const newX = center - (center - y);
+                const newY = center + (center - x);
+                return [newX, newY];
+            });
+        }
+        function flipHorizontal(steps, boardSize) {
+            return steps.map(([x, y]) => {
+                return [x, boardSize - 1 - y];
+            });
+        }
+        function findMatchingMove(inputSequence, books, boardSize) {
+            const n = inputSequence.length;
+
+            // 检查是否有匹配的序列
+            for (let i = 0; i < books.length; i++) {
+                const bookSequence = books[i];
+                // 如果长度不匹配，跳过
+                if (bookSequence.length - 1 !== n) continue;
+                // 检查正向匹配
+                if (JSON.stringify(Sort(bookSequence.slice(0, n))) === JSON.stringify(Sort(inputSequence))) {
+                    return bookSequence[n];
+                }
+
+                // 检查旋转90度匹配
+                const rotated90 = rotate90(bookSequence.slice(0, n), boardSize);
+                if (JSON.stringify(Sort(rotated90)) === JSON.stringify(Sort(inputSequence))) {
+                    return rotate90([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
+                }
+
+                // 检查旋转180度匹配
+                const rotated180 = rotate180(bookSequence.slice(0, n), boardSize);
+                if (JSON.stringify(Sort(rotated180)) === JSON.stringify(Sort(inputSequence))) {
+                    return rotate180([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
+                }
+
+                // 检查旋转270度匹配
+                const rotated270 = rotate270(bookSequence.slice(0, n), boardSize);
+                if (JSON.stringify(Sort(rotated270)) === JSON.stringify(Sort(inputSequence))) {
+                    return rotate270([bookSequence[n]], boardSize)[0]; // 返回旋转后的点
+                }
+
+                // 检查水平翻转匹配
+                const flippedHorizontal = flipHorizontal(bookSequence.slice(0, n), boardSize);
+                if (JSON.stringify(Sort(flippedHorizontal)) === JSON.stringify(Sort(inputSequence))) {
+                    return flipHorizontal([bookSequence[n]], boardSize)[0]; // 返回翻转后的点
+                }
+
+                // 检查水平翻转 + 旋转90度匹配
+                const flippedHorizontalRotated90 = rotate90(flippedHorizontal, boardSize);
+                if (JSON.stringify(Sort(flippedHorizontalRotated90)) === JSON.stringify(Sort(inputSequence))) {
+                    return flipHorizontal(rotate90([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
+                }
+
+                // 检查水平翻转 + 旋转180度匹配
+                const flippedHorizontalRotated180 = rotate180(flippedHorizontal, boardSize);
+                if (JSON.stringify(Sort(flippedHorizontalRotated180)) === JSON.stringify(Sort(inputSequence))) {
+                    return flipHorizontal(rotate180([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
+                }
+
+                // 检查水平翻转 + 旋转270度匹配
+                const flippedHorizontalRotated270 = rotate270(flippedHorizontal, boardSize);
+                if (JSON.stringify(Sort(flippedHorizontalRotated270)) === JSON.stringify(Sort(inputSequence))) {
+                    return flipHorizontal(rotate270([bookSequence[n]], boardSize), boardSize)[0]; // 返回旋转后的点
+                }
+            }
+
+            // 如果没有找到匹配
+            return null;
+        }
+
+
+
+    </script>
 </head>
-<body>
-    <h1>Mathdle Game</h1>
-    <p>目标数字：<span id="targetNumber">加载中...</span></p>
-    <p>可用数字：<span id="useNumber">加载中...</span></p>
-    <div>
-        <input type="text" id="expression" placeholder="输入表达式">
-        <button id="submit">提交</button>
-    </div>
 
-    <h2>排行榜</h2>
-    <ul id="leaderboard"></ul>
 
-    <script src="app.js"></script>
-</body>
 </html>

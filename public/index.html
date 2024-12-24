@@ -15,23 +15,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>五子棋先手必胜（有禁手，黑棋不走33、44、长连）</title>
     <style>
-        /* Existing styles remain the same */
-        body {
+                body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
+            max-width: 800px;  /* Reduced from 1200px */
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
         }
 
-        h1,
-        h2 {
+        td {
+            width: 30px;  /* Reduced from 40px */
+            height: 30px; /* Reduced from 40px */
+            text-align: center;
+            vertical-align: middle;
+            font-size: 12px; /* Reduced from 16px */
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .black::before,
+        .white::before {
+            width: 24px;  /* Reduced from 32px */
+            height: 24px; /* Reduced from 32px */
+        }
+
+        .move-number {
+            font-size: 10px; /* Reduced from default */
+        }
+
+        /* Rest of styles remain unchanged */
+        h1, h2 {
             color: #333;
             text-align: center;
             margin-bottom: 30px;
+            font-size: 20px; /* Reduced from default */
         }
 
-        /* Add new styles for the status container */
         .status-container {
             display: flex;
             justify-content: center;
@@ -42,10 +61,10 @@
 
         .win-counter {
             background-color: #fff;
-            padding: 12px 24px;
+            padding: 8px 16px; /* Reduced padding */
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
+            font-size: 14px; /* Reduced from 16px */
             color: #333;
             font-weight: 500;
         }
@@ -54,23 +73,18 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 8px 16px; /* Reduced padding */
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px; /* Reduced from 16px */
             transition: background-color 0.3s;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .undo-button:hover {
-            background-color: #45a049;
-        }
-
-        /* Rest of the existing styles remain the same */
         .board-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         table {
@@ -79,34 +93,6 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 4px;
             overflow: hidden;
-        }
-
-        td {
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 16px;
-            position: relative;
-            transition: background-color 0.2s;
-        }
-
-        table {
-            border-collapse: collapse;
-            background: #DEB887;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        td {
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 16px;
-            position: relative;
-            transition: background-color 0.2s;
         }
 
         td:not(:first-child):not(.red) {
@@ -122,8 +108,7 @@
             border: none;
         }
 
-        .black,
-        .white {
+        .black, .white {
             position: relative;
             z-index: 1;
         }
@@ -135,8 +120,6 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 32px;
-            height: 32px;
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
@@ -166,99 +149,6 @@
 
         .white .move-number {
             --number-color: black;
-        }
-
-        .button-container {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            margin: 0 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        .coordinates-input {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .coordinates-input input {
-            padding: 8px 12px;
-            margin: 0 5px;
-            border: 2px solid #4CAF50;
-            border-radius: 4px;
-            font-size: 16px;
-            width: 60px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .coordinates-input button {
-            margin-left: 15px;
-        }
-
-        .guess-result {
-            margin: 15px 0;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-        }
-
-        .correct,
-        .present,
-        .absent {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 0 4px;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            transition: transform 0.2s;
-        }
-
-        .correct {
-            background-color: #6aaa64;
-        }
-
-        .present {
-            background-color: #c9b458;
-        }
-
-        .absent {
-            background-color: #787c7d;
-        }
-
-        .correct:hover,
-        .present:hover,
-        .absent:hover {
-            transform: scale(1.05);
-        }
-
-        #guess-history {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
     <script src="gomocalc.js"></script>

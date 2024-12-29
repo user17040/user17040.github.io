@@ -124,7 +124,6 @@
     <script>
         let targetFunction = {};
         let currentRow = 0;
-        const maxRows = 6;
 
         function generateTargetFunction() {
             let a = 0;
@@ -244,13 +243,6 @@
 
             if (results.every(r => r === 'correct')) {
                 document.getElementById('message').textContent = '恭喜你赢了！答案是：' +
-                    getFunctionString(targetFunction.a, targetFunction.b, targetFunction.c);
-                disableInputs();
-                return;
-            }
-
-            if (currentRow >= maxRows) {
-                document.getElementById('message').textContent = '游戏结束！答案是：' +
                     getFunctionString(targetFunction.a, targetFunction.b, targetFunction.c);
                 disableInputs();
                 return;

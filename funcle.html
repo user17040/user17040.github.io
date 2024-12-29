@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>二次函数 Wordle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            max-width: 800px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .guess-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        .grid-cells {
+            display: flex;
+            gap: 5px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .function-text {
+            font-family: monospace;
+            font-size: 18px;
+            margin-left: 15px;
+            min-width: 200px;
+        }
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+            border-color: #6aaa64;
+        }
+        .wrong-position {
+            background-color: #c9b458;
+            color: white;
+            border-color: #c9b458;
+        }
+        .incorrect {
+            background-color: #787c7e;
+            color: white;
+            border-color: #787c7e;
+        }
+        .input-container {
+            margin: 20px 0;
+        }
+        input {
+            width: 60px;
+            padding: 5px;
+            margin: 0 5px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>二次函数 Wordle</h1>
+        <div class="instructions">
+            <h3>游戏规则：</h3>
+            <p>猜测一个形如 ax² + bx + c 的二次函数，其中：</p>
+            <ul>
+                <li>|a| ≤ 3 且 a ≠ 0</li>
+                <li>|b| ≤ 6</li>
+                <li>|c| ≤ 6</li>
+            </ul>
+            <p>每次猜测后，将显示函数在 x = -2, -1, 0, 1, 2 处的值是否正确：</p>
+            <ul>
+                <li>绿色：该点的值完全正确</li>
+                <li>黄色：该点的值存在于答案中，但位置不对</li>
+                <li>灰色：该点的值不在答案中</li>
+            </ul>
+        </div>
+        <div id="guessGrid"></div>
+        <div class="input-container">
+            <input type="number" id="inputA" placeholder="a" min="-3" max="3" step="1">x² + 
+            <input type="number" id="inputB" placeholder="b" min="-6" max="6" step="1">x + 
+            <input type="number" id="inputC" placeholder="c" min="-6" max="6" step="1">
+            <button onclick="makeGuess()">猜测</button>
+        </div>
+        <div class="message" id="message"></div>
+        <button onclick="newGame()">新游戏</button>
+    </div>
+
+    <script>
+        let targetFunction = {};
+        let currentRow = 0;
+        const maxRows = 6;
+
+        function generateTargetFunction() {
+            let a = 0;
+            while (a === 0) {
+                a = Math.floor(Math.random() * 7) - 3;
+            }
+            const b = Math.floor(Math.random() * 13) - 6;
+            const c = Math.floor(Math.random() * 13) - 6;
+            return { a, b, c };
+        }
+
+        function calculateValues(func) {
+            return [-2, -1, 0, 1, 2].map(x => 
+                func.a * x * x + func.b * x + func.c
+            );
+        }
+
+        function getFunctionString(a, b, c) {
+            let str = '';
+            
+            // Add a term
+            str += a === 1 ? 'x²' : a === -1 ? '-x²' : `${a}x²`;
+            
+            // Add b term
+            if (b !== 0) {
+                str += b > 0 ? ' + ' : ' - ';
+                str += Math.abs(b) === 1 ? 'x' : `${Math.abs(b)}x`;
+            }
+            
+            // Add c term
+            if (c !== 0) {
+                str += c > 0 ? ' + ' : ' - ';
+                str += Math.abs(c);
+            }
+            
+            return str;
+        }
+
+        function compareGuess(target, guess) {
+            const result = new Array(5).fill('incorrect');
+            
+            // Create frequency maps for remaining target and guess values
+            const targetFreq = new Map();
+            const guessFreq = new Map();
+            const matched = new Set();
+
+            // First pass: Mark exact matches
+            for (let i = 0; i < 5; i++) {
+                if (guess[i] === target[i]) {
+                    result[i] = 'correct';
+                    matched.add(i);
+                } else {
+                    targetFreq.set(target[i], (targetFreq.get(target[i]) || 0) + 1);
+                    guessFreq.set(guess[i], (guessFreq.get(guess[i]) || 0) + 1);
+                }
+            }
+
+            // Second pass: Mark wrong positions
+            for (let i = 0; i < 5; i++) {
+                if (!matched.has(i)) {
+                    const value = guess[i];
+                    if (targetFreq.has(value) && targetFreq.get(value) > 0) {
+                        result[i] = 'wrong-position';
+                        targetFreq.set(value, targetFreq.get(value) - 1);
+                        if (targetFreq.get(value) === 0) {
+                            targetFreq.delete(value);
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        function updateGrid(guessValues, results, funcString) {
+            const row = document.createElement('div');
+            row.className = 'guess-row';
+            
+            const gridCells = document.createElement('div');
+            gridCells.className = 'grid-cells';
+            
+            for (let i = 0; i < 5; i++) {
+                const cell = document.createElement('div');
+                cell.className = `cell ${results[i]}`;
+                cell.textContent = guessValues[i];
+                gridCells.appendChild(cell);
+            }
+            
+            const functionDisplay = document.createElement('div');
+            functionDisplay.className = 'function-text';
+            functionDisplay.textContent = funcString;
+            
+            row.appendChild(gridCells);
+            row.appendChild(functionDisplay);
+            
+            document.getElementById('guessGrid').appendChild(row);
+        }
+
+        function makeGuess() {
+            const a = parseInt(document.getElementById('inputA').value);
+            const b = parseInt(document.getElementById('inputB').value);
+            const c = parseInt(document.getElementById('inputC').value);
+            
+            if (isNaN(a) || isNaN(b) || isNaN(c) || a === 0 || Math.abs(a) > 3 || 
+                Math.abs(b) > 6 || Math.abs(c) > 6) {
+                document.getElementById('message').textContent = '请输入有效的系数！';
+                return;
+            }
+
+            const guessValues = calculateValues({a, b, c});
+            const targetValues = calculateValues(targetFunction);
+            const results = compareGuess(targetValues, guessValues);
+            const funcString = getFunctionString(a, b, c);
+            
+            updateGrid(guessValues, results, funcString);
+            currentRow++;
+
+            if (results.every(r => r === 'correct')) {
+                document.getElementById('message').textContent = '恭喜你赢了！答案是：' +
+                    getFunctionString(targetFunction.a, targetFunction.b, targetFunction.c);
+                disableInputs();
+                return;
+            }
+
+            if (currentRow >= maxRows) {
+                document.getElementById('message').textContent = '游戏结束！答案是：' +
+                    getFunctionString(targetFunction.a, targetFunction.b, targetFunction.c);
+                disableInputs();
+                return;
+            }
+
+            clearInputs();
+        }
+
+        function clearInputs() {
+            document.getElementById('inputA').value = '';
+            document.getElementById('inputB').value = '';
+            document.getElementById('inputC').value = '';
+        }
+
+        function disableInputs() {
+            document.getElementById('inputA').disabled = true;
+            document.getElementById('inputB').disabled = true;
+            document.getElementById('inputC').disabled = true;
+            document.querySelector('button').disabled = true;
+        }
+
+        function enableInputs() {
+            document.getElementById('inputA').disabled = false;
+            document.getElementById('inputB').disabled = false;
+            document.getElementById('inputC').disabled = false;
+            document.querySelector('button').disabled = false;
+        }
+
+        function newGame() {
+            document.getElementById('guessGrid').innerHTML = '';
+            document.getElementById('message').textContent = '';
+            currentRow = 0;
+            targetFunction = generateTargetFunction();
+            clearInputs();
+            enableInputs();
+        }
+
+        // Start new game when page loads
+        window.onload = newGame;
+    </script>
+</body>
+</html>

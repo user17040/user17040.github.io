@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学函数猜谜游戏</title>
+    <style>
+        /* 加载自定义字体 */
+        @font-face {
+            font-family: 'HYWenHei85W';
+            src: url('fonts/汉仪文黑-85W.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'HYWenHei85W', sans-serif;
+            text-align: center;
+            background-color: #f7f7f7;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-container {
+            
+            margin-bottom: 20px;
+        }
+
+        .input-container input {
+            font-family: 'HYWenHei85W', sans-serif;
+            padding: 10px;
+            font-size: 18px;
+            width: 300px;
+            margin-right: 10px;
+        }
+
+        .input-container button {
+            font-family: 'HYWenHei85W', sans-serif;
+            padding: 10px 15px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .green {
+            background-color: green;
+            color: white;
+        }
+
+        .gray {
+            background-color: gray;
+            color: white;
+        }
+
+        .guess-history {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>数学函数猜谜游戏</h1>
+        <p>猜测数学函数，输入一个可能的二次函数系数 (例如 1,3,2)，我们会根据你的猜测计算 f(x) 的结果。</p>
+
+        <div class="input-container">
+            <input type="text" id="user-guess" placeholder="输入函数，如 1,3,2" />
+            <button onclick="submitGuess()">提交猜测</button>
+        </div>
+
+        <div class="guess-history">
+            <h3>猜测历史</h3>
+            <table id="guess-table">
+                <thead>
+                    <tr>
+                        <th>猜测</th>
+                        <th>x=-5</th>
+                        <th>x=-4</th>
+                        <th>x=-3</th>
+                        <th>x=-2</th>
+                        <th>x=-1</th>
+                        <th>x=0</th>
+                        <th>x=1</th>
+                        <th>x=2</th>
+                        <th>x=3</th>
+                        <th>x=4</th>
+                        <th>x=5</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        let a = 0;
+        while (a === 0) {
+            a = getRandomInt(-5, 5);
+        }
+        let b = getRandomInt(-10, 10);
+        let c = getRandomInt(-10, 10);
+        const correctFunction = (x) => a * x ** 2 + b * x + c;  // 设定正确答案的函数，作为示例
+
+        function submitGuess() {
+            const userInput = document.getElementById('user-guess').value.trim();
+            if (!userInput) return;
+
+            const formattedGuess = userInput.split(',');
+            let guessResultRow = [];
+
+            // 计算每个猜测在区间 x=-5 到 x=5 的 f(x)
+            for (let x = -5; x <= 5; x++) {
+                const userResult = Number(formattedGuess[0]) * x ** 2 + Number(formattedGuess[1]) * x + Number(formattedGuess[2]);
+                const correctResult = correctFunction(x);
+                let guessResult = '';
+
+                const diff = Math.abs(userResult - correctResult);
+
+                if (diff <= 1e-8) {
+                    guessResult = 'green';  // 准确
+                } else if (diff <= 2) {
+                    guessResult = 'yellow'; // 接近
+                } else {
+                    guessResult = 'gray';   // 不符
+                }
+
+                // 收集该猜测行的数据
+                guessResultRow.push({ value: userResult.toFixed(3), class: guessResult });
+            }
+
+            // 将当前猜测记录添加到表格
+            displayGuessResults(userInput, guessResultRow);
+        }
+
+        function displayGuessResults(userInput, guessResultRow) {
+            const guessTableBody = document.getElementById('guess-table').querySelector('tbody');
+            const row = document.createElement('tr');
+
+            // 添加猜测的编号
+            const guessNumberCell = document.createElement('td');
+            guessNumberCell.textContent = userInput;  // 自动生成编号
+            row.appendChild(guessNumberCell);
+
+            // 添加每个 x 的 f(x) 计算结果
+            guessResultRow.forEach(item => {
+                const cell = document.createElement('td');
+                cell.textContent = item.value;
+                cell.classList.add(item.class); // 根据计算结果添加颜色
+                row.appendChild(cell);
+            });
+
+            guessTableBody.appendChild(row);
+        }
+    </script>
+</body>
+
+</html>

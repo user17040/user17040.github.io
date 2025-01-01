@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>每日猜校游戏</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #guessInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #guessButton {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #guessButton:hover {
+            background-color: #1557b0;
+        }
+
+        .guess-history {
+            margin-top: 20px;
+        }
+
+        .guess-item {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .distance {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #e6f4ea;
+            border-color: #34a853;
+        }
+        
+    </style>
+</head>
+<script src="data1.js"></script>
+
+<body>
+    <div class="container">
+        <h1>每日猜校游戏</h1>
+        <p>选择一所西城高中学校，看看离目标学校有多远！（以高中部为准）</p>
+
+        <input id="guessInput"></input>
+
+        <button id="guessButton">猜测</button>
+
+        <div class="guess-history" id="guessHistory"></div>
+
+    </div>
+
+    <script>
+        // 随机选择一所目标学校
+        const targetSchool = schools[Math.floor(Math.random() * schools.length)];
+        let guessCount = 0;
+        let gameOver = false;
+
+
+        // 计算两点之间的距离（米）
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // 地球半径（米）
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c;
+        }
+
+        document.getElementById('guessButton').addEventListener('click', () => {
+            if (gameOver) return;
+
+            const guessedName = guessInput.value;
+
+            const guessedSchool = schools.find(s => s['名']=== guessedName);
+            if (!guessedSchool) return;
+            const distance = calculateDistance(
+                guessedSchool['位'][0],
+                guessedSchool['位'][1],
+                targetSchool['位'][0],
+                targetSchool['位'][1]
+            );
+
+            const guessItem = document.createElement('div');
+            guessItem.className = 'guess-item';
+            if (distance === 0) {
+                guessItem.classList.add('success');
+                gameOver = true;
+            }
+
+            guessItem.innerHTML = `
+                <span>${guessedName}</span>
+                <span class="distance">距离: ${Math.round(distance)} 米</span>
+            `;
+
+            document.getElementById('guessHistory').prepend(guessItem);
+
+            if (distance === 0) {
+                alert('恭喜你猜对了！');
+            }
+        });
+    </script>
+</body>
+
+</html>

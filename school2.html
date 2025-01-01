@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>每日猜校游戏</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #guessInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #guessButton {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #guessButton:hover {
+            background-color: #1557b0;
+        }
+
+        .guess-history {
+            margin-top: 20px;
+        }
+
+        .guess-item {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .distance {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #e6f4ea;
+            border-color: #34a853;
+        }
+        
+        .failure {
+            background-color: #fce8e6;
+            border-color: #ea4335;
+        }
+
+        .score-display {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #1a73e8;
+            font-weight: bold;
+        }
+
+        .target-school {
+            background-color: #e8f0fe;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<script src="data1.js"></script>
+
+<body>
+    <div class="container">
+        <h1>每日猜校游戏</h1>
+        <p>目标是让距离越来越远！每次猜测得1分，看看你能得多少分！</p>
+        
+        <div class="target-school">
+            目标学校：<span id="targetSchoolName"></span>
+        </div>
+
+        <input id="guessInput" placeholder="输入学校名称"></input>
+        <button id="guessButton">猜测</button>
+
+        <div class="score-display">当前分数：<span id="scoreDisplay">0</span></div>
+        <div class="guess-history" id="guessHistory"></div>
+    </div>
+
+    <script>
+        // 随机选择一所目标学校
+        const targetSchool = schools[Math.floor(Math.random() * schools.length)];
+        document.getElementById('targetSchoolName').textContent = targetSchool['名'];
+        
+        let lastDistance = 0;
+        let score = 0;
+        let gameOver = false;
+
+        // 计算两点之间的距离（米）
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // 地球半径（米）
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c;
+        }
+
+        document.getElementById('guessButton').addEventListener('click', () => {
+            if (gameOver) return;
+
+            const guessedName = guessInput.value;
+            const guessedSchool = schools.find(s => s['名'] === guessedName);
+            
+            if (!guessedSchool) {
+                alert('请输入有效的学校名称！');
+                return;
+            }
+
+            const distance = calculateDistance(
+                guessedSchool['位'][0],
+                guessedSchool['位'][1],
+                targetSchool['位'][0],
+                targetSchool['位'][1]
+            );
+
+            const guessItem = document.createElement('div');
+            guessItem.className = 'guess-item';
+
+            // 检查是否符合规则（距离必须更远）
+            if (distance <= lastDistance && lastDistance !== 0) {
+                guessItem.classList.add('failure');
+                gameOver = true;
+                guessItem.innerHTML = `
+                    <span>${guessedName}</span>
+                    <span class="distance">距离: ${Math.round(distance)} 米 - 游戏结束！距离没有增加</span>
+                `;
+                alert(`游戏结束！最终得分：${score}分`);
+            } else {
+                score += 1; // 每次有效猜测加1分
+                document.getElementById('scoreDisplay').textContent = score;
+                
+                guessItem.innerHTML = `
+                    <span>${guessedName}</span>
+                    <span class="distance">距离: ${Math.round(distance)} 米</span>
+                `;
+                lastDistance = distance;
+            }
+
+            document.getElementById('guessHistory').prepend(guessItem);
+            guessInput.value = ''; // 清空输入框
+        });
+    </script>
+</body>
+</html>

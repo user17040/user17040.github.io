@@ -100,7 +100,7 @@
 
         .results-grid {
             display: grid;
-            grid-template-columns: auto repeat(4, 1fr);
+            grid-template-columns: auto repeat(3, 1fr);
             gap: 10px;
             margin-top: 10px;
             width: 100%;
@@ -238,18 +238,12 @@
                 option.text = '-';
                 select.appendChild(option);
             } else {
-                [2, 1, 0].forEach(value => {
+                [1, 2, 0].forEach(value => {
                     const option = document.createElement('option');
                     option.value = value;
                     option.text = value;
                     select.appendChild(option);
                 });
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.text = '';
-                select.appendChild(defaultOption);
-                select.value = '';
 
                 select.addEventListener('change', function () {
                     const [row, col] = this.id.split('-').slice(1).map(Number);

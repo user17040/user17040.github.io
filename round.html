@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .guess-table {
+            margin-top: 10px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .guess-table th,
+        .guess-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .guess-table th {
+            background-color: #f0f0f0;
+        }
+
+        .cell {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .player-name {
+            font-weight: bold;
+            background: #eee;
+        }
+
+        .result-cell {
+            width: 50px;
+            height: 30px;
+            text-align: center;
+        }
+
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+        }
+
+        .incorrect {
+            background-color: #787c7e;
+            color: white;
+        }
+
+        .history {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        select {
+            width: 100%;
+            height: 30px;
+        }
+
+        .disabled-select {
+            background-color: #eee;
+        }
+
+        .header-cell {
+            background: #eee;
+            font-weight: bold;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: auto repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .results-header {
+            font-weight: bold;
+            padding: 8px;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        .results-cell {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>每日猜赛</h1>
+    <div class="message" id="message">
+        猜测6位选手之间的比赛结果！<br>
+        选择2代表获胜，1代表平局，0代表失败<br>
+        小分为所胜对手积分的2倍加上所和对手积分<br>
+        排名按照积分、小分，依次区分<br>
+        绿色表示猜对，灰色表示猜错
+    </div>
+
+    <div class="input-grid" id="inputGrid"></div>
+    <button onclick="makeGuess()">提交猜测</button>
+    <div class="history" id="history"></div>
+
+    <script>
+        const players = ['A', 'B', 'C', 'D', 'E', 'F'];
+        let targetResults = [];
+        let attempts = 0;
+
+        function generateResults() {
+            const results = Array(6).fill().map(() => Array(6).fill(null));
+            for (let i = 0; i < 6; i++) {
+                for (let j = i + 1; j < 6; j++) {
+                    const rand = Math.random();
+                    if (rand < 1 / 3) {
+                        results[i][j] = 2;
+                        results[j][i] = 0;
+                    } else if (rand < 2 / 3) {
+                        results[i][j] = 1;
+                        results[j][i] = 1;
+                    } else {
+                        results[i][j] = 0;
+                        results[j][i] = 2;
+                    }
+                }
+            }
+            return results;
+        }
+
+        function calculateScores(results) {
+            const scores = [];
+            // First calculate raw scores
+            for (let i = 0; i < 6; i++) {
+                let points = 0;
+                let sonnebornBerger = 0;
+
+                for (let j = 0; j < 6; j++) {
+                    if (i === j) continue;
+                    points += results[i][j];
+                }
+
+                for (let j = 0; j < 6; j++) {
+                    if (i === j) continue;
+                    let oppPoints = 0;
+                    for (let k = 0; k < 6; k++) {
+                        if (k === j) continue;
+                        oppPoints += results[j][k];
+                    }
+                    sonnebornBerger += results[i][j] * oppPoints;
+                }
+
+                scores.push({
+                    player: i,
+                    points,
+                    sonnebornBerger,
+                    rank: 0 // Will be set later
+                });
+            }
+
+            // Sort scores and assign ranks with ties
+            scores.sort((a, b) => {
+                if (a.points !== b.points) return b.points - a.points;
+                if (b.sonnebornBerger !== a.sonnebornBerger) return b.sonnebornBerger - a.sonnebornBerger;
+                return a.player - b.player; // If everything is equal, maintain stable order by player index
+            });
+
+            // Assign ranks with ties
+            let currentRank = 1;
+            let sameRankCount = 1;
+            scores[0].rank = currentRank;
+
+            for (let i = 1; i < scores.length; i++) {
+                const prev = scores[i - 1];
+                const curr = scores[i];
+
+                if (prev.points === curr.points &&
+                    prev.sonnebornBerger === curr.sonnebornBerger) {
+                    // Tie case
+                    curr.rank = currentRank;
+                    sameRankCount++;
+                } else {
+                    // New rank case
+                    currentRank += sameRankCount;
+                    curr.rank = currentRank;
+                    sameRankCount = 1;
+                }
+            }
+
+            // Sort by original player order for display
+            scores.sort((a, b) => a.player - b.player);
+
+            return scores;
+        }
+
+        function createSelect(i, j) {
+            const select = document.createElement('select');
+            select.className = 'result-cell';
+            select.id = `input-${i}-${j}`;
+
+            if (i === j) {
+                select.disabled = true;
+                select.className += ' disabled-select';
+                const option = document.createElement('option');
+                option.value = '-';
+                option.text = '-';
+                select.appendChild(option);
+            } else {
+                [2, 1, 0].forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.text = value;
+                    select.appendChild(option);
+                });
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.text = '';
+                select.appendChild(defaultOption);
+                select.value = '';
+
+                select.addEventListener('change', function () {
+                    const [row, col] = this.id.split('-').slice(1).map(Number);
+                    const oppositeSelect = document.getElementById(`input-${col}-${row}`);
+                    if (this.value === '2') {
+                        oppositeSelect.value = '0';
+                    } else if (this.value === '1') {
+                        oppositeSelect.value = '1';
+                    } else if (this.value === '0') {
+                        oppositeSelect.value = '2';
+                    } else {
+                        oppositeSelect.value = '';
+                    }
+                });
+            }
+
+            return select;
+        }
+
+        function createInputGrid() {
+            const grid = document.getElementById('inputGrid');
+            grid.innerHTML = '';
+
+            // 添加空白格子（左上角）
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'cell header-cell';
+            grid.appendChild(emptyCell);
+
+            // 添加选手名称行
+            for (let i = 0; i < 6; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell header-cell';
+                cell.textContent = players[i];
+                grid.appendChild(cell);
+            }
+
+            // 添加选手名称列和选择框
+            for (let i = 0; i < 6; i++) {
+                // 添加选手名称列
+                const nameCell = document.createElement('div');
+                nameCell.className = 'cell header-cell';
+                nameCell.textContent = players[i];
+                grid.appendChild(nameCell);
+
+                // 添加选择框
+                for (let j = 0; j < 6; j++) {
+                    const select = createSelect(i, j);
+                    grid.appendChild(select);
+                }
+            }
+        }
+
+        function createGuessTable(guessResults) {
+            const table = document.createElement('table');
+            table.className = 'guess-table';
+
+            // Create header row
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const emptyTh = document.createElement('th');
+            headerRow.appendChild(emptyTh);
+
+            players.forEach(player => {
+                const th = document.createElement('th');
+                th.textContent = player;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Create body rows
+            const tbody = document.createElement('tbody');
+            players.forEach((player, i) => {
+                const row = document.createElement('tr');
+
+                // Add row header
+                const th = document.createElement('th');
+                th.textContent = player;
+                row.appendChild(th);
+
+                // Add results
+                players.forEach((_, j) => {
+                    const td = document.createElement('td');
+                    if (i === j) {
+                        td.textContent = '-';
+                    } else {
+                        td.textContent = guessResults[i][j];
+                    }
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            return table;
+        }
+
+        function createResultsGrid(targetScores, guessScores) {
+            const grid = document.createElement('div');
+            grid.className = 'results-grid';
+
+            // Headers
+            ['选手', '积分', '小分', '排名'].forEach(header => {
+                const cell = document.createElement('div');
+                cell.className = 'results-header';
+                cell.textContent = header;
+                grid.appendChild(cell);
+            });
+
+            // Player results in A-F order
+            for (let i = 0; i < 6; i++) {
+                const targetPlayer = targetScores[i];
+                const guessPlayer = guessScores[i]; // Same index since we sorted by player
+
+                // Player name
+                const nameCell = document.createElement('div');
+                nameCell.className = 'results-cell';
+                nameCell.textContent = players[i];
+                grid.appendChild(nameCell);
+
+                // Points
+                const pointsCell = document.createElement('div');
+                pointsCell.className = 'results-cell';
+                pointsCell.textContent = guessPlayer.points;
+                pointsCell.classList.add(guessPlayer.points === targetPlayer.points ? 'correct' : 'incorrect');
+                grid.appendChild(pointsCell);
+
+                // Sonneborn-Berger
+                const sbCell = document.createElement('div');
+                sbCell.className = 'results-cell';
+                sbCell.textContent = guessPlayer.sonnebornBerger;
+                sbCell.classList.add(guessPlayer.sonnebornBerger === targetPlayer.sonnebornBerger ? 'correct' : 'incorrect');
+                grid.appendChild(sbCell);
+
+
+                // Rank
+                const rankCell = document.createElement('div');
+                rankCell.className = 'results-cell';
+                rankCell.textContent = guessPlayer.rank;
+                rankCell.classList.add(guessPlayer.rank === targetPlayer.rank ? 'correct' : 'incorrect');
+                grid.appendChild(rankCell);
+            }
+
+            return grid;
+        }
+
+        function makeGuess() {
+            const guessResults = Array(6).fill().map(() => Array(6).fill(null));
+
+            // 收集输入值
+            for (let i = 0; i < 6; i++) {
+                for (let j = 0; j < 6; j++) {
+                    if (i === j) {
+                        guessResults[i][j] = '-';
+                        continue;
+                    }
+                    const select = document.getElementById(`input-${i}-${j}`);
+                    if (select.value === '') {
+                        alert('请完成所有选择！');
+                        return;
+                    }
+                    guessResults[i][j] = parseFloat(select.value);
+                }
+            }
+
+            const targetScores = calculateScores(targetResults);
+            const guessScores = calculateScores(guessResults);
+
+            const history = document.getElementById('history');
+            const guessDiv = document.createElement('div');
+            guessDiv.innerHTML = `<h3>第 ${attempts + 1} 次猜测</h3>`;
+
+            // 添加对阵表
+            guessDiv.appendChild(createGuessTable(guessResults));
+
+            // 添加成绩表
+            guessDiv.appendChild(createResultsGrid(targetScores, guessScores));
+
+            history.insertBefore(guessDiv, history.firstChild);
+
+            attempts++;
+
+            // 检查是否全部正确
+            const allCorrect = targetScores.every((targetPlayer, index) => {
+                const guessPlayer = guessScores[index]; // Same index since we sort by player
+                return targetPlayer.points === guessPlayer.points &&
+                    targetPlayer.sonnebornBerger === guessPlayer.sonnebornBerger &&
+                    targetPlayer.rank === guessPlayer.rank;
+            });
+
+            if (allCorrect) {
+                alert('恭喜！你猜对了！');
+            }
+        }
+
+        function initGame() {
+            targetResults = generateResults();
+            createInputGrid();
+        }
+
+        initGame();
+    </script>
+</body>
+
+</html>

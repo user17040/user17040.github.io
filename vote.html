@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>课堂投票 Wordle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .voting-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .voting-table th, .voting-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .voting-table th {
+            background-color: #f4f4f4;
+        }
+        .input-cell {
+            width: 40px;
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .correct {
+            background-color: #90EE90;
+        }
+        .incorrect {
+            background-color: #FFB6C1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .rules {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .history {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+        .history-entry {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .excluded {
+            color: #666;
+        }
+        .confirmed {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="rules">
+            <h2>游戏规则</h2>
+            <p>1. 一个班级6个人参与投票</p>
+            <p>2. 每人有2票，必须投给不同的人(包括自己)</p>
+            <p>3. 小票 = 投给这个人的人的票数总和</p>
+            <p>4. 总票数相同时，小票数大的排名靠前</p>
+        </div>
+        
+        <table class="voting-table">
+            <thead>
+                <tr>
+                    <th>投票人\被投票人</th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>D</th>
+                    <th>E</th>
+                    <th>F</th>
+                </tr>
+            </thead>
+            <tbody id="voting-tbody">
+                <!-- JavaScript will populate this -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>总票数</td>
+                    <td id="total-A">0</td>
+                    <td id="total-B">0</td>
+                    <td id="total-C">0</td>
+                    <td id="total-D">0</td>
+                    <td id="total-E">0</td>
+                    <td id="total-F">0</td>
+                </tr>
+                <tr>
+                    <td>小票</td>
+                    <td id="small-A">0</td>
+                    <td id="small-B">0</td>
+                    <td id="small-C">0</td>
+                    <td id="small-D">0</td>
+                    <td id="small-E">0</td>
+                    <td id="small-F">0</td>
+                </tr>
+                <tr>
+                    <td>名次</td>
+                    <td id="rank-A">-</td>
+                    <td id="rank-B">-</td>
+                    <td id="rank-C">-</td>
+                    <td id="rank-D">-</td>
+                    <td id="rank-E">-</td>
+                    <td id="rank-F">-</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <button onclick="submitVotes()">提交答案</button>
+        <div id="result" class="result"></div>
+        <div id="history" class="history">
+            <h3>已排除的可能：</h3>
+            <div id="history-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 生成答案
+        const solution = generateSolution();
+        let currentVotes = Array(6).fill().map(() => Array(6).fill(0));
+        let history = {
+            totalVotes: new Set(),
+            smallVotes: new Set(),
+            ranks: new Set()
+        };
+
+        // 初始化表格
+        function initializeTable() {
+            const tbody = document.getElementById('voting-tbody');
+            const voters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            
+            voters.forEach((voter, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${voter}</td>` + 
+                    voters.map((_, j) => `
+                        <td>
+                            <input type="number" min="0" max="1" value="0" 
+                                class="input-cell" 
+                                onchange="updateVotes(${i}, ${j}, this.value)"
+                                oninput="validateInput(this, ${i})">
+                        </td>
+                    `).join('');
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 生成随机答案
+        function generateSolution() {
+            const solution = Array(6).fill().map(() => Array(6).fill(0));
+            for (let i = 0; i < 6; i++) {
+                let votes = 2;
+                let availableTargets = [...Array(6).keys()];
+                while (votes > 0 && availableTargets.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * availableTargets.length);
+                    const target = availableTargets[randomIndex];
+                    solution[i][target] = 1;
+                    availableTargets.splice(randomIndex, 1);
+                    votes--;
+                }
+            }
+            return solution;
+        }
+
+        // 验证输入
+        function validateInput(input, voterIndex) {
+            let value = parseInt(input.value) || 0;
+            value = Math.min(1, Math.max(0, value));
+            input.value = value;
+
+            // 检查该投票人的总票数
+            const totalVotes = Array.from(document.querySelectorAll(`#voting-tbody tr:nth-child(${voterIndex + 1}) input`))
+                .reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
+
+            if (totalVotes > 2) {
+                input.value = 0;
+                alert('每人只能投2票，且必须投给不同的人！');
+            }
+        }
+
+        // 更新投票
+        function updateVotes(voter, target, value) {
+            currentVotes[voter][target] = parseInt(value) || 0;
+            updateTotals();
+        }
+
+        // 计算总票数和小票
+        function calculateVoteStats(votes) {
+            const totalVotes = Array(6).fill(0);
+            
+            for (let i = 0; i < 6; i++) {
+                for (let j = 0; j < 6; j++) {
+                    totalVotes[j] += votes[i][j];
+                }
+            }
+
+            const smallVotes = Array(6).fill(0);
+            for (let target = 0; target < 6; target++) {
+                for (let voter = 0; voter < 6; voter++) {
+                    if (votes[voter][target] > 0) {
+                        smallVotes[target] += totalVotes[voter];
+                    }
+                }
+            }
+
+            return { totalVotes, smallVotes };
+        }
+
+        // 更新显示的总票数和小票
+        function updateTotals() {
+            const { totalVotes, smallVotes } = calculateVoteStats(currentVotes);
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            
+            letters.forEach((letter, i) => {
+                document.getElementById(`total-${letter}`).textContent = totalVotes[i];
+                document.getElementById(`small-${letter}`).textContent = smallVotes[i];
+            });
+
+            const rankings = calculateRankings(totalVotes, smallVotes);
+            letters.forEach((letter, i) => {
+                document.getElementById(`rank-${letter}`).textContent = rankings[i];
+            });
+        }
+
+        // 计算排名
+        function calculateRankings(totalVotes, smallVotes) {
+            const players = Array(6).fill().map((_, i) => ({
+                index: i,
+                total: totalVotes[i],
+                small: smallVotes[i]
+            }));
+
+            players.sort((a, b) => {
+                if (b.total !== a.total) return b.total - a.total;
+                return b.small - a.small;
+            });
+
+            const rankings = Array(6).fill(0);
+            let currentRank = 1;
+            let prevPlayer = null;
+
+            players.forEach((player, i) => {
+                if (prevPlayer && 
+                    (prevPlayer.total !== player.total || 
+                     prevPlayer.small !== player.small)) {
+                    currentRank = i + 1;
+                }
+                rankings[player.index] = currentRank;
+                prevPlayer = player;
+            });
+
+            return rankings;
+        }
+
+        // 验证每人是否正好投了2票且都投给不同人
+        function validateVotes() {
+            for (let i = 0; i < 6; i++) {
+                const voterVotes = currentVotes[i];
+                const totalVotes = voterVotes.reduce((a, b) => a + b, 0);
+                const uniqueVotes = voterVotes.filter(v => v > 0).length;
+                
+                if (totalVotes !== 2 || uniqueVotes !== 2) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 更新历史记录
+        function updateHistory(currentStats, solutionStats, currentRankings, solutionRankings) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const historyContent = document.getElementById('history-content');
+            
+            // 清空之前的内容
+            historyContent.innerHTML = '';
+
+            // 记录被排除的可能性
+            letters.forEach((letter, i) => {
+                if (currentStats.totalVotes[i] !== solutionStats.totalVotes[i]) {
+                    history.totalVotes.add(`${letter}的总票数: ${currentStats.totalVotes[i]}`);
+                }
+                if (currentStats.smallVotes[i] !== solutionStats.smallVotes[i]) {
+                    history.smallVotes.add(`${letter}的小票: ${currentStats.smallVotes[i]}`);
+                }
+                if (currentRankings[i] !== solutionRankings[i]) {
+                    history.ranks.add(`${letter}的名次: ${currentRankings[i]}`);
+                }
+            });
+
+            // 显示所有被排除的可能性
+            const excludedHTML = ['总票数:', ...history.totalVotes].join('<br>') + 
+                               '<br><br>小票:' + [...history.smallVotes].join('<br>') +
+                               '<br><br>名次:' + [...history.ranks].join('<br>');
+            
+            historyContent.innerHTML = excludedHTML;
+
+            // 更新表格中的颜色
+            letters.forEach((letter, i) => {
+                const totalCell = document.getElementById(`total-${letter}`);
+                const smallCell = document.getElementById(`small-${letter}`);
+                const rankCell = document.getElementById(`rank-${letter}`);
+
+                if (currentStats.totalVotes[i] === solutionStats.totalVotes[i]) {
+                    totalCell.classList.add('correct');
+                }
+                if (currentStats.smallVotes[i] === solutionStats.smallVotes[i]) {
+                    smallCell.classList.add('correct');
+                }
+                if (currentRankings[i] === solutionRankings[i]) {
+                    rankCell.classList.add('correct');
+                }
+            });
+        }
+
+        // 提交答案
+        function submitVotes() {
+            if (!validateVotes()) {
+                alert('每个人必须正好投2票，且必须投给不同的人！');
+                return;
+            }
+
+            const currentStats = calculateVoteStats(currentVotes);
+            const solutionStats = calculateVoteStats(solution);
+            const currentRankings = calculateRankings(currentStats.totalVotes, currentStats.smallVotes);
+            const solutionRankings = calculateRankings(solutionStats.totalVotes, solutionStats.smallVotes);
+
+            updateHistory(currentStats, solutionStats, currentRankings, solutionRankings);
+
+            const isCorrect = currentRankings.every((rank, i) => rank === solutionRankings[i]);
+            const resultDiv = document.getElementById('result');
+            
+            if (isCorrect) {
+                resultDiv.innerHTML = '恭喜！你完全猜对了所有结果！';
+                resultDiv.className = 'result correct';
+            } else {
+                resultDiv.innerHTML = '部分正确！绿色标记表示猜对的数值，请继续尝试！';
+                resultDiv.className = 'result incorrect';
+            }
+        }
+
+        // 初始化游戏
+        initializeTable();
+    </script>
+</body>
+</html>

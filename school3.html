@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .game-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .guess-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .guess-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .cell {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            min-width: 60px;
+        }
+
+        .correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .arrow {
+            font-weight: bold;
+        }
+
+        .arrow.up::after {
+            content: "↑";
+            color: red;
+        }
+
+        .arrow.down::after {
+            content: "↓";
+            color: blue;
+        }
+
+        #title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #message {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div id="title">北京学校猜猜看</div>
+        <div id="message">请输入学校名称开始游戏（↑代表排名更高或历史更悠久）</div>
+        <div class="input-container">
+            <input type="text" id="schoolInput" class="input-box" placeholder="输入学校名称...">
+            <div id="suggestions" class="suggestions"></div>
+        </div>
+        <div class="guess-grid" id="guessGrid"></div>
+    </div>
+
+    <script>
+        const schools = [
+            { name: "北京市第二中学", district: "东城区", year: 1724, x: 39.919715, y: 116.423637, rank: 1 },
+            { name: "北京市第一七一中学", district: "东城区", year: 1958, x: 39.958726, y: 116.428669, rank: 2 },
+            { name: "北京市第五中学", district: "东城区", year: 1928, x: 39.937866, y: 116.414397, rank: 3 },
+            { name: "北京市广渠门中学", district: "东城区", year: 1954, x: 39.896378, y: 116.438489, rank: 4 },
+            { name: "北京市汇文中学", district: "东城区", year: 1871, x: 39.891670, y: 116.433281, rank: 5 },
+            { name: "北京市东直门中学", district: "东城区", year: 1935, x: 39.945201, y: 116.431332, rank: 6 },
+            { name: "北京市龙潭中学", district: "东城区", year: 1968, x: 39.886649, y: 116.443124, rank: 7 },
+        ];
+
+        let targetSchool = null;
+        const guesses = [];
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // 地球半径，单位公里
+
+            // 转换为弧度
+            const lat1Rad = lat1 * Math.PI / 180;
+            const lon1Rad = lon1 * Math.PI / 180;
+            const lat2Rad = lat2 * Math.PI / 180;
+            const lon2Rad = lon2 * Math.PI / 180;
+
+            // Haversine 公式
+            const dLat = lat2Rad - lat1Rad;
+            const dLon = lon2Rad - lon1Rad;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+
+            return distance;
+        }
+
+        function initGame() {
+            targetSchool = schools[Math.floor(Math.random() * schools.length)];
+            setupAutoComplete();
+        }
+
+        function setupAutoComplete() {
+            const input = document.getElementById('schoolInput');
+            const suggestions = document.getElementById('suggestions');
+
+            input.addEventListener('input', function () {
+                const value = this.value.toLowerCase();
+                const matches = schools.filter(school =>
+                    school.name.toLowerCase().includes(value) && value.length > 0
+                );
+
+                displaySuggestions(matches);
+            });
+
+            input.addEventListener('focus', function () {
+                if (this.value.length > 0) {
+                    suggestions.style.display = 'block';
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                    suggestions.style.display = 'none';
+                }
+            });
+        }
+
+        function displaySuggestions(matches) {
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = '';
+
+            if (matches.length > 0) {
+                matches.forEach(school => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = school.name;
+                    div.addEventListener('click', () => {
+                        makeGuess(school);
+                        document.getElementById('schoolInput').value = '';
+                        suggestions.style.display = 'none';
+                    });
+                    suggestions.appendChild(div);
+                });
+                suggestions.style.display = 'block';
+            } else {
+                suggestions.style.display = 'none';
+            }
+        }
+
+        function compareSchools(guess) {
+            const isDistrictCorrect = guess.district === targetSchool.district;
+            const d = new Date();
+            const guessYear = d.getFullYear() - guess.year;
+            const targetYear = d.getFullYear() - targetSchool.year;
+            const yearComparison = guessYear === targetYear ? 'correct' :
+                guessYear < targetYear ? 'up' : 'down';
+
+            const guessDistance = calculateDistance(guess.x, guess.y, targetSchool.x, targetSchool.y);
+            const isDistanceCorrect = guessDistance === 0;
+            const rankComparison = guess.rank === targetSchool.rank ? 'correct' :
+                guess.rank < targetSchool.rank ? 'down' : 'up';
+
+            return {
+                name: guess.name,
+                district: { value: guess.district, correct: isDistrictCorrect },
+                year: { value: guessYear, comparison: yearComparison },
+                distance: { value: guessDistance.toFixed(0), correct: isDistanceCorrect },
+                rank: { value: guess.rank, comparison: rankComparison }
+            };
+        }
+
+        function makeGuess(school) {
+            if (!guesses.some(g => g.name === school.name)) {
+                const result = compareSchools(school);
+                guesses.push(result);
+                updateDisplay();
+
+                if (school.name === targetSchool.name) {
+                    document.getElementById('message').textContent = '恭喜你猜对了！';
+                    document.getElementById('schoolInput').disabled = true;
+                }
+            }
+        }
+
+        function updateDisplay() {
+            const grid = document.getElementById('guessGrid');
+            grid.innerHTML = '';
+
+            guesses.forEach(guess => {
+                const row = document.createElement('div');
+                row.className = 'guess-row';
+
+                // School name
+                const nameCell = document.createElement('div');
+                nameCell.className = `cell ${guess.name === targetSchool.name ? 'correct' : ''}`;
+                nameCell.textContent = guess.name;
+                row.appendChild(nameCell);
+
+                // District
+                const districtCell = document.createElement('div');
+                districtCell.className = `cell ${guess.district.correct ? 'correct' : ''}`;
+                districtCell.textContent = guess.district.value;
+                row.appendChild(districtCell);
+
+                // Year
+                const yearCell = document.createElement('div');
+                yearCell.className = `cell ${guess.year.comparison === 'correct' ? 'correct' : ''}`;
+                yearCell.textContent = guess.year.value + '年';;
+                if (guess.year.comparison !== 'correct') {
+                    yearCell.classList.add('arrow', guess.year.comparison);
+                }
+                row.appendChild(yearCell);
+
+                // Distance
+                const distanceCell = document.createElement('div');
+                distanceCell.className = `cell ${guess.distance.correct ? 'correct' : ''}`;
+                distanceCell.textContent = guess.distance.value + 'm';
+                if (guess.distance.comparison !== 'correct') {
+                    distanceCell.classList.add('arrow', guess.distance.comparison);
+                }
+                row.appendChild(distanceCell);
+
+                // Rank
+                const rankCell = document.createElement('div');
+                rankCell.className = `cell ${guess.rank.comparison === 'correct' ? 'correct' : ''}`;
+                rankCell.textContent = guess.rank.value + '名';
+                if (guess.rank.comparison !== 'correct') {
+                    rankCell.classList.add('arrow', guess.rank.comparison);
+                }
+                row.appendChild(rankCell);
+
+                grid.appendChild(row);
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* 前面的样式保持不变 */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        .header {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            background: white;
+        }
+
+        .school-name {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 16px;
+            min-width: 120px;
+        }
+
+        .remaining-count {
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .correct {
+            background: #6aaa64;
+            color: white;
+            border-color: #6aaa64;
+        }
+
+        .present {
+            background: #c9b458;
+            color: white;
+            border-color: #c9b458;
+        }
+
+        .absent {
+            background: #787c7e;
+            color: white;
+            border-color: #787c7e;
+        }
+
+        .input-container {
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 8px;
+            font-size: 16px;
+            width: 300px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+        }
+
+        .close {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .remaining-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>北京学校校训 Don't Wordle</h1>
+        <p>尽可能避免猜中目标校训，但每次猜测必须是剩余可能答案中的一个</p>
+    </div>
+    <div id="gameBoard"></div>
+    <div class="input-container">
+        <input type="text" id="guessInput" placeholder="输入八字校训..." maxlength="8">
+        <button onclick="makeGuess()">猜测</button>
+    </div>
+    <div id="message" class="message"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>剩余可能的校训：</h2>
+            <div id="remainingList" class="remaining-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const schoolNames = {
+            "勤奋严谨民主开拓": "4中",
+            "诚信严谨求是拓新": "师大附实验",
+            "勤奋进取和谐致美": "8中",
+            "笃志博学质朴方正": "师大二附",
+            "诚真勇毅勤美严实": "35中",
+            "坚定勤奋强健创新": "13中",
+            "团结勤奋求实创新": "14中",
+            "勤思笃学砺志明德": "156中",
+            "求真文明勤奋健美": "3中",
+            "勤思严谨求实创新": "159中",
+            "求实奋进做人成才": "44中",
+            "崇德敬业健康尚美": "31中",
+            "奋发勤学团结为公": "66中",
+            "团结奋进求实创新": "39中",
+            "厚德博爱励学敦行": "7中",
+            "立德笃学健康和谐": "回中",
+            "团结进取勤奋求实": "43中",
+            "博学至德精育英才": "宣外",
+            "德正文兴知清行明": "56中"
+        };
+
+        const targetMotto = getRandomKey(schoolNames);
+        let guesses = [];
+        let possibleAnswers = new Set(Object.keys(schoolNames));
+        // 新增：存储每次猜测时的剩余可能数
+        let historicalCounts = [];
+
+        function getRandomKey(obj) {
+            const keys = Object.keys(obj);
+            const randomIndex = Math.floor(Math.random() * keys.length);
+            return keys[randomIndex];
+        }
+
+        function calculateFeedback(guess) {
+            const status = new Array(8).fill('absent');
+            const charCount = {};
+            const targetCharCount = {};
+
+            for (const char of targetMotto) {
+                targetCharCount[char] = (targetCharCount[char] || 0) + 1;
+            }
+
+            for (let i = 0; i < 8; i++) {
+                if (guess[i] === targetMotto[i]) {
+                    status[i] = 'correct';
+                    const char = guess[i];
+                    charCount[char] = (charCount[char] || 0) + 1;
+                }
+            }
+
+            for (let i = 0; i < 8; i++) {
+                if (status[i] !== 'correct') {
+                    const char = guess[i];
+                    const totalCount = targetCharCount[char] || 0;
+                    const usedCount = charCount[char] || 0;
+
+                    if (targetMotto.includes(char) && usedCount < totalCount) {
+                        status[i] = 'present';
+                        charCount[char] = (charCount[char] || 0) + 1;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        function updatePossibleAnswers(guess, feedback) {
+            const newPossibleAnswers = new Set();
+            
+            for (const motto of possibleAnswers) {
+                if (motto === guess) continue;
+                
+                const testFeedback = calculateTestFeedback(guess, motto);
+                
+                if (arraysEqual(feedback, testFeedback)) {
+                    newPossibleAnswers.add(motto);
+                }
+            }
+            
+            possibleAnswers = newPossibleAnswers;
+            historicalCounts.push(possibleAnswers.size);  // 保存当前的可能数
+        }
+
+        function calculateTestFeedback(guess, testTarget) {
+            const status = new Array(8).fill('absent');
+            const charCount = {};
+            const targetCharCount = {};
+
+            for (const char of testTarget) {
+                targetCharCount[char] = (targetCharCount[char] || 0) + 1;
+            }
+
+            for (let i = 0; i < 8; i++) {
+                if (guess[i] === testTarget[i]) {
+                    status[i] = 'correct';
+                    const char = guess[i];
+                    charCount[char] = (charCount[char] || 0) + 1;
+                }
+            }
+
+            for (let i = 0; i < 8; i++) {
+                if (status[i] !== 'correct') {
+                    const char = guess[i];
+                    const totalCount = targetCharCount[char] || 0;
+                    const usedCount = charCount[char] || 0;
+
+                    if (testTarget.includes(char) && usedCount < totalCount) {
+                        status[i] = 'present';
+                        charCount[char] = (charCount[char] || 0) + 1;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        function arraysEqual(a, b) {
+            return a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        function createGameBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            guesses.forEach((guess, i) => {
+                const row = document.createElement('div');
+                row.className = 'game-container';
+
+                const gridContainer = document.createElement('div');
+                gridContainer.className = 'grid';
+
+                const schoolNameDiv = document.createElement('div');
+                schoolNameDiv.className = 'school-name';
+                schoolNameDiv.textContent = schoolNames[guess] || '未知学校';
+
+                const feedback = calculateFeedback(guess);
+                
+                for (let j = 0; j < 8; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${feedback[j]}`;
+                    cell.textContent = guess[j];
+                    gridContainer.appendChild(cell);
+                }
+
+                const remainingCount = document.createElement('div');
+                remainingCount.className = 'remaining-count';
+                // 使用历史记录的剩余可能数，而不是当前的
+                remainingCount.textContent = `剩余可能: ${historicalCounts[i]}`;
+                remainingCount.onclick = () => showRemainingPossibilities();
+
+                row.appendChild(gridContainer);
+                row.appendChild(schoolNameDiv);
+                row.appendChild(remainingCount);
+                gameBoard.appendChild(row);
+            });
+        }
+
+        function makeGuess() {
+            const input = document.getElementById('guessInput');
+            const guess = input.value.trim();
+            const messageDiv = document.getElementById('message');
+
+            if (guess.length !== 8) {
+                messageDiv.textContent = '请输入八个字的校训';
+                return;
+            }
+
+            if (!schoolNames[guess]) {
+                messageDiv.textContent = '请输入存在的校训';
+                return;
+            }
+
+            if (!possibleAnswers.has(guess)) {
+                messageDiv.textContent = '这个校训不在剩余的可能答案中';
+                return;
+            }
+
+            if (guesses.includes(guess)) {
+                messageDiv.textContent = '这个校训已经猜过了';
+                return;
+            }
+
+            guesses.push(guess);
+            const feedback = calculateFeedback(guess);
+            updatePossibleAnswers(guess, feedback);
+            createGameBoard();
+            input.value = '';
+
+            if (guess === targetMotto) {
+                messageDiv.textContent = '游戏结束！你猜中了目标校训：' + schoolNames[targetMotto];
+                input.disabled = true;
+            } else {
+                messageDiv.textContent = `还有 ${possibleAnswers.size} 种可能`;
+            }
+        }
+
+        function showRemainingPossibilities() {
+            const modal = document.getElementById('modal');
+            const remainingList = document.getElementById('remainingList');
+            
+            remainingList.innerHTML = Array.from(possibleAnswers)
+                .map(motto => `${motto} (${schoolNames[motto]})`)
+                .join('<br>');
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // 初始化游戏板
+        createGameBoard();
+
+        // 添加输入框回车事件监听
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                makeGuess();
+            }
+        });
+
+        // 点击modal外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
